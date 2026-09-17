@@ -248,8 +248,7 @@ router.get("/:id", async (req, res, next) => {
 
 /* =========================================================
    AI IMAGE ANALYSIS
-   PHOTO → TITLE + CATEGORY + DEPARTMENT +
-   DESCRIPTION + SEVERITY
+   PHOTO ? COMPLETE CIVIC ASSESSMENT
 ========================================================= */
 
 router.post(
@@ -257,37 +256,79 @@ router.post(
   requireAuth,
   upload.single("image"),
   async (req, res, next) => {
+
     try {
+
       if (!req.file) {
+
         return res.status(400).json({
+          success: false,
           message: "Image is required."
         });
+
       }
 
-      const imageBase64 = req.file.buffer.toString("base64");
-
-      const result = await analyzeIssueImage(
-        imageBase64,
-        req.file.mimetype
+      console.log(
+        "Image received:",
+        req.file.originalname,
+        req.file.mimetype,
+        `${req.file.size} bytes`
       );
 
-      console.log("AI Image Analysis:", result);
+      const result =
+        await analyzeIssueImage({
+
+          imageBuffer:
+            req.file.buffer,
+
+          mimeType:
+            req.file.mimetype,
+
+          citizenDescription:
+            req.body?.description || ""
+
+        });
+
+      console.log(
+        "AI Image Analysis:",
+        JSON.stringify(
+          result,
+          null,
+          2
+        )
+      );
 
       return res.json({
+
         success: true,
+
         analysis: result
+
       });
 
     } catch (error) {
+
       console.error(
         "Image AI analysis failed:",
         error
       );
 
       return res.status(500).json({
-        message: "Unable to analyze image."
+
+        success: false,
+
+        message:
+          "Unable to analyze image.",
+
+        error:
+          process.env.NODE_ENV === "development"
+            ? error.message
+            : undefined
+
       });
+
     }
+
   }
 );
 

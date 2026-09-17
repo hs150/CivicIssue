@@ -5,7 +5,11 @@ import {
   UploadCloud,
   Sparkles,
   X,
-  RotateCcw
+  RotateCcw,
+  ShieldAlert,
+  MapPin,
+  CheckCircle2,
+  AlertTriangle
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../api.js";
@@ -19,6 +23,16 @@ const categories = [
   ["drainage", "Drainage / Flooding"],
   ["traffic", "Traffic / Signage"],
   ["other", "Other"]
+];
+
+const allowedCategories = [
+  "road",
+  "garbage",
+  "streetlight",
+  "water",
+  "drainage",
+  "traffic",
+  "other"
 ];
 
 export default function ReportIssue() {
@@ -44,12 +58,20 @@ export default function ReportIssue() {
 
   const [image, setImage] = useState(null);
   const [preview, setPreview] = useState("");
+
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const [analyzing, setAnalyzing] = useState(false);
+
   const [similar, setSimilar] = useState([]);
 
   const [cameraOpen, setCameraOpen] = useState(false);
+
+  // =========================================================
+  // COMPLETE AI ANALYSIS STATE
+  // =========================================================
+
+  const [aiAnalysis, setAiAnalysis] = useState(null);
 
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
@@ -66,6 +88,10 @@ export default function ReportIssue() {
     };
   }, []);
 
+  // =========================================================
+  // LOCATION
+  // =========================================================
+
   function useLocation() {
     navigator.geolocation?.getCurrentPosition(
       pos =>
@@ -80,9 +106,9 @@ export default function ReportIssue() {
     );
   }
 
-  // =========================
-  // OPEN CAMERA
-  // =========================
+  // =========================================================
+  // CAMERA
+  // =========================================================
 
   async function openCamera() {
     setMessage("");
@@ -99,14 +125,12 @@ export default function ReportIssue() {
 
       setCameraOpen(true);
 
-      // Wait for video element to render
       setTimeout(() => {
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
           videoRef.current.play();
         }
       }, 100);
-
     } catch (err) {
       console.error("Camera error:", err);
 
@@ -115,10 +139,6 @@ export default function ReportIssue() {
       );
     }
   }
-
-  // =========================
-  // STOP CAMERA
-  // =========================
 
   function stopCamera() {
     if (streamRef.current) {
@@ -132,9 +152,9 @@ export default function ReportIssue() {
     setCameraOpen(false);
   }
 
-  // =========================
+  // =========================================================
   // CAPTURE PHOTO
-  // =========================
+  // =========================================================
 
   function capturePhoto() {
     const video = videoRef.current;
@@ -167,12 +187,8 @@ export default function ReportIssue() {
           }
         );
 
-        setImage(file);
-        setPreview(URL.createObjectURL(file));
-
         stopCamera();
 
-        // Automatically send captured image to AI
         analyzeImage(file);
       },
       "image/jpeg",
@@ -180,9 +196,48 @@ export default function ReportIssue() {
     );
   }
 
-  // =========================
-  // ANALYZE IMAGE WITH AI
-  // =========================
+  // =========================================================
+  // NORMALIZE GEMINI CATEGORY
+  // =========================================================
+
+  function normalizeCategory(category) {
+    const normalized = String(category || "")
+      .trim()
+      .toLowerCase();
+
+    if (allowedCategories.includes(normalized)) {
+      return normalized;
+    }
+
+    return "other";
+  }
+
+  // =========================================================
+  // GENERATE TITLE
+  // =========================================================
+
+  function generateTitle(issue, category) {
+    if (issue?.title) {
+      return issue.title;
+    }
+
+    if (issue?.subcategory) {
+      return issue.subcategory
+        .replace(/[_-]/g, " ")
+        .replace(/\b\w/g, char => char.toUpperCase());
+    }
+
+    const categoryLabel =
+      categories.find(
+        ([value]) => value === category
+      )?.[1];
+
+    return categoryLabel || "Civic Issue Detected";
+  }
+
+  // =========================================================
+  // ANALYZE IMAGE WITH GEMINI
+  // =========================================================
 
   async function analyzeImage(file) {
     if (!file) return;
@@ -193,10 +248,14 @@ export default function ReportIssue() {
     }
 
     setImage(file);
+
     setPreview(URL.createObjectURL(file));
+
     setMessage("");
 
     setAnalyzing(true);
+
+    setAiAnalysis(null);
 
     const data = new FormData();
 
@@ -208,26 +267,224 @@ export default function ReportIssue() {
         data
       );
 
-      const analysis = res.data.analysis;
+      const analysis =
+        res.data?.analysis || {};
 
       console.log(
-        "AI Image Analysis:",
+        "======================================"
+      );
+
+      console.log(
+        "GEMINI COMPLETE ANALYSIS:",
         analysis
       );
 
-      setForm(prev => ({
-        ...prev,
-        title: analysis.title || "",
-        category: analysis.category || "other",
-        department: analysis.department || "",
-        description: analysis.description || "",
-        severity: analysis.severity || ""
-      }));
-
-      setMessage(
-        "✨ AI analyzed the image and filled the complaint details automatically."
+      console.log(
+        "======================================"
       );
 
+      // =====================================================
+      // EXTRACT GEMINI RESPONSE SECTIONS
+      // =====================================================
+
+      const issue =
+        analysis.issue || {};
+
+      const routing =
+        analysis.routing || {};
+
+      const visualEvidence =
+        analysis.visualEvidence || {};
+
+      const safety =
+        analysis.safety || {};
+
+      const locationClues =
+        analysis.locationClues || {};
+
+      const environment =
+        analysis.environment || {};
+
+      const evidence =
+        analysis.evidence || {};
+
+      const ai =
+        analysis.ai || {};
+
+      // =====================================================
+      // CATEGORY
+      // =====================================================
+
+      const finalCategory =
+        normalizeCategory(
+          issue.category
+        );
+
+      // =====================================================
+      // TITLE
+      // =====================================================
+
+      const finalTitle =
+        generateTitle(
+          issue,
+          finalCategory
+        );
+
+      // =====================================================
+      // DESCRIPTION
+      // =====================================================
+
+      let finalDescription =
+        issue.description ||
+        "";
+
+      if (
+        routing.recommendedAction &&
+        !finalDescription.includes(
+          routing.recommendedAction
+        )
+      ) {
+        finalDescription +=
+          ` Recommended action: ${routing.recommendedAction}`;
+      }
+
+      if (!finalDescription) {
+        finalDescription =
+          "AI detected a potential civic issue from the uploaded image.";
+      }
+
+      // =====================================================
+      // LOCATION CLUES
+      // =====================================================
+
+      let detectedAddress = "";
+
+      if (
+        Array.isArray(
+          locationClues.visibleText
+        )
+      ) {
+        const addressCandidate =
+          locationClues.visibleText.find(
+            text =>
+              text &&
+              !/^lat\b/i.test(text) &&
+              !/^long\b/i.test(text) &&
+              !/^gps/i.test(text) &&
+              !/^\d{2}\/\d{2}\/\d{4}/.test(
+                text
+              )
+          );
+
+        detectedAddress =
+          addressCandidate || "";
+      }
+
+      // =====================================================
+      // STORE COMPLETE AI ANALYSIS
+      // =====================================================
+
+      setAiAnalysis({
+        issue,
+        routing,
+        visualEvidence,
+        safety,
+        locationClues,
+        environment,
+        evidence,
+        ai
+      });
+
+      // =====================================================
+      // POPULATE FORM
+      // =====================================================
+
+      setForm(prev => ({
+        ...prev,
+
+        title:
+          finalTitle,
+
+        category:
+          finalCategory,
+
+        department:
+          routing.department ||
+          "",
+
+        description:
+          finalDescription,
+
+        severity:
+          issue.severity ||
+          "",
+
+        address:
+          prev.address ||
+          detectedAddress ||
+          ""
+      }));
+
+      // =====================================================
+      // IF GEMINI FOUND LOCATION COORDINATES
+      // =====================================================
+
+      const visibleText =
+        Array.isArray(
+          locationClues.visibleText
+        )
+          ? locationClues.visibleText
+          : [];
+
+      const coordinateText =
+        visibleText.find(
+          text =>
+            typeof text === "string" &&
+            /Lat\s*-?\d+\.\d+.*Long\s*-?\d+\.\d+/i.test(
+              text
+            )
+        );
+
+      if (coordinateText) {
+        const match =
+          coordinateText.match(
+            /Lat\s*(-?\d+(?:\.\d+)?)\D+Long\s*(-?\d+(?:\.\d+)?)/i
+          );
+
+        if (match) {
+          const latitude =
+            Number(match[1]);
+
+          const longitude =
+            Number(match[2]);
+
+          if (
+            Number.isFinite(latitude) &&
+            Number.isFinite(longitude)
+          ) {
+            setLocation({
+              latitude,
+              longitude
+            });
+          }
+        }
+      }
+
+      // =====================================================
+      // AI STATUS MESSAGE
+      // =====================================================
+
+      if (
+        evidence.relevant === false
+      ) {
+        setMessage(
+          "⚠️ AI could not confirm a clear civic issue. Please review the details before submitting."
+        );
+      } else {
+        setMessage(
+          "✨ AI analyzed the image and filled the complaint details automatically."
+        );
+      }
     } catch (err) {
       console.error(
         "Image analysis failed:",
@@ -238,36 +495,47 @@ export default function ReportIssue() {
         err.response?.data?.message ||
         "AI could not analyze this image. You can fill the details manually."
       );
-
     } finally {
       setAnalyzing(false);
     }
   }
 
-  // =========================
+  // =========================================================
   // UPLOAD IMAGE
-  // =========================
+  // =========================================================
 
   async function chooseImage(e) {
-    const file = e.target.files?.[0];
+    const file =
+      e.target.files?.[0];
 
     if (!file) return;
 
     await analyzeImage(file);
   }
 
-  // =========================
+  // =========================================================
   // SUBMIT ISSUE
-  // =========================
+  // =========================================================
 
   async function submit(e) {
     e.preventDefault();
 
+    if (analyzing) {
+      setMessage(
+        "Please wait for AI image analysis to finish."
+      );
+
+      return;
+    }
+
     setLoading(true);
+
     setMessage("");
+
     setSimilar([]);
 
-    const data = new FormData();
+    const data =
+      new FormData();
 
     data.append(
       "title",
@@ -307,10 +575,11 @@ export default function ReportIssue() {
     }
 
     try {
-      const res = await api.post(
-        "/issues",
-        data
-      );
+      const res =
+        await api.post(
+          "/issues",
+          data
+        );
 
       setSimilar(
         res.data.similarIssues || []
@@ -327,27 +596,72 @@ export default function ReportIssue() {
           ),
         1000
       );
-
     } catch (err) {
+      console.error(
+        "Issue submission failed:",
+        err
+      );
+
       setMessage(
         err.response?.data?.message ||
         "Could not submit the issue."
       );
-
     } finally {
       setLoading(false);
     }
   }
 
-  function updateForm(field, value) {
+  // =========================================================
+  // FORM UPDATE
+  // =========================================================
+
+  function updateForm(
+    field,
+    value
+  ) {
     setForm(prev => ({
       ...prev,
       [field]: value
     }));
   }
 
+  // =========================================================
+  // SEVERITY HELPER
+  // =========================================================
+
+  function severityClass(
+    severity
+  ) {
+    const value =
+      String(
+        severity || ""
+      ).toLowerCase();
+
+    if (value === "high") {
+      return "bg-red-50 text-red-700 border-red-200";
+    }
+
+    if (value === "medium") {
+      return "bg-amber-50 text-amber-700 border-amber-200";
+    }
+
+    if (value === "low") {
+      return "bg-emerald-50 text-emerald-700 border-emerald-200";
+    }
+
+    return "bg-slate-50 text-slate-600 border-slate-200";
+  }
+
+  // =========================================================
+  // RENDER
+  // =========================================================
+
   return (
     <div className="mx-auto max-w-6xl px-5 py-12">
+
+      {/* =====================================================
+          HEADER
+      ===================================================== */}
 
       <div className="max-w-2xl">
 
@@ -366,10 +680,18 @@ export default function ReportIssue() {
 
       </div>
 
+      {/* =====================================================
+          MAIN FORM
+      ===================================================== */}
+
       <form
         onSubmit={submit}
         className="mt-8 grid gap-6 lg:grid-cols-[1fr_.9fr]"
       >
+
+        {/* ===================================================
+            LEFT PANEL
+        =================================================== */}
 
         <div className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
 
@@ -445,7 +767,9 @@ export default function ReportIssue() {
             Severity
 
             <input
-              className="field mt-2"
+              className={`field mt-2 ${severityClass(
+                form.severity
+              )}`}
               value={form.severity}
               onChange={e =>
                 updateForm(
@@ -495,7 +819,9 @@ export default function ReportIssue() {
             />
           </label>
 
-          {/* PHOTO */}
+          {/* =================================================
+              PHOTO
+          ================================================= */}
 
           <div>
 
@@ -503,10 +829,10 @@ export default function ReportIssue() {
               Photo
             </p>
 
-            {/* CAMERA BUTTON */}
-
             {!cameraOpen && (
               <div className="mt-2 grid gap-3 sm:grid-cols-2">
+
+                {/* CAMERA */}
 
                 <button
                   type="button"
@@ -514,8 +840,11 @@ export default function ReportIssue() {
                   className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-700 p-4 font-bold text-white hover:bg-emerald-800"
                 >
                   <Camera size={20} />
+
                   Take Photo
                 </button>
+
+                {/* UPLOAD */}
 
                 <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 p-4 font-bold text-slate-600 hover:bg-slate-50">
 
@@ -526,7 +855,7 @@ export default function ReportIssue() {
                   <input
                     className="hidden"
                     type="file"
-                    accept="image/*"
+                    accept="image/jpeg,image/png,image/webp,image/jpg"
                     onChange={chooseImage}
                   />
 
@@ -535,7 +864,9 @@ export default function ReportIssue() {
               </div>
             )}
 
-            {/* LIVE CAMERA */}
+            {/* =================================================
+                CAMERA
+            ================================================= */}
 
             {cameraOpen && (
               <div className="mt-3 overflow-hidden rounded-2xl bg-black">
@@ -556,6 +887,7 @@ export default function ReportIssue() {
                     className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white"
                   >
                     <Camera size={20} />
+
                     Capture
                   </button>
 
@@ -565,6 +897,7 @@ export default function ReportIssue() {
                     className="flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 font-bold text-slate-700"
                   >
                     <X size={20} />
+
                     Close
                   </button>
 
@@ -580,7 +913,9 @@ export default function ReportIssue() {
               className="hidden"
             />
 
-            {/* IMAGE PREVIEW */}
+            {/* =================================================
+                IMAGE PREVIEW
+            ================================================= */}
 
             {preview && !cameraOpen && (
               <div className="relative mt-3">
@@ -598,6 +933,7 @@ export default function ReportIssue() {
                     className="absolute bottom-3 right-3 flex items-center gap-2 rounded-xl bg-black/70 px-3 py-2 text-sm font-bold text-white"
                   >
                     <RotateCcw size={16} />
+
                     Retake
                   </button>
                 )}
@@ -607,22 +943,175 @@ export default function ReportIssue() {
 
           </div>
 
-          {/* AI STATUS */}
+          {/* =================================================
+              AI ANALYZING
+          ================================================= */}
 
           {analyzing && (
-            <div className="rounded-xl bg-blue-50 p-4 text-sm font-semibold text-blue-800">
+            <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm font-semibold text-blue-800">
 
               <Sparkles
                 size={18}
                 className="mr-2 inline animate-pulse"
               />
 
-              Your image is currently being analyzed...
+              Gemini is analyzing the image...
+
+              <p className="mt-2 text-xs font-normal text-blue-700">
+                Detecting issue type, severity, visual evidence,
+                hazards, location clues and responsible department.
+              </p>
 
             </div>
           )}
 
-          {/* SUBMIT */}
+          {/* =================================================
+              AI ANALYSIS RESULT
+          ================================================= */}
+
+          {aiAnalysis && !analyzing && (
+            <div className="space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+
+              <div className="flex items-center gap-2">
+
+                <Sparkles
+                  size={18}
+                  className="text-emerald-700"
+                />
+
+                <p className="font-black text-emerald-900">
+                  AI Analysis Complete
+                </p>
+
+              </div>
+
+              {/* CONFIDENCE */}
+
+              {aiAnalysis.evidence?.confidence !==
+                undefined && (
+                <div className="text-xs text-emerald-800">
+                  AI confidence:{" "}
+                  <b>
+                    {Math.round(
+                      Number(
+                        aiAnalysis.evidence.confidence
+                      ) * 100
+                    )}
+                    %
+                  </b>
+                </div>
+              )}
+
+              {/* SUBCATEGORY */}
+
+              {aiAnalysis.issue?.subcategory && (
+                <div className="rounded-xl bg-white p-3">
+
+                  <p className="text-xs font-bold uppercase text-slate-400">
+                    Detected issue
+                  </p>
+
+                  <p className="mt-1 font-bold text-slate-800">
+                    {aiAnalysis.issue.subcategory}
+                  </p>
+
+                </div>
+              )}
+
+              {/* PRIORITY */}
+
+              {aiAnalysis.issue?.priority && (
+                <div className="flex items-center justify-between rounded-xl bg-white p-3">
+
+                  <span className="text-sm font-bold text-slate-600">
+                    Priority
+                  </span>
+
+                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black uppercase">
+                    {aiAnalysis.issue.priority}
+                  </span>
+
+                </div>
+              )}
+
+              {/* HAZARD */}
+
+              <div className="flex items-center justify-between rounded-xl bg-white p-3">
+
+                <div className="flex items-center gap-2">
+
+                  {aiAnalysis.safety?.hazardDetected ? (
+                    <AlertTriangle
+                      size={18}
+                      className="text-red-600"
+                    />
+                  ) : (
+                    <ShieldAlert
+                      size={18}
+                      className="text-emerald-600"
+                    />
+                  )}
+
+                  <span className="text-sm font-bold text-slate-700">
+                    Safety hazard
+                  </span>
+
+                </div>
+
+                <span className="text-xs font-black uppercase">
+                  {aiAnalysis.safety?.hazardDetected
+                    ? "Detected"
+                    : "None detected"}
+                </span>
+
+              </div>
+
+              {/* IMAGE RELEVANCE */}
+
+              {aiAnalysis.evidence?.relevant !==
+                undefined && (
+                <div className="flex items-center gap-2 text-xs font-semibold">
+
+                  {aiAnalysis.evidence.relevant ? (
+                    <>
+                      <CheckCircle2
+                        size={15}
+                        className="text-emerald-600"
+                      />
+
+                      Image is relevant to civic reporting.
+                    </>
+                  ) : (
+                    <>
+                      <AlertTriangle
+                        size={15}
+                        className="text-amber-600"
+                      />
+
+                      Image may not show a clear civic issue.
+                    </>
+                  )}
+
+                </div>
+              )}
+
+              {/* HUMAN REVIEW */}
+
+              {aiAnalysis.ai?.requiresHumanReview && (
+                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold text-amber-800">
+
+                  ⚠️ AI recommends human review before this
+                  issue is processed.
+
+                </div>
+              )}
+
+            </div>
+          )}
+
+          {/* =================================================
+              SUBMIT
+          ================================================= */}
 
           <button
             disabled={
@@ -633,10 +1122,14 @@ export default function ReportIssue() {
           >
             {loading
               ? "Submitting..."
-              : "Submit report"}
+              : analyzing
+                ? "AI analyzing..."
+                : "Submit report"}
           </button>
 
-          {/* MESSAGE */}
+          {/* =================================================
+              MESSAGE
+          ================================================= */}
 
           {message && (
             <div className="rounded-xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
@@ -644,7 +1137,9 @@ export default function ReportIssue() {
             </div>
           )}
 
-          {/* SIMILAR */}
+          {/* =================================================
+              SIMILAR ISSUES
+          ================================================= */}
 
           {similar.length > 0 && (
             <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-800">
@@ -654,7 +1149,9 @@ export default function ReportIssue() {
               </b>{" "}
 
               {similar
-                .map(s => s.title)
+                .map(
+                  s => s.title
+                )
                 .join(", ")}
 
             </div>
@@ -662,7 +1159,9 @@ export default function ReportIssue() {
 
         </div>
 
-        {/* LOCATION */}
+        {/* ===================================================
+            LOCATION PANEL
+        =================================================== */}
 
         <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
 
@@ -686,10 +1185,13 @@ export default function ReportIssue() {
               className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold"
             >
               <Crosshair size={16} />
+
               Use GPS
             </button>
 
           </div>
+
+          {/* MAP */}
 
           <div className="mt-4">
 
@@ -700,9 +1202,11 @@ export default function ReportIssue() {
 
           </div>
 
+          {/* COORDINATES */}
+
           <div className="mt-3 rounded-xl bg-slate-50 p-3 text-xs text-slate-500">
 
-            <Camera
+            <MapPin
               size={14}
               className="mr-1 inline"
             />
@@ -711,6 +1215,67 @@ export default function ReportIssue() {
             {location.longitude.toFixed(6)}
 
           </div>
+
+          {/* AI LOCATION CLUES */}
+
+          {aiAnalysis?.locationClues &&
+            Array.isArray(
+              aiAnalysis.locationClues.visibleText
+            ) &&
+            aiAnalysis.locationClues.visibleText.length >
+              0 && (
+              <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 p-4">
+
+                <p className="text-xs font-black uppercase text-blue-700">
+                  AI detected location clues
+                </p>
+
+                <div className="mt-2 space-y-1">
+
+                  {aiAnalysis.locationClues.visibleText.map(
+                    (text, index) => (
+                      <p
+                        key={index}
+                        className="text-xs text-blue-900"
+                      >
+                        • {text}
+                      </p>
+                    )
+                  )}
+
+                </div>
+
+              </div>
+            )}
+
+          {/* LANDMARKS */}
+
+          {aiAnalysis?.locationClues?.landmarks &&
+            aiAnalysis.locationClues.landmarks.length >
+              0 && (
+              <div className="mt-4 rounded-2xl bg-slate-50 p-4">
+
+                <p className="text-xs font-black uppercase text-slate-500">
+                  Detected landmarks
+                </p>
+
+                <div className="mt-2 space-y-1">
+
+                  {aiAnalysis.locationClues.landmarks.map(
+                    (landmark, index) => (
+                      <p
+                        key={index}
+                        className="text-xs text-slate-700"
+                      >
+                        • {landmark}
+                      </p>
+                    )
+                  )}
+
+                </div>
+
+              </div>
+            )}
 
         </div>
 
