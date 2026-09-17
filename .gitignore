@@ -7,3 +7,15 @@ dist/
 coverage/
 .vscode/
 .idea/
+
+# Local backups
+CivicIssue-backup-*/
+
+# Runtime
+server/uploads/
+*.log
+
+# Environment
+.env
+.env.*
+!.env.example
