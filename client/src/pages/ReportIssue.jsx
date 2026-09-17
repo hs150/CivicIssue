@@ -617,7 +617,7 @@ export default function ReportIssue() {
                 className="mr-2 inline animate-pulse"
               />
 
-              Gemini AI is analyzing your image...
+              Your image is currently being analyzed...
 
             </div>
           )}
