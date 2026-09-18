@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import multer from "multer";
 import { randomUUID } from "crypto";
 
@@ -70,6 +70,8 @@ function normalizeIssue(row) {
         upvotes: row.upvotes,
 
         resolutionNote: row.resolution_note,
+        resolutionImageUrl: row.resolution_image_url,
+        fixVerification: row.fix_verification || {},
         resolvedAt: row.resolved_at,
 
         conditions: row.conditions || {},
@@ -228,6 +230,110 @@ router.get("/mine", requireAuth, async (req, res, next) => {
 
         res.json({
             issues: result.rows.map(normalizeIssue)
+        });
+
+    } catch (error) {
+        next(error);
+    }
+});
+
+
+/* =========================================================
+   GEO-DEDUPLICATION: NEARBY ISSUES
+========================================================= */
+
+router.get("/nearby", async (req, res, next) => {
+    try {
+        const { lat, lng, radius = 500, category } = req.query;
+
+        if (!lat || !lng) {
+            return res.status(400).json({
+                message: "lat and lng are required."
+            });
+        }
+
+        const latitude = Number(lat);
+        const longitude = Number(lng);
+        const radiusMeters = Number(radius);
+
+        if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+            return res.status(400).json({
+                message: "Invalid coordinates."
+            });
+        }
+
+        const params = [latitude, longitude, radiusMeters];
+        let categoryFilter = "";
+
+        if (category) {
+            params.push(category);
+            categoryFilter = `AND LOWER(i.category) = LOWER($${params.length})`;
+        }
+
+        const result = await query(
+            `
+            SELECT * FROM (
+                SELECT
+                    i.id,
+                    i.issue_code,
+                    i.title,
+                    i.description,
+                    i.category,
+                    i.image_url,
+                    i.latitude,
+                    i.longitude,
+                    i.address,
+                    i.status,
+                    i.phase,
+                    i.priority,
+                    i.upvotes,
+                    i.created_at,
+
+                    (
+                        6371000 * acos(
+                            LEAST(1.0, GREATEST(-1.0,
+                                cos(radians($1)) * cos(radians(i.latitude))
+                                * cos(radians(i.longitude) - radians($2))
+                                + sin(radians($1)) * sin(radians(i.latitude))
+                            ))
+                        )
+                    ) AS distance_meters
+
+                FROM issues i
+
+                WHERE i.phase NOT IN ('CLOSED', 'REJECTED')
+
+                ${categoryFilter}
+            ) sub
+
+            WHERE sub.distance_meters <= $3
+
+            ORDER BY sub.distance_meters ASC
+
+            LIMIT 10
+            `,
+            params
+        );
+
+        res.json({
+            nearby: result.rows.map(row => ({
+                _id: row.id,
+                id: row.id,
+                issueCode: row.issue_code,
+                title: row.title,
+                description: row.description,
+                category: row.category,
+                imageUrl: row.image_url,
+                latitude: row.latitude,
+                longitude: row.longitude,
+                address: row.address,
+                status: row.status,
+                phase: row.phase,
+                priority: row.priority,
+                upvotes: row.upvotes,
+                createdAt: row.created_at,
+                distanceMeters: Math.round(Number(row.distance_meters))
+            }))
         });
 
     } catch (error) {

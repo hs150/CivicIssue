@@ -1,4 +1,5 @@
-﻿import { Router } from "express";
+import { Router } from "express";
+import multer from "multer";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { query, withTransaction } from "../db/index.js";
 import {
@@ -7,8 +8,18 @@ import {
     PHASES
 } from "../services/phaseEngine.js";
 import { sendNotification } from "../services/notify.js";
+import { verifyFix } from "../services/aiService.js";
+import { uploadImage } from "../services/storage.js";
 
 const router = Router();
+
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        cb(null, /^image\/(jpeg|png|webp|jpg)$/i.test(file.mimetype));
+    }
+});
 
 router.use(
     requireAuth,
@@ -135,7 +146,8 @@ Body:
 {
     "phase": "IN_PROGRESS",
     "assignedTo": "uuid",
-    "resolutionNote": "..."
+    "resolutionNote": "...",
+    "resolutionImageUrl": "..."
 }
 
 The server NEVER trusts the frontend phase.
@@ -151,7 +163,8 @@ router.patch(
             const {
                 phase,
                 assignedTo,
-                resolutionNote
+                resolutionNote,
+                resolutionImageUrl
             } = req.body;
 
             if (!phase) {
@@ -263,9 +276,17 @@ router.patch(
 
                         }
 
+                        // Auto-assign current officer if transitioning to IN_PROGRESS
+                        if (
+                            phase === PHASES.IN_PROGRESS &&
+                            !finalAssignedTo
+                        ) {
+                            finalAssignedTo = req.user.id;
+                        }
+
                         /*
                         -----------------------------------------
-                        Resolution note
+                        Resolution note & image
                         -----------------------------------------
                         */
 
@@ -273,6 +294,11 @@ router.patch(
                             resolutionNote !== undefined
                                 ? resolutionNote
                                 : issue.resolution_note;
+
+                        const finalResolutionImageUrl =
+                            resolutionImageUrl !== undefined
+                                ? resolutionImageUrl
+                                : issue.resolution_image_url;
 
                         /*
                         -----------------------------------------
@@ -374,6 +400,8 @@ router.patch(
                                     resolved_at =
                                         ${resolvedAt},
 
+                                    resolution_image_url = $6,
+
                                     updated_at = NOW()
 
                                 WHERE id = $5
@@ -387,7 +415,8 @@ router.patch(
                                     JSON.stringify(
                                         conditions
                                     ),
-                                    req.params.id
+                                    req.params.id,
+                                    finalResolutionImageUrl
                                 ]
                             );
 
@@ -518,6 +547,92 @@ router.patch(
     }
 );
 
+/*
+=========================================================
+PROOF-OF-FIX VERIFICATION
+=========================================================
+
+POST /officer/issues/:id/verify-fix
+
+Upload a proof-of-fix photo. The AI compares it against
+the original issue image to detect fraud.
+=========================================================
+*/
+
+router.post(
+    "/issues/:id/verify-fix",
+    upload.single("image"),
+    async (req, res, next) => {
+
+        try {
+
+            if (!req.file) {
+                return res.status(400).json({
+                    message: "Proof-of-fix image is required."
+                });
+            }
+
+            // Get the original issue
+            const issueResult = await query(
+                "SELECT id, image_url, title, description FROM issues WHERE id = $1",
+                [req.params.id]
+            );
+
+            if (issueResult.rowCount === 0) {
+                return res.status(404).json({
+                    message: "Issue not found."
+                });
+            }
+
+            const issue = issueResult.rows[0];
+
+            // Upload the resolution image
+            const resolutionImageUrl =
+                await uploadImage(req.file);
+
+            // AI verification: compare before vs after
+            const verification = await verifyFix({
+                beforeImageUrl: issue.image_url,
+                afterImageBuffer: req.file.buffer,
+                afterMimeType: req.file.mimetype,
+                issueDescription: issue.description
+            });
+
+            // Store results in DB
+            await query(
+                `
+                UPDATE issues
+                SET
+                    resolution_image_url = $1,
+                    fix_verification = $2::jsonb,
+                    updated_at = NOW()
+                WHERE id = $3
+                `,
+                [
+                    resolutionImageUrl,
+                    JSON.stringify(verification),
+                    req.params.id
+                ]
+            );
+
+            res.json({
+                success: true,
+                resolutionImageUrl,
+                verification
+            });
+
+        } catch (error) {
+
+            console.error(
+                "Fix verification failed:",
+                error
+            );
+
+            next(error);
+
+        }
+
+    }
+);
+
 export default router;
-
-

@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import {
   Camera,
   Crosshair,
@@ -9,9 +9,12 @@ import {
   ShieldAlert,
   MapPin,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  ThumbsUp,
+  ExternalLink,
+  MapPinOff
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { api } from "../api.js";
 import MapPicker from "../components/MapPicker.jsx";
 
@@ -68,6 +71,15 @@ export default function ReportIssue() {
   const [cameraOpen, setCameraOpen] = useState(false);
 
   // =========================================================
+  // GEO-DEDUPLICATION STATE
+  // =========================================================
+
+  const [nearbyIssues, setNearbyIssues] = useState([]);
+  const [dedupDismissed, setDedupDismissed] = useState(false);
+  const [checkingNearby, setCheckingNearby] = useState(false);
+  const nearbyTimerRef = useRef(null);
+
+  // =========================================================
   // COMPLETE AI ANALYSIS STATE
   // =========================================================
 
@@ -85,8 +97,42 @@ export default function ReportIssue() {
 
     return () => {
       stopCamera();
+      if (nearbyTimerRef.current) clearTimeout(nearbyTimerRef.current);
     };
   }, []);
+
+  // =========================================================
+  // GEO-DEDUPLICATION: CHECK NEARBY ISSUES
+  // =========================================================
+
+  useEffect(() => {
+    if (nearbyTimerRef.current) clearTimeout(nearbyTimerRef.current);
+
+    nearbyTimerRef.current = setTimeout(async () => {
+      if (!location.latitude || !location.longitude) return;
+
+      setCheckingNearby(true);
+      try {
+        const params = new URLSearchParams({
+          lat: location.latitude,
+          lng: location.longitude,
+          radius: 500
+        });
+        if (form.category && form.category !== "other") {
+          params.set("category", form.category);
+        }
+        const res = await api.get(`/issues/nearby?${params}`);
+        setNearbyIssues(res.data.nearby || []);
+        setDedupDismissed(false);
+      } catch (err) {
+        console.error("Nearby check failed:", err);
+        setNearbyIssues([]);
+      } finally {
+        setCheckingNearby(false);
+      }
+    }, 800); // 800ms debounce
+
+  }, [location.latitude, location.longitude, form.category]);
 
   // =========================================================
   // LOCATION
@@ -1110,13 +1156,68 @@ export default function ReportIssue() {
           )}
 
           {/* =================================================
+              GEO-DEDUPLICATION PROMPT
+          ================================================= */}
+
+          {nearbyIssues.length > 0 && !dedupDismissed && (
+            <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-5">
+
+              <div className="flex items-center gap-2">
+                <MapPinOff size={20} className="text-amber-700" />
+                <p className="font-black text-amber-900">
+                  Similar issues found nearby!
+                </p>
+              </div>
+
+              <p className="mt-2 text-sm text-amber-800">
+                We found {nearbyIssues.length} existing issue{nearbyIssues.length > 1 ? "s" : ""} within 500m of your location.
+                Consider supporting an existing report instead of creating a duplicate.
+              </p>
+
+              <div className="mt-4 space-y-2">
+                {nearbyIssues.map(nearby => (
+                  <div key={nearby.id} className="flex items-center gap-3 rounded-xl bg-white p-3 shadow-sm">
+                    <div className="flex-1 min-w-0">
+                      <Link
+                        to={`/issues/${nearby.id}`}
+                        className="font-bold text-sm text-slate-800 hover:text-emerald-700 truncate block"
+                      >
+                        {nearby.title}
+                      </Link>
+                      <p className="text-xs text-slate-500 mt-0.5">
+                        {nearby.distanceMeters}m away • {nearby.phase?.replace(/_/g, " ")} • {nearby.upvotes || 0} supporters
+                      </p>
+                    </div>
+                    <Link
+                      to={`/issues/${nearby.id}`}
+                      className="flex shrink-0 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-700"
+                    >
+                      <ThumbsUp size={13} />
+                      Support
+                    </Link>
+                  </div>
+                ))}
+              </div>
+
+              <button
+                type="button"
+                onClick={() => setDedupDismissed(true)}
+                className="mt-4 w-full rounded-xl border border-amber-400 px-4 py-2.5 text-sm font-bold text-amber-800 hover:bg-amber-100 transition-colors"
+              >
+                This is a different issue — continue submitting
+              </button>
+            </div>
+          )}
+
+          {/* =================================================
               SUBMIT
           ================================================= */}
 
           <button
             disabled={
               loading ||
-              analyzing
+              analyzing ||
+              (nearbyIssues.length > 0 && !dedupDismissed)
             }
             className="w-full rounded-xl bg-emerald-700 px-5 py-3.5 font-bold text-white disabled:opacity-60"
           >
@@ -1124,7 +1225,9 @@ export default function ReportIssue() {
               ? "Submitting..."
               : analyzing
                 ? "AI analyzing..."
-                : "Submit report"}
+                : nearbyIssues.length > 0 && !dedupDismissed
+                  ? "Review nearby issues first"
+                  : "Submit report"}
           </button>
 
           {/* =================================================
