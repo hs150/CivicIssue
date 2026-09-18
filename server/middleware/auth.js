@@ -1,37 +1,72 @@
-import jwt from "jsonwebtoken";
-import User from "../models/User.js";
-import { getDemoUser } from "../utils/demoStore.js";
+﻿import jwt from "jsonwebtoken";
+import { query } from "../db/index.js";
 
 export async function requireAuth(req, res, next) {
-  try {
-    const header = req.headers.authorization || "";
-    const token = header.startsWith("Bearer ") ? header.slice(7) : null;
+    try {
+        const header = req.headers.authorization;
 
-    if (!token) return res.status(401).json({ message: "Authentication required." });
+        if (!header || !header.startsWith("Bearer ")) {
+            return res.status(401).json({
+                message: "Authentication required."
+            });
+        }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || "demo-secret-change-me");
+        const token = header.substring(7);
 
-    if (process.env.MONGO_URI) {
-      const user = await User.findById(decoded.id).select("-password");
-      if (!user) return res.status(401).json({ message: "User not found." });
-      req.user = user;
-    } else {
-      const user = getDemoUser(decoded.id);
-      if (!user) return res.status(401).json({ message: "User not found." });
-      req.user = user;
+        const decoded = jwt.verify(
+            token,
+            process.env.JWT_SECRET
+        );
+
+        const result = await query(
+            `
+            SELECT
+                id,
+                name,
+                email,
+                role,
+                created_at
+            FROM users
+            WHERE id = $1
+            `,
+            [decoded.id]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(401).json({
+                message: "User no longer exists."
+            });
+        }
+
+        req.user = result.rows[0];
+
+        next();
+
+    } catch (error) {
+
+        console.error("Authentication error:", error.message);
+
+        return res.status(401).json({
+            message: "Invalid or expired authentication token."
+        });
     }
-
-    next();
-  } catch {
-    return res.status(401).json({ message: "Invalid or expired token." });
-  }
 }
 
 export function requireRole(...roles) {
-  return (req, res, next) => {
-    if (!req.user || !roles.includes(req.user.role)) {
-      return res.status(403).json({ message: "You do not have permission for this action." });
-    }
-    next();
-  };
+    return (req, res, next) => {
+
+        if (!req.user) {
+            return res.status(401).json({
+                message: "Authentication required."
+            });
+        }
+
+        if (!roles.includes(req.user.role)) {
+            return res.status(403).json({
+                message: "Insufficient permissions."
+            });
+        }
+
+        next();
+    };
 }

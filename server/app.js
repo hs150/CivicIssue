@@ -1,4 +1,4 @@
-import express from "express";
+﻿import express from "express";
 import cors from "cors";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -23,7 +23,7 @@ app.get("/api/health", (req, res) => {
   res.json({
     ok: true,
     service: "CivicConnect API",
-    mode: process.env.MONGO_URI ? "mongodb" : "demo"
+    mode: process.env.DATABASE_URL ? "postgresql" : "demo"
   });
 });
 
@@ -34,3 +34,4 @@ app.use("/api/officer", officerRoutes);
 app.use(errorHandler);
 
 export default app;
+
