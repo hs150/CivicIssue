@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { useNavigate, Link } from "react-router-dom";
 import { api } from "../api.js";
+import { useToast } from "../context/ToastContext.jsx";
 import MapPicker from "../components/MapPicker.jsx";
 
 const categories = [
@@ -40,6 +41,7 @@ const allowedCategories = [
 
 export default function ReportIssue() {
   const navigate = useNavigate();
+  const toast = useToast();
 
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
@@ -634,6 +636,7 @@ export default function ReportIssue() {
       setMessage(
         `Issue ${res.data.issue.issueCode} submitted successfully.`
       );
+      toast.success(`Issue ${res.data.issue.issueCode} submitted successfully! 🚀`);
 
       setTimeout(
         () =>
@@ -648,10 +651,11 @@ export default function ReportIssue() {
         err
       );
 
-      setMessage(
+      const errorMsg =
         err.response?.data?.message ||
-        "Could not submit the issue."
-      );
+        "Could not submit the issue.";
+      setMessage(errorMsg);
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
     }
@@ -727,12 +731,68 @@ export default function ReportIssue() {
       </div>
 
       {/* =====================================================
+          STEP PROGRESS INDICATOR
+      ===================================================== */}
+
+      <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className={`rounded-2xl p-3.5 border transition-all flex items-center gap-3 ${
+          preview && !analyzing
+            ? "border-emerald-500 bg-emerald-50/80 text-emerald-900 shadow-xs"
+            : analyzing
+            ? "border-blue-500 bg-blue-50 text-blue-900 animate-pulse shadow-xs"
+            : "border-slate-200 bg-white text-slate-500"
+        }`}>
+          <span className={`h-6 w-6 rounded-full grid place-items-center text-xs font-black ${
+            preview && !analyzing ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"
+          }`}>1</span>
+          <div className="flex flex-col">
+            <span className="text-xs font-black">Evidence & AI Scan</span>
+            <span className="text-[10px] text-slate-400">
+              {preview ? (analyzing ? "Scanning..." : "Analyzed") : "Photo required"}
+            </span>
+          </div>
+        </div>
+
+        <div className={`rounded-2xl p-3.5 border transition-all flex items-center gap-3 ${
+          location.latitude && location.longitude && !checkingNearby
+            ? "border-emerald-500 bg-emerald-50/80 text-emerald-900 shadow-xs"
+            : checkingNearby
+            ? "border-amber-500 bg-amber-50 text-amber-900 animate-pulse shadow-xs"
+            : "border-slate-200 bg-white text-slate-500"
+        }`}>
+          <span className={`h-6 w-6 rounded-full grid place-items-center text-xs font-black ${
+            location.latitude && location.longitude ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"
+          }`}>2</span>
+          <div className="flex flex-col">
+            <span className="text-xs font-black">Location & Dedup</span>
+            <span className="text-[10px] text-slate-400">
+              {checkingNearby ? "Checking radius..." : `${nearbyIssues.length} nearby detected`}
+            </span>
+          </div>
+        </div>
+
+        <div className={`rounded-2xl p-3.5 border transition-all flex items-center gap-3 ${
+          form.title && form.description
+            ? "border-emerald-500 bg-emerald-50/80 text-emerald-900 shadow-xs"
+            : "border-slate-200 bg-white text-slate-500"
+        }`}>
+          <span className={`h-6 w-6 rounded-full grid place-items-center text-xs font-black ${
+            form.title && form.description ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"
+          }`}>3</span>
+          <div className="flex flex-col">
+            <span className="text-xs font-black">Review & Submit</span>
+            <span className="text-[10px] text-slate-400">Ready to transmit</span>
+          </div>
+        </div>
+      </div>
+
+      {/* =====================================================
           MAIN FORM
       ===================================================== */}
 
       <form
         onSubmit={submit}
-        className="mt-8 grid gap-6 lg:grid-cols-[1fr_.9fr]"
+        className="mt-6 grid gap-6 lg:grid-cols-[1fr_.9fr]"
       >
 
         {/* ===================================================
@@ -964,23 +1024,54 @@ export default function ReportIssue() {
             ================================================= */}
 
             {preview && !cameraOpen && (
-              <div className="relative mt-3">
+              <div className="relative mt-3 overflow-hidden rounded-2xl border border-slate-200">
 
                 <img
                   src={preview}
                   alt="Captured civic issue"
-                  className="h-56 w-full rounded-2xl object-cover"
+                  className={`h-60 w-full object-cover transition duration-300 ${
+                    analyzing ? "brightness-75 contrast-125 saturate-150" : ""
+                  }`}
                 />
+
+                {/* HUD Reticle & Laser Sweep Overlay */}
+                {analyzing && (
+                  <div className="absolute inset-0 z-20 flex flex-col justify-between p-4 pointer-events-none border-2 border-emerald-400/80 rounded-2xl bg-emerald-950/25">
+                    {/* Top Reticles */}
+                    <div className="flex justify-between items-center">
+                      <div className="h-4 w-4 border-t-2 border-l-2 border-emerald-400" />
+                      <div className="flex items-center gap-1.5 rounded-full bg-slate-950/85 px-3 py-1 text-[11px] font-black text-emerald-300 border border-emerald-400/40 shadow-xl backdrop-blur-md">
+                        <Sparkles size={12} className="animate-spin text-emerald-400" />
+                        <span>AI RETINA SCANNING</span>
+                      </div>
+                      <div className="h-4 w-4 border-t-2 border-r-2 border-emerald-400" />
+                    </div>
+
+                    {/* Scanning Laser Beam */}
+                    <div className="relative w-full">
+                      <div
+                        className="h-1 w-full bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_20px_#10b981] animate-pulse"
+                      />
+                    </div>
+
+                    {/* Bottom Reticles */}
+                    <div className="flex justify-between items-center text-[10px] text-emerald-300/80 font-mono">
+                      <div className="h-4 w-4 border-b-2 border-l-2 border-emerald-400" />
+                      <span>ANALYZING TEXTURE & HAZARDS</span>
+                      <div className="h-4 w-4 border-b-2 border-r-2 border-emerald-400" />
+                    </div>
+                  </div>
+                )}
 
                 {!analyzing && (
                   <button
                     type="button"
                     onClick={openCamera}
-                    className="absolute bottom-3 right-3 flex items-center gap-2 rounded-xl bg-black/70 px-3 py-2 text-sm font-bold text-white"
+                    className="absolute bottom-3 right-3 flex items-center gap-2 rounded-xl bg-black/75 backdrop-blur-md px-3 py-2 text-xs font-bold text-white shadow-md hover:bg-black transition"
                   >
-                    <RotateCcw size={16} />
+                    <RotateCcw size={14} />
 
-                    Retake
+                    Retake Photo
                   </button>
                 )}
 
