@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Bell, LogIn, LogOut, Menu, ShieldCheck, X } from "lucide-react";
+import { Bell, LogIn, LogOut, Menu, ShieldCheck, X, Plus, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 
@@ -16,39 +16,147 @@ export default function Layout({ children }) {
     close();
   }
 
-  return (
-    <div className="min-h-screen">
-      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/90 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-5 py-4">
-          <Link to="/" className="flex items-center gap-3 font-black tracking-tight text-slate-900" onClick={close}>
-            <span className="grid h-10 w-10 place-items-center rounded-xl bg-emerald-700 text-lg text-white">C</span>
-            <span>Civic<span className="text-emerald-700">Connect</span></span>
-          </Link>
+  const navLinkClass = ({ isActive }) =>
+    `rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200 ${
+      isActive
+        ? "bg-emerald-50 text-emerald-800 shadow-xs"
+        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+    }`;
 
-          <button className="rounded-xl p-2 md:hidden" onClick={() => setOpen(!open)}>
-            {open ? <X /> : <Menu />}
+  return (
+    <div className="min-h-screen flex flex-col bg-slate-50/50">
+      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-md transition-shadow duration-200">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-3.5">
+          {/* Logo & Hackathon Chip */}
+          <div className="flex items-center gap-3">
+            <Link to="/" className="flex items-center gap-2.5 font-black tracking-tight text-slate-900" onClick={close}>
+              <div className="relative grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-lg font-black text-white shadow-md shadow-emerald-700/25">
+                C
+                <span className="absolute -top-1 -right-1 flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-lg leading-tight">Civic<span className="text-emerald-700">Connect</span></span>
+                <span className="text-[10px] font-semibold tracking-wider text-emerald-600 uppercase flex items-center gap-1">
+                  <Sparkles size={10} /> AI City OS
+                </span>
+              </div>
+            </Link>
+          </div>
+
+          {/* Mobile hamburger */}
+          <button
+            className="rounded-xl p-2 text-slate-700 hover:bg-slate-100 md:hidden"
+            onClick={() => setOpen(!open)}
+            aria-label="Toggle menu"
+          >
+            {open ? <X size={22} /> : <Menu size={22} />}
           </button>
 
-          <nav className={`${open ? "absolute left-0 right-0 top-full flex" : "hidden"} flex-col gap-2 border-b bg-white p-4 md:static md:flex md:flex-row md:border-0 md:bg-transparent md:p-0`}>
-            <NavLink to="/" onClick={close} className="navlink">Home</NavLink>
-            <NavLink to="/issues" onClick={close} className="navlink">Explore Issues</NavLink>
-            {user && <NavLink to="/my-issues" onClick={close} className="navlink">My Issues</NavLink>}
-            {user?.role !== "citizen" && user && <NavLink to="/dashboard" onClick={close} className="navlink flex items-center gap-1"><ShieldCheck size={16}/> Dashboard</NavLink>}
+          {/* Desktop & Mobile Navigation Links */}
+          <nav
+            className={`${
+              open ? "absolute left-0 right-0 top-full flex flex-col border-b border-slate-200 bg-white/95 p-4 shadow-xl backdrop-blur-lg" : "hidden"
+            } md:static md:flex md:flex-row md:items-center md:gap-1.5 md:border-0 md:bg-transparent md:p-0 md:shadow-none`}
+          >
+            <NavLink to="/" onClick={close} className={navLinkClass}>
+              Home
+            </NavLink>
+            <NavLink to="/issues" onClick={close} className={navLinkClass}>
+              Explore Issues
+            </NavLink>
+
+            {user && (
+              <NavLink to="/my-issues" onClick={close} className={navLinkClass}>
+                My Issues
+              </NavLink>
+            )}
+
+            {user && user.role !== "citizen" && (
+              <NavLink
+                to="/dashboard"
+                onClick={close}
+                className={({ isActive }) =>
+                  `rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200 flex items-center gap-1.5 ${
+                    isActive
+                      ? "bg-indigo-50 text-indigo-700 font-bold"
+                      : "text-indigo-600 hover:bg-indigo-50/70"
+                  }`
+                }
+              >
+                <ShieldCheck size={16} /> Officer Desk
+              </NavLink>
+            )}
+
+            {/* Separator on desktop */}
+            <div className="hidden md:block h-6 w-px bg-slate-200 mx-2" />
+
+            {/* Report CTA */}
+            <Link
+              to="/report"
+              onClick={close}
+              className="my-2 md:my-0 inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-bold text-white shadow-md shadow-emerald-700/20 hover:from-emerald-700 hover:to-teal-700 transition active:scale-95"
+            >
+              <Plus size={16} /> Report Issue
+            </Link>
+
+            {/* User Session Info / Role Badge */}
             {user ? (
-              <button onClick={handleLogout} className="navlink flex items-center gap-2 text-red-600"><LogOut size={16}/> Logout</button>
+              <div className="flex items-center gap-2 pt-2 md:pt-0 md:ml-2 border-t md:border-t-0 border-slate-100">
+                <div className="flex items-center gap-2">
+                  <div className="h-8 w-8 rounded-full bg-slate-200 text-slate-700 font-bold text-xs grid place-items-center uppercase border border-slate-300">
+                    {user.name ? user.name.charAt(0) : "U"}
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs font-bold text-slate-800 line-clamp-1 max-w-[110px] leading-tight">
+                      {user.name || user.email}
+                    </span>
+                    <span
+                      className={`text-[10px] font-bold px-1.5 py-0.2 rounded-full w-fit ${
+                        user.role === "officer" || user.role === "admin"
+                          ? "bg-indigo-100 text-indigo-700"
+                          : "bg-emerald-100 text-emerald-700"
+                      }`}
+                    >
+                      {user.role === "officer" || user.role === "admin" ? "🛡️ Officer" : "👤 Citizen"}
+                    </span>
+                  </div>
+                </div>
+
+                <button
+                  onClick={handleLogout}
+                  title="Logout"
+                  className="rounded-xl p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition ml-1"
+                >
+                  <LogOut size={16} />
+                </button>
+              </div>
             ) : (
-              <Link to="/login" onClick={close} className="navlink flex items-center gap-2"><LogIn size={16}/> Login</Link>
+              <Link
+                to="/login"
+                onClick={close}
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+              >
+                <LogIn size={15} /> Login
+              </Link>
             )}
           </nav>
         </div>
       </header>
 
-      <main>{children}</main>
+      <main className="flex-1">{children}</main>
 
-      <footer className="mt-20 border-t border-slate-200 bg-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-2 px-5 py-8 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
-          <p>© {new Date().getFullYear()} CivicConnect • Hackathon Prototype</p>
-          <p className="flex items-center gap-2"><Bell size={14}/> Report responsibly. Never use this for emergencies.</p>
+      <footer className="mt-20 border-t border-slate-200/80 bg-white">
+        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-8 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
+          <div className="flex items-center gap-2 font-medium">
+            <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
+            <span>© {new Date().getFullYear()} CivicConnect • AI-Driven Civic Response Platform</span>
+          </div>
+          <p className="flex items-center gap-2 text-xs text-slate-400">
+            <Bell size={13} /> Official Prototype. In emergency situations, call 112 directly.
+          </p>
         </div>
       </footer>
     </div>
