@@ -1,4 +1,4 @@
-﻿import { Router } from "express";
+import { Router } from "express";
 import { requireAuth, requireRole } from "../middleware/auth.js";
 import { query, withTransaction } from "../db/index.js";
 import {
@@ -311,7 +311,7 @@ router.patch(
                                     issueForEngine,
 
                                 actor:
-                                    req.user.id
+                                    req.user._id
 
                             });
 
@@ -426,7 +426,7 @@ router.patch(
                                 updatedIssue.id,
                                 phase,
                                 phase,
-                                req.user.id,
+                                req.user._id,
                                 finalResolutionNote ||
                                     `Phase changed to ${phase}`,
                                 JSON.stringify(
@@ -519,5 +519,3 @@ router.patch(
 );
 
 export default router;
-
-

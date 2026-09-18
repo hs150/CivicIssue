@@ -1,72 +1,126 @@
-import { buildIssueFields, distanceMeters } from "../services/issueService.js";
-import { analyzeIssue, analyzeIssueImage } from "../services/aiService.js";
-import { Router } from "express";
+﻿import { Router } from "express";
 import multer from "multer";
 import { randomUUID } from "crypto";
-import Issue from "../models/Issue.js";
-import Comment from "../models/Comment.js";
-import StatusHistory from "../models/StatusHistory.js";
-import User from "../models/User.js";
-import { requireAuth } from "../middleware/auth.js";
-import { categoryInfo, calculatePriority } from "../constants.js";
-import { uploadImage } from "../services/storage.js";
-import { sendNotification } from "../services/notify.js";
 
-import { demo, getDemoUser, publicUser } from "../utils/demoStore.js";
+import { query, withTransaction } from "../db/index.js";
+import { requireAuth } from "../middleware/auth.js";
+import { analyzeIssueImage } from "../services/aiService.js";
+import { uploadImage } from "../services/storage.js";
+import { calculatePriority, categoryInfo } from "../constants.js";
+import { distanceMeters } from "../services/issueService.js";
+import { sendNotification } from "../services/notify.js";
 
 const router = Router();
 
 const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: { fileSize: 5 * 1024 * 1024 },
-  fileFilter: (req, file, cb) => {
-    cb(null, /^image\/(jpeg|png|webp|jpg)$/.test(file.mimetype));
-  }
+    storage: multer.memoryStorage(),
+    limits: {
+        fileSize: 5 * 1024 * 1024
+    },
+    fileFilter: (req, file, cb) => {
+        const allowed = /^image\/(jpeg|png|webp|jpg)$/i.test(
+            file.mimetype
+        );
+
+        cb(null, allowed);
+    }
 });
 
-function normalizeIssue(issue) {
-  if (!issue) return null;
 
-  const raw = issue.toObject ? issue.toObject() : issue;
+/* =========================================================
+   HELPERS
+========================================================= */
 
-  return {
-    ...raw,
-    reporter: raw.reportedBy?.name ? raw.reportedBy : undefined,
-    assignedOfficer: raw.assignedTo?.name ? raw.assignedTo : undefined
-  };
+function normalizeIssue(row) {
+    if (!row) return null;
+
+    return {
+        _id: row.id,
+        id: row.id,
+
+        issueCode: row.issue_code,
+
+        title: row.title,
+        description: row.description,
+
+        category: row.category,
+        department: row.department,
+
+        imageUrl: row.image_url,
+
+        location: {
+            latitude: row.latitude,
+            longitude: row.longitude,
+            address: row.address
+        },
+
+        latitude: row.latitude,
+        longitude: row.longitude,
+        address: row.address,
+
+        reportedBy: row.reported_by,
+        assignedTo: row.assigned_to,
+
+        status: row.status,
+        phase: row.phase,
+
+        priority: row.priority,
+        priorityScore: row.priority_score,
+
+        upvotes: row.upvotes,
+
+        resolutionNote: row.resolution_note,
+        resolvedAt: row.resolved_at,
+
+        conditions: row.conditions || {},
+        aiAnalysis: row.ai_analysis || {},
+
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+
+        reporter: row.reporter_name
+            ? {
+                id: row.reported_by,
+                name: row.reporter_name,
+                email: row.reporter_email
+            }
+            : undefined,
+
+        assignedOfficer: row.officer_name
+            ? {
+                id: row.assigned_to,
+                name: row.officer_name,
+                email: row.officer_email
+            }
+            : undefined
+    };
 }
 
-async function findSimilar({ category, latitude, longitude, excludeId }) {
-  if (!latitude || !longitude) return [];
 
-  if (process.env.MONGO_URI) {
-    const issues = await Issue.find({
-      category,
-      status: { $ne: "CLOSED" }
-    })
-      .limit(50)
-      .lean();
+function issueSelect() {
+    return `
+        SELECT
+            i.*,
 
-    return issues.filter(
-      i =>
-        i._id.toString() !== excludeId &&
-        distanceMeters(i.location, {
-          latitude,
-          longitude
-        }) <= 100
-    );
-  }
+            reporter.name AS reporter_name,
+            reporter.email AS reporter_email,
 
-  return demo.issues.filter(
-    i =>
-      i.category === category &&
-      i._id !== excludeId &&
-      i.status !== "CLOSED" &&
-      distanceMeters(i.location, {
-        latitude,
-        longitude
-      }) <= 100
-  );
+            officer.name AS officer_name,
+            officer.email AS officer_email
+
+        FROM issues i
+
+        LEFT JOIN users reporter
+            ON reporter.id = i.reported_by
+
+        LEFT JOIN users officer
+            ON officer.id = i.assigned_to
+    `;
+}
+
+
+function getIssueCode() {
+    return `CC-${Date.now().toString().slice(-8)}`;
 }
 
 
@@ -75,74 +129,82 @@ async function findSimilar({ category, latitude, longitude, excludeId }) {
 ========================================================= */
 
 router.get("/", async (req, res, next) => {
-  try {
-    const { status, category, mine, search } = req.query;
+    try {
+        const {
+            status,
+            category,
+            mine,
+            search,
+            phase
+        } = req.query;
 
-    if (process.env.MONGO_URI) {
-      const filter = {};
+        const conditions = [];
+        const params = [];
 
-      if (status) filter.status = status;
-      if (category) filter.category = category;
-
-      if (search) {
-        filter.$or = [
-          { title: { $regex: search, $options: "i" } },
-          { description: { $regex: search, $options: "i" } }
-        ];
-      }
-
-      if (mine && req.headers.authorization) {
-        const auth = req.headers.authorization.slice(7);
-
-        filter.reportedBy = req.query.userId || undefined;
-
-        if (!filter.reportedBy) {
-          delete filter.reportedBy;
+        if (status) {
+            params.push(status);
+            conditions.push(`i.status = $${params.length}`);
         }
-      }
 
-      const issues = await Issue.find(filter)
-        .populate("reportedBy", "name email")
-        .populate("assignedTo", "name email")
-        .sort({ createdAt: -1 })
-        .limit(100);
+        if (phase) {
+            params.push(phase);
+            conditions.push(`i.phase = $${params.length}`);
+        }
 
-      return res.json({
-        issues: issues.map(normalizeIssue)
-      });
+        if (category) {
+            params.push(category);
+            conditions.push(`LOWER(i.category) = LOWER($${params.length})`);
+        }
+
+        if (search) {
+            params.push(`%${search}%`);
+
+            conditions.push(`
+                (
+                    i.title ILIKE $${params.length}
+                    OR
+                    i.description ILIKE $${params.length}
+                    OR
+                    i.issue_code ILIKE $${params.length}
+                )
+            `);
+        }
+
+        if (mine) {
+            if (!req.user) {
+                return res.status(401).json({
+                    message: "Authentication required."
+                });
+            }
+
+            params.push(req.user.id);
+            conditions.push(`i.reported_by = $${params.length}`);
+        }
+
+        const where = conditions.length
+            ? `WHERE ${conditions.join(" AND ")}`
+            : "";
+
+        const result = await query(
+            `
+            ${issueSelect()}
+
+            ${where}
+
+            ORDER BY i.created_at DESC
+
+            LIMIT 100
+            `,
+            params
+        );
+
+        res.json({
+            issues: result.rows.map(normalizeIssue)
+        });
+
+    } catch (error) {
+        next(error);
     }
-
-    let issues = [...demo.issues];
-
-    if (status) {
-      issues = issues.filter(i => i.status === status);
-    }
-
-    if (category) {
-      issues = issues.filter(i => i.category === category);
-    }
-
-    if (search) {
-      const q = search.toLowerCase();
-
-      issues = issues.filter(i =>
-        `${i.title} ${i.description}`
-          .toLowerCase()
-          .includes(q)
-      );
-    }
-
-    if (mine) {
-      issues = issues.filter(
-        i => i.reportedBy === req.query.userId
-      );
-    }
-
-    return res.json({ issues });
-
-  } catch (error) {
-    next(error);
-  }
 });
 
 
@@ -151,29 +213,26 @@ router.get("/", async (req, res, next) => {
 ========================================================= */
 
 router.get("/mine", requireAuth, async (req, res, next) => {
-  try {
-    if (process.env.MONGO_URI) {
-      const issues = await Issue.find({
-        reportedBy: req.user._id
-      })
-        .populate("reportedBy", "name email")
-        .populate("assignedTo", "name email")
-        .sort({ createdAt: -1 });
+    try {
 
-      return res.json({
-        issues: issues.map(normalizeIssue)
-      });
+        const result = await query(
+            `
+            ${issueSelect()}
+
+            WHERE i.reported_by = $1
+
+            ORDER BY i.created_at DESC
+            `,
+            [req.user.id]
+        );
+
+        res.json({
+            issues: result.rows.map(normalizeIssue)
+        });
+
+    } catch (error) {
+        next(error);
     }
-
-    return res.json({
-      issues: demo.issues.filter(
-        i => i.reportedBy === req.user._id
-      )
-    });
-
-  } catch (error) {
-    next(error);
-  }
 });
 
 
@@ -182,154 +241,176 @@ router.get("/mine", requireAuth, async (req, res, next) => {
 ========================================================= */
 
 router.get("/:id", async (req, res, next) => {
-  try {
-    if (process.env.MONGO_URI) {
-      const issue = await Issue.findById(req.params.id)
-        .populate("reportedBy", "name email")
-        .populate("assignedTo", "name email");
+    try {
 
-      if (!issue) {
-        return res.status(404).json({
-          message: "Issue not found."
+        const issueId = req.params.id?.trim();
+
+        // PostgreSQL issues.id is UUID.
+        // Reject missing/invalid IDs before querying PostgreSQL.
+        const uuidRegex =
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
+        if (!issueId || !uuidRegex.test(issueId)) {
+            return res.status(400).json({
+                message: "Invalid issue ID.",
+                issueId: issueId || null
+            });
+        }
+
+        const result = await query(
+            `
+            ${issueSelect()}
+
+            WHERE i.id = $1
+            `,
+            [issueId]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).json({
+                message: "Issue not found."
+            });
+        }
+
+        const issue = normalizeIssue(result.rows[0]);
+
+        const commentsResult = await query(
+            `
+            SELECT
+                c.id,
+                c.issue_id,
+                c.text,
+                c.created_at,
+
+                u.id AS user_id,
+                u.name AS user_name,
+                u.role AS user_role
+
+            FROM comments c
+
+            LEFT JOIN users u
+                ON u.id = c.user_id
+
+            WHERE c.issue_id = $1
+
+            ORDER BY c.created_at ASC
+            `,
+            [issueId]
+        );
+
+        const historyResult = await query(
+            `
+            SELECT
+                h.id,
+                h.issue_id,
+                h.status,
+                h.phase,
+                h.changed_by,
+                h.remarks,
+                h.conditions,
+                h.created_at,
+
+                u.name AS changed_by_name,
+                u.role AS changed_by_role
+
+            FROM status_history h
+
+            LEFT JOIN users u
+                ON u.id = h.changed_by
+
+            WHERE h.issue_id = $1
+
+            ORDER BY h.created_at ASC
+            `,
+            [issueId]
+        );
+
+        res.json({
+            issue,
+
+            comments: commentsResult.rows.map(c => ({
+                id: c.id,
+                issueId: c.issue_id,
+                text: c.text,
+                createdAt: c.created_at,
+
+                userId: {
+                    id: c.user_id,
+                    name: c.user_name,
+                    role: c.user_role
+                }
+            })),
+
+            history: historyResult.rows.map(h => ({
+                id: h.id,
+                issueId: h.issue_id,
+                status: h.status,
+                phase: h.phase,
+                changedBy: {
+                    id: h.changed_by,
+                    name: h.changed_by_name,
+                    role: h.changed_by_role
+                },
+                remarks: h.remarks,
+                conditions: h.conditions || {},
+                createdAt: h.created_at
+            }))
         });
-      }
 
-      const comments = await Comment.find({
-        issueId: issue._id
-      })
-        .populate("userId", "name role")
-        .sort({ createdAt: 1 });
-
-      const history = await StatusHistory.find({
-        issueId: issue._id
-      })
-        .populate("changedBy", "name role")
-        .sort({ createdAt: 1 });
-
-      return res.json({
-        issue: normalizeIssue(issue),
-        comments,
-        history
-      });
+    } catch (error) {
+        next(error);
     }
-
-    const issue = demo.issues.find(
-      i => i._id === req.params.id
-    );
-
-    if (!issue) {
-      return res.status(404).json({
-        message: "Issue not found."
-      });
-    }
-
-    const comments = demo.comments
-      .filter(c => c.issueId === issue._id)
-      .map(c => ({
-        ...c,
-        userId: publicUser(getDemoUser(c.userId))
-      }));
-
-    const history = demo.history.filter(
-      h => h.issueId === issue._id
-    );
-
-    res.json({
-      issue,
-      comments,
-      history
-    });
-
-  } catch (error) {
-    next(error);
-  }
 });
 
 
 /* =========================================================
    AI IMAGE ANALYSIS
-   PHOTO ? COMPLETE CIVIC ASSESSMENT
 ========================================================= */
 
 router.post(
-  "/analyze-image",
-  requireAuth,
-  upload.single("image"),
-  async (req, res, next) => {
+    "/analyze-image",
+    requireAuth,
+    upload.single("image"),
+    async (req, res, next) => {
 
-    try {
+        try {
 
-      if (!req.file) {
+            if (!req.file) {
+                return res.status(400).json({
+                    message: "Image is required."
+                });
+            }
 
-        return res.status(400).json({
-          success: false,
-          message: "Image is required."
-        });
+            const imageBase64 =
+                req.file.buffer.toString("base64");
 
-      }
+            const result = await analyzeIssueImage({
+                imageBuffer: Buffer.from(imageBase64, "base64"),
+                mimeType: req.file.mimetype
+            });
 
-      console.log(
-        "Image received:",
-        req.file.originalname,
-        req.file.mimetype,
-        `${req.file.size} bytes`
-      );
+            console.log(
+                "AI Image Analysis:",
+                result
+            );
 
-      const result =
-        await analyzeIssueImage({
+            res.json({
+                success: true,
+                analysis: result
+            });
 
-          imageBuffer:
-            req.file.buffer,
+        } catch (error) {
 
-          mimeType:
-            req.file.mimetype,
+            console.error(
+                "Image AI analysis failed:",
+                error
+            );
 
-          citizenDescription:
-            req.body?.description || ""
-
-        });
-
-      console.log(
-        "AI Image Analysis:",
-        JSON.stringify(
-          result,
-          null,
-          2
-        )
-      );
-
-      return res.json({
-
-        success: true,
-
-        analysis: result
-
-      });
-
-    } catch (error) {
-
-      console.error(
-        "Image AI analysis failed:",
-        error
-      );
-
-      return res.status(500).json({
-
-        success: false,
-
-        message:
-          "Unable to analyze image.",
-
-        error:
-          process.env.NODE_ENV === "development"
-            ? error.message
-            : undefined
-
-      });
-
+            res.status(500).json({
+                message: "Unable to analyze image."
+            });
+        }
     }
-
-  }
 );
 
 
@@ -338,401 +419,274 @@ router.post(
 ========================================================= */
 
 router.post(
-  "/",
-  requireAuth,
-  upload.single("image"),
-  async (req, res, next) => {
-    try {
-      const {
-        title,
-        description,
-        category,
-        latitude,
-        longitude,
-        address
-      } = req.body;
+    "/",
+    requireAuth,
+    upload.single("image"),
+    async (req, res, next) => {
 
-      if (
-        !title ||
-        !description ||
-        !category ||
-        latitude === undefined ||
-        longitude === undefined
-      ) {
-        return res.status(400).json({
-          message:
-            "Title, description, category and location are required."
-        });
-      }
+        try {
 
-      const imageUrl = await uploadImage(req.file);
+            const {
+                title,
+                description,
+                category,
+                department,
+                latitude,
+                longitude,
+                address,
+                severity,
+                priority
+            } = req.body;
 
-      /* ---------------------------------------------
-         AI TEXT ANALYSIS
-      --------------------------------------------- */
+            if (
+                !title ||
+                !description ||
+                !category ||
+                latitude === undefined ||
+                longitude === undefined
+            ) {
+                return res.status(400).json({
+                    message:
+                        "Title, description, category and location are required."
+                });
+            }
 
-      let aiAnalysis;
+            let imageUrl = null;
 
-      try {
-        aiAnalysis = await analyzeIssue({
-          title,
-          description
-        });
+            if (req.file) {
+                imageUrl = await uploadImage(req.file);
+            }
 
-        console.log(
-          "AI Analysis:",
-          aiAnalysis
-        );
+            const calculated =
+                calculatePriority
+                    ? calculatePriority({
+                        category,
+                        severity
+                    })
+                    : {
+                        priority: priority || "MEDIUM",
+                        score: 50
+                    };
 
-      } catch (error) {
-        console.error(
-          "AI analysis failed:",
-          error
-        );
+            const issueId = randomUUID();
 
-        aiAnalysis = {
-          category,
-          severity: "MEDIUM",
-          reason: "AI analysis was unavailable."
-        };
-      }
+            const issueCode = getIssueCode();
 
+            const conditions = {
+                submitted: true,
+                aiAnalyzed: false
+            };
 
-      /* ---------------------------------------------
-         AI CATEGORY
-      --------------------------------------------- */
+            const aiAnalysis = {};
 
-      const finalCategory =
-        aiAnalysis.category;
+            const inserted = await withTransaction(
+                async client => {
 
+                    const issueResult =
+                        await client.query(
+                            `
+                            INSERT INTO issues (
+                                id,
+                                issue_code,
+                                title,
+                                description,
+                                category,
+                                department,
+                                image_url,
+                                latitude,
+                                longitude,
+                                address,
+                                reported_by,
+                                status,
+                                phase,
+                                priority,
+                                priority_score,
+                                upvotes,
+                                conditions,
+                                ai_analysis
+                            )
 
-      /* ---------------------------------------------
-         FIND SIMILAR ISSUES
-      --------------------------------------------- */
+                            VALUES (
+                                $1,
+                                $2,
+                                $3,
+                                $4,
+                                $5,
+                                $6,
+                                $7,
+                                $8,
+                                $9,
+                                $10,
+                                $11,
+                                'NEW',
+                                'NEW',
+                                $12,
+                                $13,
+                                0,
+                                $14,
+                                $15
+                            )
 
-      const similar = await findSimilar({
-        category: finalCategory,
-        latitude: Number(latitude),
-        longitude: Number(longitude)
-      });
+                            RETURNING *
+                            `,
+                            [
+                                issueId,
+                                issueCode,
+                                title,
+                                description,
+                                category,
+                                department || null,
+                                imageUrl,
+                                Number(latitude),
+                                Number(longitude),
+                                address || null,
+                                req.user.id,
+                                calculated.priority || priority || "MEDIUM",
+                                calculated.score || 50,
+                                JSON.stringify(conditions),
+                                JSON.stringify(aiAnalysis)
+                            ]
+                        );
 
+                    await client.query(
+                        `
+                        INSERT INTO status_history (
+                            issue_id,
+                            status,
+                            phase,
+                            changed_by,
+                            remarks,
+                            conditions
+                        )
 
-      /* ---------------------------------------------
-         EXISTING PRIORITY SYSTEM
-      --------------------------------------------- */
+                        VALUES (
+                            $1,
+                            'NEW',
+                            'NEW',
+                            $2,
+                            $3,
+                            $4
+                        )
+                        `,
+                        [
+                            issueId,
+                            req.user.id,
+                            "Issue reported",
+                            JSON.stringify(conditions)
+                        ]
+                    );
 
-      const fields = buildIssueFields({
-        category: finalCategory,
-        upvotes: 0
-      });
+                    return issueResult.rows[0];
+                }
+            );
 
+            const response = normalizeIssue(inserted);
 
-      const issueCode =
-        `CC-${Math.floor(1000 + Math.random() * 9000)}`;
+            try {
+                await sendNotification(
+                    "issue-created",
+                    response
+                );
+            } catch (notificationError) {
+                console.error(
+                    "Notification failed:",
+                    notificationError.message
+                );
+            }
 
+            res.status(201).json({
+                success: true,
+                issue: response
+            });
 
-      /* ---------------------------------------------
-         MONGODB MODE
-      --------------------------------------------- */
-
-      if (process.env.MONGO_URI) {
-
-        const issue = await Issue.create({
-          issueCode,
-          title,
-          description,
-          ...fields,
-          imageUrl,
-          location: {
-            latitude: Number(latitude),
-            longitude: Number(longitude),
-            address
-          },
-          reportedBy: req.user._id
-        });
-
-
-        await StatusHistory.create({
-          issueId: issue._id,
-          status: "NEW",
-          changedBy: req.user._id,
-          remarks: "Issue reported"
-        });
-
-
-        await sendNotification({
-          to: req.user.email,
-          subject:
-            `CivicConnect: ${issue.issueCode} received`,
-          text:
-            `Your civic issue "${issue.title}" has been received and is now NEW.`
-        });
-
-
-        return res.status(201).json({
-          issue,
-          similarIssues: similar
-        });
-      }
-
-
-      /* ---------------------------------------------
-         DEMO MODE
-      --------------------------------------------- */
-
-      const issue = {
-        _id: randomUUID(),
-        issueCode,
-
-        title,
-        description,
-
-        ...fields,
-
-        imageUrl,
-
-        location: {
-          latitude: Number(latitude),
-          longitude: Number(longitude),
-          address
-        },
-
-        reportedBy: req.user._id,
-
-        assignedTo: null,
-
-        status: "NEW",
-
-        upvotes: 0,
-
-        upvotedBy: [],
-
-        resolutionNote: "",
-
-        resolvedAt: null,
-
-        createdAt: new Date().toISOString(),
-
-        updatedAt: new Date().toISOString()
-      };
-
-
-      demo.issues.unshift(issue);
-
-
-      demo.history.push({
-        _id: randomUUID(),
-
-        issueId: issue._id,
-
-        status: "NEW",
-
-        changedBy: req.user._id,
-
-        remarks: "Issue reported",
-
-        createdAt: new Date().toISOString()
-      });
-
-
-      res.status(201).json({
-        issue,
-        similarIssues: similar
-      });
-
-    } catch (error) {
-      next(error);
+        } catch (error) {
+            next(error);
+        }
     }
-  }
 );
 
 
 /* =========================================================
-   UPVOTE ISSUE
+   UPVOTE
 ========================================================= */
 
 router.post(
-  "/:id/upvote",
-  requireAuth,
-  async (req, res, next) => {
-    try {
+    "/:id/upvote",
+    requireAuth,
+    async (req, res, next) => {
 
-      if (process.env.MONGO_URI) {
+        try {
 
-        const issue =
-          await Issue.findById(req.params.id);
+            const result =
+                await withTransaction(async client => {
 
-        if (!issue) {
-          return res.status(404).json({
-            message: "Issue not found."
-          });
+                    const existing =
+                        await client.query(
+                            `
+                            SELECT 1
+
+                            FROM issue_upvotes
+
+                            WHERE issue_id = $1
+                            AND user_id = $2
+                            `,
+                            [
+                                req.params.id,
+                                req.user.id
+                            ]
+                        );
+
+                    if (existing.rowCount > 0) {
+
+                        return {
+                            alreadyVoted: true
+                        };
+                    }
+
+                    await client.query(
+                        `
+                        INSERT INTO issue_upvotes (
+                            issue_id,
+                            user_id
+                        )
+
+                        VALUES ($1, $2)
+                        `,
+                        [
+                            req.params.id,
+                            req.user.id
+                        ]
+                    );
+
+                    const updated =
+                        await client.query(
+                            `
+                            UPDATE issues
+
+                            SET
+                                upvotes = upvotes + 1,
+                                updated_at = NOW()
+
+                            WHERE id = $1
+
+                            RETURNING upvotes
+                            `,
+                            [issueId]
+                        );
+
+                    return {
+                        alreadyVoted: false,
+                        upvotes:
+                            updated.rows[0]?.upvotes || 0
+                    };
+                });
+
+            res.json(result);
+
+        } catch (error) {
+            next(error);
         }
-
-        const already =
-          issue.upvotedBy.some(
-            id =>
-              id.toString() ===
-              req.user._id.toString()
-          );
-
-        if (already) {
-
-          issue.upvotedBy =
-            issue.upvotedBy.filter(
-              id =>
-                id.toString() !==
-                req.user._id.toString()
-            );
-
-          issue.upvotes =
-            Math.max(
-              0,
-              issue.upvotes - 1
-            );
-
-        } else {
-
-          issue.upvotedBy.push(
-            req.user._id
-          );
-
-          issue.upvotes += 1;
-        }
-
-
-        const p =
-          calculatePriority(
-            issue.category,
-            issue.upvotes
-          );
-
-        issue.priority = p.label;
-        issue.priorityScore = p.score;
-
-        await issue.save();
-
-
-        return res.json({
-          upvotes: issue.upvotes,
-          priority: issue.priority
-        });
-      }
-
-
-      const issue =
-        demo.issues.find(
-          i => i._id === req.params.id
-        );
-
-      if (!issue) {
-        return res.status(404).json({
-          message: "Issue not found."
-        });
-      }
-
-
-      const index =
-        issue.upvotedBy.indexOf(
-          req.user._id
-        );
-
-      if (index >= 0) {
-
-        issue.upvotedBy.splice(
-          index,
-          1
-        );
-
-        issue.upvotes =
-          Math.max(
-            0,
-            issue.upvotes - 1
-          );
-
-      } else {
-
-        issue.upvotedBy.push(
-          req.user._id
-        );
-
-        issue.upvotes += 1;
-      }
-
-
-      const p =
-        calculatePriority(
-          issue.category,
-          issue.upvotes
-        );
-
-      issue.priority = p.label;
-      issue.priorityScore = p.score;
-
-
-      res.json({
-        upvotes: issue.upvotes,
-        priority: issue.priority
-      });
-
-    } catch (error) {
-      next(error);
     }
-  }
-);
-
-
-/* =========================================================
-   GET COMMENTS
-========================================================= */
-
-router.get(
-  "/:id/comments",
-  async (req, res, next) => {
-    try {
-
-      if (process.env.MONGO_URI) {
-
-        const comments =
-          await Comment.find({
-            issueId: req.params.id
-          })
-            .populate(
-              "userId",
-              "name role"
-            )
-            .sort({
-              createdAt: 1
-            });
-
-        return res.json({
-          comments
-        });
-      }
-
-
-      res.json({
-        comments:
-          demo.comments
-            .filter(
-              c =>
-                c.issueId ===
-                req.params.id
-            )
-            .map(c => ({
-              ...c,
-              userId:
-                publicUser(
-                  getDemoUser(
-                    c.userId
-                  )
-                )
-            }))
-      });
-
-    } catch (error) {
-      next(error);
-    }
-  }
 );
 
 
@@ -741,111 +695,104 @@ router.get(
 ========================================================= */
 
 router.post(
-  "/:id/comments",
-  requireAuth,
-  async (req, res, next) => {
-    try {
+    "/:id/comments",
+    requireAuth,
+    async (req, res, next) => {
 
-      const { text } =
-        req.body;
+        try {
 
-      if (!text?.trim()) {
-        return res.status(400).json({
-          message:
-            "Comment cannot be empty."
-        });
-      }
+            const { text } = req.body;
 
+            if (!text?.trim()) {
+                return res.status(400).json({
+                    message: "Comment text is required."
+                });
+            }
 
-      if (process.env.MONGO_URI) {
+            const result = await query(
+                `
+                INSERT INTO comments (
+                    issue_id,
+                    user_id,
+                    text
+                )
 
-        const issue =
-          await Issue.findById(
-            req.params.id
-          );
+                VALUES ($1, $2, $3)
 
-        if (!issue) {
-          return res.status(404).json({
-            message:
-              "Issue not found."
-          });
+                RETURNING *
+                `,
+                [
+                    req.params.id,
+                    req.user.id,
+                    text.trim()
+                ]
+            );
+
+            res.status(201).json({
+                comment: {
+                    ...result.rows[0],
+
+                    userId: {
+                        id: req.user.id,
+                        name: req.user.name,
+                        role: req.user.role
+                    }
+                }
+            });
+
+        } catch (error) {
+            next(error);
         }
-
-
-        const comment =
-          await Comment.create({
-            issueId: issue._id,
-            userId: req.user._id,
-            text: text.trim()
-          });
-
-
-        await comment.populate(
-          "userId",
-          "name role"
-        );
-
-
-        return res.status(201).json({
-          comment
-        });
-      }
-
-
-      const issue =
-        demo.issues.find(
-          i =>
-            i._id ===
-            req.params.id
-        );
-
-      if (!issue) {
-        return res.status(404).json({
-          message:
-            "Issue not found."
-        });
-      }
-
-
-      const comment = {
-        _id: randomUUID(),
-
-        issueId:
-          issue._id,
-
-        userId:
-          req.user._id,
-
-        text:
-          text.trim(),
-
-        createdAt:
-          new Date().toISOString()
-      };
-
-
-      demo.comments.push(
-        comment
-      );
-
-
-      res.status(201).json({
-        comment: {
-          ...comment,
-          userId:
-            publicUser(
-              getDemoUser(
-                req.user._id
-              )
-            )
-        }
-      });
-
-    } catch (error) {
-      next(error);
     }
-  }
+);
+
+
+/* =========================================================
+   DELETE ISSUE
+========================================================= */
+
+router.delete(
+    "/:id",
+    requireAuth,
+    async (req, res, next) => {
+
+        try {
+
+            const result = await query(
+                `
+                DELETE FROM issues
+
+                WHERE id = $1
+                AND reported_by = $2
+
+                RETURNING id
+                `,
+                [
+                    req.params.id,
+                    req.user.id
+                ]
+            );
+
+            if (result.rowCount === 0) {
+                return res.status(404).json({
+                    message:
+                        "Issue not found or you are not allowed to delete it."
+                });
+            }
+
+            res.json({
+                success: true
+            });
+
+        } catch (error) {
+            next(error);
+        }
+    }
 );
 
 
 export default router;
+
+
+
+
