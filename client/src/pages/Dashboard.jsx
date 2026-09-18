@@ -6,6 +6,7 @@ import {
   List, Route, AlertTriangle, Sparkles
 } from "lucide-react";
 import { api } from "../api.js";
+import { useToast } from "../context/ToastContext.jsx";
 import { Link } from "react-router-dom";
 import L from "leaflet";
 
@@ -101,6 +102,7 @@ function optimizeRoute(start, points) {
 ========================================================= */
 
 function ResolutionModal({ issue, onClose, onSubmit }) {
+  const toast = useToast();
   const [note, setNote] = useState("");
   const [proofFile, setProofFile] = useState(null);
   const [proofPreview, setProofPreview] = useState("");
@@ -120,6 +122,11 @@ function ResolutionModal({ issue, onClose, onSubmit }) {
       fd.append("image", file);
       const res = await api.post(`/officer/issues/${issue.id}/verify-fix`, fd);
       setVerification(res.data);
+      if (res.data?.verification?.verified) {
+        toast.success("✅ Fix verified by Gemini AI multimodal vision!");
+      } else {
+        toast.warning("⚠️ Verification flagged concerns. Review summary below.");
+      }
     } catch (err) {
       setVerification({
         verification: {
@@ -129,6 +136,7 @@ function ResolutionModal({ issue, onClose, onSubmit }) {
           concerns: [err.response?.data?.message || "Error"]
         }
       });
+      toast.error(err.response?.data?.message || "AI Verification failed.");
     } finally {
       setVerifying(false);
     }
@@ -143,8 +151,10 @@ function ResolutionModal({ issue, onClose, onSubmit }) {
         resolutionNote: note,
         resolutionImageUrl: verification?.resolutionImageUrl || null
       });
+      toast.success("Issue submitted for resolution review!");
       onClose();
-    } catch {
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Submission failed.");
       setSubmitting(false);
     }
   }
@@ -643,9 +653,26 @@ export default function Dashboard() {
     return matchesFilter && matchesQuery;
   }), [issues, filter, query_]);
 
+  const toast = useToast();
+
+  const STAT_TO_PHASE = {
+    new: "NEW",
+    inProgress: "IN_PROGRESS",
+    resolutionReview: "RESOLUTION_REVIEW",
+    resolved: "RESOLVED",
+    closed: "CLOSED",
+    rejected: "REJECTED",
+    total: ""
+  };
+
   async function updateIssue(id, body) {
-    await api.patch(`/officer/issues/${id}`, body);
-    load();
+    try {
+      await api.patch(`/officer/issues/${id}`, body);
+      toast.success(`Issue transitioned to ${body.phase?.replace(/_/g, " ") || "updated state"}!`);
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Could not transition phase.");
+    }
   }
 
   return (
@@ -659,19 +686,27 @@ export default function Dashboard() {
 
       {/* Stat cards */}
       <div className="mt-8 grid gap-3 grid-cols-2 sm:grid-cols-4 lg:grid-cols-7">
-        {statCards.map(([key, label, Icon, iconColor]) => (
-          <button
-            key={key}
-            onClick={() => setFilter(filter === key.toUpperCase ? "" : "")}
-            className="rounded-2xl border border-slate-200 bg-white p-4 shadow-sm text-left hover:border-emerald-300 transition-colors"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">{label}</span>
-              <Icon size={16} className={iconColor} />
-            </div>
-            <p className="mt-2 text-3xl font-black">{stats[key] || 0}</p>
-          </button>
-        ))}
+        {statCards.map(([key, label, Icon, iconColor]) => {
+          const targetPhase = STAT_TO_PHASE[key];
+          const isSelected = filter === targetPhase && (targetPhase !== "" || filter === "");
+          return (
+            <button
+              key={key}
+              onClick={() => setFilter(filter === targetPhase ? "" : targetPhase)}
+              className={`rounded-2xl border p-4 shadow-xs text-left transition-all ${
+                isSelected
+                  ? "border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-500/20"
+                  : "border-slate-200 bg-white hover:border-slate-300"
+              }`}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">{label}</span>
+                <Icon size={16} className={iconColor} />
+              </div>
+              <p className="mt-2 text-3xl font-black">{stats[key] || 0}</p>
+            </button>
+          );
+        })}
       </div>
 
       {/* View toggle + filters */}
@@ -724,6 +759,30 @@ export default function Dashboard() {
             <option value="CLOSED">Closed</option>
             <option value="REJECTED">Rejected</option>
           </select>
+        </div>
+
+        {/* Quick Filter Chips */}
+        <div className="flex items-center gap-2 px-5 py-2.5 bg-slate-50/70 border-b border-slate-100 overflow-x-auto">
+          <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Quick Filter:</span>
+          {[
+            { label: "All Active", val: "" },
+            { label: "✨ New Only", val: "NEW" },
+            { label: "⚡ In Progress", val: "IN_PROGRESS" },
+            { label: "⏳ Needs Review", val: "RESOLUTION_REVIEW" },
+            { label: "✅ Resolved", val: "RESOLVED" }
+          ].map(chip => (
+            <button
+              key={chip.label}
+              onClick={() => setFilter(chip.val)}
+              className={`shrink-0 rounded-lg px-2.5 py-1 text-xs font-bold transition-colors ${
+                filter === chip.val
+                  ? "bg-emerald-700 text-white shadow-xs"
+                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+              }`}
+            >
+              {chip.label}
+            </button>
+          ))}
         </div>
 
         {/* LIST VIEW */}
