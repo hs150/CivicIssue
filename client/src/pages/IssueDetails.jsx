@@ -7,8 +7,11 @@ import {
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { api } from "../api.js";
 import { useAuth } from "../context/AuthContext.jsx";
+import { useToast } from "../context/ToastContext.jsx";
 import MapPicker from "../components/MapPicker.jsx";
 import StatusTimeline from "../components/StatusTimeline.jsx";
+import BeforeAfterSlider from "../components/BeforeAfterSlider.jsx";
+import { Share2, UserCheck, Clock } from "lucide-react";
 
 /* =========================================================
    HELPERS
@@ -232,48 +235,31 @@ function AIInspectionReport({ ai }) {
 ========================================================= */
 
 function FixComparison({ beforeUrl, afterUrl, verification }) {
-  const [showAfter, setShowAfter] = useState(false);
-
   if (!afterUrl) return null;
 
   const v = verification || {};
 
   return (
     <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-      <div className="flex items-center gap-2">
+      <div className="flex items-center gap-2 mb-4">
         <ShieldCheck size={20} className="text-indigo-600" />
-        <h2 className="text-lg font-black">Proof-of-Fix Verification</h2>
+        <h2 className="text-lg font-black">Proof-of-Fix Anti-Corruption Inspection</h2>
       </div>
 
-      {/* Before / After toggle */}
-      <div className="mt-4">
-        <div className="flex rounded-xl bg-slate-100 p-1 mb-3">
-          <button
-            onClick={() => setShowAfter(false)}
-            className={`flex-1 rounded-lg py-2 text-sm font-bold transition-colors ${!showAfter ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
-          >
-            Before
-          </button>
-          <button
-            onClick={() => setShowAfter(true)}
-            className={`flex-1 rounded-lg py-2 text-sm font-bold transition-colors ${showAfter ? "bg-white text-slate-900 shadow-sm" : "text-slate-500"}`}
-          >
-            After (Proof)
-          </button>
-        </div>
-
+      {/* Interactive Before/After Slider */}
+      {beforeUrl ? (
+        <BeforeAfterSlider
+          beforeImage={beforeUrl}
+          afterImage={afterUrl}
+          beforeLabel="Reported Problem"
+          afterLabel="Officer Fix"
+          aspectRatio="16/10"
+        />
+      ) : (
         <div className="overflow-hidden rounded-2xl border border-slate-200">
-          {!showAfter ? (
-            beforeUrl ? (
-              <img src={beforeUrl} alt="Before — Original Issue" className="h-56 w-full object-cover" />
-            ) : (
-              <div className="grid h-56 place-items-center bg-slate-50 text-slate-400">No original image</div>
-            )
-          ) : (
-            <img src={afterUrl} alt="After — Proof of Fix" className="h-56 w-full object-cover" />
-          )}
+          <img src={afterUrl} alt="After — Proof of Fix" className="h-64 w-full object-cover" />
         </div>
-      </div>
+      )}
 
       {/* AI Verification Result */}
       {v.provider && (
@@ -332,6 +318,7 @@ export default function IssueDetails() {
   const { id } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
+  const toast = useToast();
   const [data, setData] = useState(null);
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(true);
@@ -349,8 +336,22 @@ export default function IssueDetails() {
 
   async function upvote() {
     if (!user) return navigate("/login");
-    await api.post(`/issues/${id}/upvote`);
-    load();
+    try {
+      await api.post(`/issues/${id}/upvote`);
+      toast.success("Your support has been recorded! 👍");
+      load();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Could not record support.");
+    }
+  }
+
+  function handleShare() {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(window.location.href);
+      toast.success("Issue link copied to clipboard! 📋");
+    } else {
+      toast.info("Link: " + window.location.href);
+    }
   }
 
   async function addComment(e) {
@@ -360,8 +361,13 @@ export default function IssueDetails() {
     try {
       await api.post(`/issues/${id}/comments`, { text: comment });
       setComment("");
+      toast.success("Comment posted successfully!");
       load();
-    } catch (err) { setAction(err.response?.data?.message || "Unable to comment."); }
+    } catch (err) {
+      const msg = err.response?.data?.message || "Unable to comment.";
+      setAction(msg);
+      toast.error(msg);
+    }
   }
 
   if (loading || !data) return <div className="grid min-h-[60vh] place-items-center">Loading issue…</div>;
@@ -382,7 +388,7 @@ export default function IssueDetails() {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">{(issue.phase || issue.status || "").replace(/_/g, " ")}</span>
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">{issue.priority}</span>
-                <span className="text-xs text-slate-400">{issue.issueCode}</span>
+                <span className="text-xs text-slate-400 font-mono">{issue.issueCode}</span>
 
                 {/* AI Verified badge */}
                 {issue.fixVerification?.verified && (
@@ -399,7 +405,8 @@ export default function IssueDetails() {
               <div className="mt-6 h-72"><MapPicker value={issue.location} readOnly/></div>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                <button onClick={upvote} className="flex items-center gap-2 rounded-xl border border-slate-300 px-4 py-3 font-bold hover:bg-slate-50"><ThumbsUp size={18}/> Support ({issue.upvotes || 0})</button>
+                <button onClick={upvote} className="flex items-center gap-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 px-4 py-3 font-bold hover:bg-emerald-100 transition active:scale-95"><ThumbsUp size={18}/> Support ({issue.upvotes || 0})</button>
+                <button onClick={handleShare} className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 font-bold text-slate-700 hover:bg-slate-50 transition"><Share2 size={17}/> Share</button>
                 <span className="flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500"><MessageCircle size={17}/> {comments.length} comments</span>
               </div>
             </div>
@@ -426,17 +433,44 @@ export default function IssueDetails() {
             <div className="mt-6"><StatusTimeline current={issue.phase || issue.status} history={history}/></div>
           </div>
 
+          {/* Officer Assignment & Audit Card */}
+          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
+              <UserCheck size={16} className="text-emerald-600" /> Administrative Audit
+            </h2>
+            <div className="mt-3 space-y-2.5 text-xs text-slate-600">
+              <div className="flex justify-between border-b border-slate-100 pb-2">
+                <span className="text-slate-400">Assigned Officer:</span>
+                <span className="font-semibold text-slate-800">{issue.assignedTo ? "Designated Field Officer" : "Pending Assignment"}</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-100 pb-2">
+                <span className="text-slate-400">Department:</span>
+                <span className="font-semibold text-slate-800">{issue.category || "Municipal Works"}</span>
+              </div>
+              <div className="flex justify-between border-b border-slate-100 pb-2">
+                <span className="text-slate-400">Reported On:</span>
+                <span className="font-semibold text-slate-800">{new Date(issue.createdAt).toLocaleDateString()}</span>
+              </div>
+              {issue.resolvedAt && (
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Resolved Date:</span>
+                  <span className="font-semibold text-emerald-700">{new Date(issue.resolvedAt).toLocaleDateString()}</span>
+                </div>
+              )}
+            </div>
+          </div>
+
           {/* Resolution note */}
           {issue.resolutionNote && (
             <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-7 shadow-sm">
-              <h2 className="text-lg font-black text-emerald-900">Resolution Note</h2>
+              <h2 className="text-lg font-black text-emerald-900">Official Resolution Note</h2>
               <p className="mt-3 text-sm leading-6 text-emerald-800">{issue.resolutionNote}</p>
             </div>
           )}
 
           {/* Comments */}
           <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
-            <h2 className="text-xl font-black">Comments</h2>
+            <h2 className="text-xl font-black">Community Comments</h2>
             <div className="mt-5 space-y-4">
               {comments.map(c => (
                 <div key={c.id} className="rounded-2xl bg-slate-50 p-4">
