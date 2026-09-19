@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate } from "react-router-dom";
-import { Bell, LogIn, LogOut, Menu, ShieldCheck, X, Plus, Sparkles, Play } from "lucide-react";
+import { Bell, LogIn, LogOut, Menu, ShieldCheck, X, Plus, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 
@@ -90,22 +90,8 @@ export default function Layout({ children }) {
               </NavLink>
             )}
 
-            {/* Intro Video button */}
-            <button
-              type="button"
-              onClick={() => {
-                close();
-                window.dispatchEvent(new CustomEvent("play-cinematic-intro"));
-              }}
-              title="Play 4K Cinematic Animation Video"
-              className="my-1 md:my-0 inline-flex items-center justify-center gap-1.5 rounded-xl border border-emerald-500/30 bg-emerald-50/80 px-3 py-2 text-xs font-bold text-emerald-800 hover:bg-emerald-100 hover:border-emerald-500/60 transition cursor-pointer shadow-xs"
-            >
-              <Play size={13} className="fill-current text-emerald-600" />
-              <span>Intro Video</span>
-            </button>
-
             {/* Separator on desktop */}
-            <div className="hidden md:block h-6 w-px bg-slate-200 mx-1" />
+            <div className="hidden md:block h-6 w-px bg-slate-200 mx-2" />
 
             {/* Report CTA */}
             <Link

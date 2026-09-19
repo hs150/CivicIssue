@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import Layout from "./components/Layout.jsx";
 import ProtectedRoute from "./components/ProtectedRoute.jsx";
@@ -10,38 +10,16 @@ import ReportIssue from "./pages/ReportIssue.jsx";
 import IssueDetails from "./pages/IssueDetails.jsx";
 import MyIssues from "./pages/MyIssues.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
-import CinematicEntryScene from "./components/CinematicEntryScene.jsx";
+import CivicIntroAnimation from "./components/CivicIntroAnimation.jsx";
 
 export default function App() {
-  const [showIntro, setShowIntro] = useState(() => {
-    // Play movie-like intro on first visit of this browser session
-    try {
-      return !sessionStorage.getItem("civic_intro_seen");
-    } catch {
-      return false;
-    }
-  });
-
-  useEffect(() => {
-    function handleTriggerIntro() {
-      setShowIntro(true);
-    }
-
-    window.addEventListener("play-cinematic-intro", handleTriggerIntro);
-    return () => window.removeEventListener("play-cinematic-intro", handleTriggerIntro);
-  }, []);
-
-  function handleIntroComplete() {
-    try {
-      sessionStorage.setItem("civic_intro_seen", "true");
-    } catch {}
-    setShowIntro(false);
-  }
+  // Always runs on reload as requested by user
+  const [showIntro, setShowIntro] = useState(true);
 
   return (
     <>
       {showIntro && (
-        <CinematicEntryScene onComplete={handleIntroComplete} autoPlay={true} />
+        <CivicIntroAnimation onComplete={() => setShowIntro(false)} />
       )}
       <Layout>
         <Routes>

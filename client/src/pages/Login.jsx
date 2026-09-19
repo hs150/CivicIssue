@@ -9,7 +9,6 @@ import {
   Eye,
   EyeOff,
   Sparkles,
-  Play,
   ArrowRight,
   CheckCircle2,
   AlertCircle,
@@ -18,7 +17,6 @@ import {
   Activity,
   Zap
 } from "lucide-react";
-import CinematicEntryScene from "../components/CinematicEntryScene.jsx";
 
 export default function Login({ initialMode = "login" }) {
   const { login, register } = useAuth();
@@ -35,7 +33,6 @@ export default function Login({ initialMode = "login" }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showCinematic, setShowCinematic] = useState(false);
 
   // Quick 1-click Demo Account Switcher
   function applyDemo(role) {
@@ -96,10 +93,6 @@ export default function Login({ initialMode = "login" }) {
 
   return (
     <div className="relative min-h-[calc(100vh-80px)] overflow-hidden bg-slate-950 py-10 px-4 sm:px-6 lg:px-8 text-slate-100 flex items-center justify-center">
-      {/* Optional Cinematic Intro Video Overlay */}
-      {showCinematic && (
-        <CinematicEntryScene onComplete={() => setShowCinematic(false)} autoPlay={true} />
-      )}
 
       {/* BACKGROUND PARTICLES & GLOW AMBIANCE */}
       <div className="absolute inset-0 pointer-events-none">
@@ -183,28 +176,13 @@ export default function Login({ initialMode = "login" }) {
             </div>
           </div>
 
-          {/* Interactive Cinematic Video Player Trigger */}
-          <div className="mt-8 pt-6 border-t border-slate-800/80">
-            <button
-              type="button"
-              onClick={() => setShowCinematic(true)}
-              className="group flex w-full items-center justify-between rounded-2xl border border-emerald-500/30 bg-gradient-to-r from-emerald-950/60 via-slate-900 to-teal-950/60 p-4 text-left transition-all hover:border-emerald-500/70 hover:shadow-[0_0_25px_rgba(16,185,129,0.2)] cursor-pointer"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="grid h-11 w-11 place-items-center rounded-xl bg-emerald-500 text-slate-950 shadow-md shadow-emerald-500/30 group-hover:scale-105 transition-transform">
-                  <Play size={18} className="fill-current ml-0.5" />
-                </div>
-                <div>
-                  <p className="text-sm font-bold text-white group-hover:text-emerald-300 transition-colors">
-                    Watch Cinematic Animation Intro
-                  </p>
-                  <p className="text-xs text-slate-400">
-                    Experience the 4K telemetry & radar boot animation
-                  </p>
-                </div>
-              </div>
-              <ArrowRight size={18} className="text-slate-400 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all" />
-            </button>
+          {/* Civic Platform Trust Seal */}
+          <div className="mt-8 pt-6 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
+            <div className="flex items-center gap-2">
+              <ShieldCheck size={16} className="text-emerald-400" />
+              <span>Immutable Municipal Ledger</span>
+            </div>
+            <span className="font-mono text-emerald-400/80">ISO 27001 COMPLIANT</span>
           </div>
         </div>
 
