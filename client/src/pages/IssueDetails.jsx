@@ -11,7 +11,8 @@ import { useToast } from "../context/ToastContext.jsx";
 import MapPicker from "../components/MapPicker.jsx";
 import StatusTimeline from "../components/StatusTimeline.jsx";
 import BeforeAfterSlider from "../components/BeforeAfterSlider.jsx";
-import { Share2, UserCheck, Clock, Award, ThumbsDown, Users } from "lucide-react";
+import OfficialAuditReport from "../components/OfficialAuditReport.jsx";
+import { Share2, UserCheck, Clock, Award, ThumbsDown, Users, FileText, Printer } from "lucide-react";
 
 /* =========================================================
    HELPERS
@@ -472,6 +473,7 @@ export default function IssueDetails() {
   const [comment, setComment] = useState("");
   const [loading, setLoading] = useState(true);
   const [action, setAction] = useState("");
+  const [showAuditModal, setShowAuditModal] = useState(false);
 
   async function load() {
     try {
@@ -564,6 +566,7 @@ export default function IssueDetails() {
               <div className="mt-6 flex flex-wrap gap-3">
                 <button onClick={upvote} className="flex items-center gap-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 px-4 py-3 font-bold hover:bg-emerald-100 transition active:scale-95"><ThumbsUp size={18}/> Support ({issue.upvotes || 0})</button>
                 <button onClick={handleShare} className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 font-bold text-slate-700 hover:bg-slate-50 transition"><Share2 size={17}/> Share</button>
+                <button onClick={() => setShowAuditModal(true)} className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 font-bold text-slate-800 hover:bg-slate-50 transition shadow-xs active:scale-95"><FileText size={17} className="text-emerald-700" /> Audit Certificate</button>
                 <span className="flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500"><MessageCircle size={17}/> {comments.length} comments</span>
               </div>
             </div>
@@ -649,6 +652,11 @@ export default function IssueDetails() {
           </div>
         </div>
       </div>
+
+      {/* Official Resolution Audit Report Modal */}
+      {showAuditModal && (
+        <OfficialAuditReport issue={issue} onClose={() => setShowAuditModal(false)} />
+      )}
     </div>
   );
 }
