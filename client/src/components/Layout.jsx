@@ -7,6 +7,7 @@ import ThemeSelector from "./ThemeSelector.jsx";
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const [open, setOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const navigate = useNavigate();
 
   const close = () => setOpen(false);
@@ -17,6 +18,15 @@ export default function Layout({ children }) {
     close();
   }
 
+  // Reactive scroll effect
+  useState(() => {
+    function onScroll() {
+      setScrolled(window.scrollY > 20);
+    }
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  });
+
   const navLinkClass = ({ isActive }) =>
     `rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200 ${
       isActive
@@ -25,10 +35,17 @@ export default function Layout({ children }) {
     }`;
 
   return (
-    <div className="min-h-screen flex flex-col bg-slate-50/50">
-      <header className="sticky top-0 z-50 border-b border-slate-200/80 bg-white/85 backdrop-blur-md transition-shadow duration-200">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 py-3.5">
-          {/* Logo & Hackathon Chip */}
+    <div className="min-h-screen flex flex-col bg-transparent">
+      {/* 3. NAVBAR (Taller, scroll-reactive with blur 18px and translucent background) */}
+      <header
+        className={`sticky top-0 z-50 transition-all duration-300 ${
+          scrolled
+            ? "py-2.5 bg-white/78 backdrop-blur-[18px] border-b border-slate-200/80 shadow-sm shadow-slate-950/5"
+            : "py-4 bg-white/90 backdrop-blur-md border-b border-slate-100"
+        }`}
+      >
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6">
+          {/* Logo & Operational Chip */}
           <div className="flex items-center gap-3">
             <Link to="/" className="flex items-center gap-2.5 font-black tracking-tight text-slate-900" onClick={close}>
               <div className="relative grid h-10 w-10 place-items-center rounded-xl bg-gradient-to-br from-emerald-600 to-teal-700 text-lg font-black text-white shadow-md shadow-emerald-700/25">
@@ -39,9 +56,9 @@ export default function Layout({ children }) {
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-lg leading-tight">Civic<span className="text-emerald-700">Connect</span></span>
-                <span className="text-[10px] font-semibold tracking-wider text-emerald-600 uppercase flex items-center gap-1">
-                  <Sparkles size={10} /> AI City OS
+                <span className="text-lg leading-tight font-extrabold tracking-tight">Civic<span className="text-emerald-700">Connect</span></span>
+                <span className="text-[10px] font-mono tracking-wider text-emerald-600 uppercase flex items-center gap-1 font-bold">
+                  <Sparkles size={10} /> CIVIC INTELLIGENCE OS
                 </span>
               </div>
             </Link>
@@ -103,9 +120,11 @@ export default function Layout({ children }) {
             <Link
               to="/report"
               onClick={close}
-              className="my-2 md:my-0 inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-bold text-white shadow-md shadow-emerald-700/20 hover:from-emerald-700 hover:to-teal-700 transition active:scale-95"
+              className="group my-2 md:my-0 inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 py-2 text-sm font-bold text-white shadow-md shadow-emerald-700/20 hover:from-emerald-700 hover:to-teal-700 transition active:scale-95 cursor-pointer"
             >
-              <Plus size={16} /> Report Issue
+              <Plus size={16} />
+              <span>Report Issue</span>
+              <span className="hidden sm:inline transition-transform group-hover:translate-x-0.5">→</span>
             </Link>
 
             {/* User Session Info / Role Badge */}
@@ -134,7 +153,7 @@ export default function Layout({ children }) {
                 <button
                   onClick={handleLogout}
                   title="Logout"
-                  className="rounded-xl p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition ml-1"
+                  className="rounded-xl p-2 text-slate-500 hover:bg-rose-50 hover:text-rose-600 transition ml-1 cursor-pointer"
                 >
                   <LogOut size={16} />
                 </button>
@@ -143,7 +162,7 @@ export default function Layout({ children }) {
               <Link
                 to="/login"
                 onClick={close}
-                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition"
+                className="inline-flex items-center justify-center gap-1.5 rounded-xl border border-slate-300 bg-white px-3.5 py-2 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition shadow-xs"
               >
                 <LogIn size={15} /> Login
               </Link>
@@ -154,17 +173,78 @@ export default function Layout({ children }) {
 
       <main className="flex-1">{children}</main>
 
-      <footer className="mt-20 border-t border-slate-200/80 bg-white">
-        <div className="mx-auto flex max-w-7xl flex-col gap-3 px-6 py-8 text-sm text-slate-500 md:flex-row md:items-center md:justify-between">
-          <div className="flex items-center gap-2 font-medium">
-            <span className="h-2 w-2 rounded-full bg-emerald-500"></span>
-            <span>© {new Date().getFullYear()} CivicConnect • AI-Driven Civic Response Platform</span>
+      {/* 14. MODERN DARK FOOTER */}
+      <footer className="mt-20 border-t border-slate-800/80 bg-slate-950 text-slate-400">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 py-12 md:py-16">
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-10">
+            {/* Brand & Manifesto Column */}
+            <div className="md:col-span-2 space-y-4">
+              <Link to="/" className="flex items-center gap-2.5 font-black text-white">
+                <div className="grid h-9 w-9 place-items-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white font-black text-base shadow-md shadow-emerald-500/20">
+                  C
+                </div>
+                <span className="text-xl font-extrabold tracking-tight">Civic<span className="text-emerald-400">Connect</span></span>
+              </Link>
+
+              <p className="text-xs text-slate-400 leading-relaxed max-w-sm font-light">
+                Building more transparent, responsive, and accountable cities through multimodal vision intelligence, geospatial deduplication, and community verification.
+              </p>
+
+              <div className="pt-2 flex items-center gap-2 text-xs font-mono text-emerald-400">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 animate-ping" />
+                <span>MUNICIPAL CONSENSUS NETWORK • 100% AUDITABLE</span>
+              </div>
+            </div>
+
+            {/* Column: Platform */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold font-mono uppercase tracking-widest text-slate-200">Platform</h4>
+              <ul className="space-y-2 text-xs">
+                <li><Link to="/issues" className="hover:text-white transition">Explore Issues</Link></li>
+                <li><Link to="/report" className="hover:text-white transition">Report an Issue</Link></li>
+                <li><Link to="/my-issues" className="hover:text-white transition">Citizen Tracking</Link></li>
+                <li><Link to="/dashboard" className="hover:text-white transition">Officer Command Desk</Link></li>
+              </ul>
+            </div>
+
+            {/* Column: Architecture */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold font-mono uppercase tracking-widest text-slate-200">Technology</h4>
+              <ul className="space-y-2 text-xs">
+                <li className="text-slate-400">Gemini Vision AI</li>
+                <li className="text-slate-400">500m Haversine Clustering</li>
+                <li className="text-slate-400">Before / After Neural Audit</li>
+                <li className="text-slate-400">PostgreSQL Spatial Database</li>
+              </ul>
+            </div>
+
+            {/* Column: Governance */}
+            <div className="space-y-3">
+              <h4 className="text-xs font-bold font-mono uppercase tracking-widest text-slate-200">Governance</h4>
+              <ul className="space-y-2 text-xs">
+                <li className="text-slate-400">Open Public Ledger</li>
+                <li className="text-slate-400">Anti-Corruption Protocol</li>
+                <li className="text-slate-400">Citizen Privacy Shield</li>
+                <li className="text-slate-400">Municipal SLA Guarantees</li>
+              </ul>
+            </div>
           </div>
-          <p className="flex items-center gap-2 text-xs text-slate-400">
-            <Bell size={13} /> Official Prototype. In emergency situations, call 112 directly.
-          </p>
+
+          {/* Bottom Divider & Copyright */}
+          <div className="mt-12 pt-8 border-t border-slate-800/80 flex flex-col md:flex-row items-center justify-between gap-4 text-xs font-mono text-slate-500">
+            <div className="flex items-center gap-2">
+              <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
+              <span>© {new Date().getFullYear()} CivicConnect Platform. All municipal rights reserved.</span>
+            </div>
+            <div className="flex items-center gap-6">
+              <span>SECURITY: ISO-27001 ENCLAVE</span>
+              <span className="hidden sm:inline">•</span>
+              <span>IN EMERGENCY CALL 112 DIRECTLY</span>
+            </div>
+          </div>
         </div>
       </footer>
     </div>
   );
 }
+
