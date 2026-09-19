@@ -2,6 +2,7 @@ import { Link, NavLink, useNavigate } from "react-router-dom";
 import { Bell, LogIn, LogOut, Menu, ShieldCheck, X, Plus, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
+import ThemeSelector from "./ThemeSelector.jsx";
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
@@ -89,6 +90,11 @@ export default function Layout({ children }) {
                 <ShieldCheck size={16} /> Officer Desk
               </NavLink>
             )}
+
+            {/* Theme Selector */}
+            <div className="my-1 md:my-0">
+              <ThemeSelector />
+            </div>
 
             {/* Separator on desktop */}
             <div className="hidden md:block h-6 w-px bg-slate-200 mx-2" />
