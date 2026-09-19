@@ -939,6 +939,18 @@ router.post(
             const newDisputes = (issue.citizen_disputes || 0) + (action === "dispute" ? 1 : 0);
             const isVerified = newConfirmations >= 2 && newConfirmations > newDisputes;
 
+            // If disputed by community, automatically reopen and flag as DISPUTED
+            let newPhase = issue.phase;
+            let newStatus = issue.status;
+
+            if (action === "dispute" && newDisputes > newConfirmations) {
+                newPhase = "IN_PROGRESS";
+                newStatus = "DISPUTED";
+            } else if (action === "confirm" && isVerified) {
+                newPhase = "RESOLVED";
+                newStatus = "RESOLVED";
+            }
+
             const updateRes = await query(
                 `
                 UPDATE issues
@@ -947,29 +959,67 @@ router.post(
                     citizen_disputes = $2,
                     citizen_verified = $3,
                     citizen_verifications = $4::jsonb,
+                    phase = $5,
+                    status = $6,
                     updated_at = NOW()
-                WHERE id = $5
-                RETURNING citizen_confirmations, citizen_disputes, citizen_verified, citizen_verifications
+                WHERE id = $7
+                RETURNING *
                 `,
                 [
                     newConfirmations,
                     newDisputes,
                     isVerified,
                     JSON.stringify(verifications),
+                    newPhase,
+                    newStatus,
                     issueId
                 ]
             );
+
+            // Log status history transition if phase/status changed
+            if (newPhase !== issue.phase || newStatus !== issue.status) {
+                await query(
+                    `
+                    INSERT INTO status_history (
+                        issue_id,
+                        status,
+                        phase,
+                        changed_by,
+                        remarks,
+                        conditions,
+                        created_at
+                    )
+                    VALUES ($1, $2, $3, $4, $5, $6::jsonb, NOW())
+                    `,
+                    [
+                        issueId,
+                        newStatus,
+                        newPhase,
+                        req.user.id,
+                        action === "dispute"
+                            ? `Community disputed fix (${newDisputes} disputes). Reopened for field re-inspection.`
+                            : `Community certified fix (${newConfirmations} confirmations). Resolution verified.`,
+                        JSON.stringify({
+                            citizenConfirmations: newConfirmations,
+                            citizenDisputes: newDisputes,
+                            citizenVerified: isVerified
+                        })
+                    ]
+                );
+            }
 
             res.json({
                 success: true,
                 message: action === "confirm"
                     ? "Thank you! You have confirmed this fix. 👍"
-                    : "Your dispute has been logged for supervisor re-inspection. ⚠️",
+                    : `Dispute logged (${newDisputes} disputes). Issue has been reopened for supervisor re-inspection. ⚠️`,
                 data: {
                     citizenConfirmations: updateRes.rows[0].citizen_confirmations,
                     citizenDisputes: updateRes.rows[0].citizen_disputes,
                     citizenVerified: updateRes.rows[0].citizen_verified,
-                    citizenVerifications: updateRes.rows[0].citizen_verifications
+                    citizenVerifications: updateRes.rows[0].citizen_verifications,
+                    phase: updateRes.rows[0].phase,
+                    status: updateRes.rows[0].status
                 }
             });
 

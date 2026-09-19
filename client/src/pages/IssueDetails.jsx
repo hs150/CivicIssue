@@ -537,7 +537,28 @@ export default function IssueDetails() {
             {issue.imageUrl ? <img src={issue.imageUrl} alt="" className="h-80 w-full object-cover" /> : <div className="grid h-80 place-items-center bg-gradient-to-br from-emerald-50 to-slate-100 text-7xl">🏙️</div>}
             <div className="p-7">
               <div className="flex flex-wrap items-center gap-2">
-                <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-700">{(issue.phase || issue.status || "").replace(/_/g, " ")}</span>
+                {Boolean(issue.status === "DISPUTED" || (issue.citizenDisputes > 0 && issue.citizenDisputes > (issue.citizenConfirmations || 0))) ? (
+                  <span className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 border border-rose-300 px-3 py-1 text-xs font-black text-rose-800 shadow-xs">
+                    <AlertTriangle size={12} className="text-rose-600" />
+                    DISPUTED ({issue.citizenDisputes} DISPUTES)
+                  </span>
+                ) : issue.phase === "IN_PROGRESS" ? (
+                  <span className="rounded-full bg-amber-50 border border-amber-200 px-3 py-1 text-xs font-bold text-amber-800">
+                    IN PROGRESS
+                  </span>
+                ) : issue.phase === "RESOLUTION_REVIEW" ? (
+                  <span className="rounded-full bg-purple-50 border border-purple-200 px-3 py-1 text-xs font-bold text-purple-800">
+                    RESOLUTION REVIEW
+                  </span>
+                ) : issue.phase === "RESOLVED" ? (
+                  <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-bold text-emerald-800">
+                    RESOLVED
+                  </span>
+                ) : (
+                  <span className="rounded-full bg-slate-100 border border-slate-200 px-3 py-1 text-xs font-bold text-slate-700">
+                    {(issue.phase || issue.status || "").replace(/_/g, " ")}
+                  </span>
+                )}
                 <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-bold text-slate-600">{issue.priority}</span>
                 <span className="text-xs text-slate-400 font-mono">{issue.issueCode}</span>
 
@@ -557,6 +578,25 @@ export default function IssueDetails() {
                   </Badge>
                 )}
               </div>
+
+              {/* Dispute Alert Banner */}
+              {Boolean(issue.status === "DISPUTED" || (issue.citizenDisputes > 0 && issue.citizenDisputes > (issue.citizenConfirmations || 0))) && (
+                <div className="mt-4 rounded-2xl border border-rose-300 bg-rose-50/90 p-4 shadow-xs flex items-start gap-3">
+                  <AlertTriangle size={20} className="text-rose-600 shrink-0 mt-0.5" />
+                  <div>
+                    <h3 className="text-sm font-black text-rose-900 flex items-center gap-2">
+                      <span>Resolution Contested by Citizens</span>
+                      <span className="text-[10px] font-mono bg-rose-200 text-rose-900 px-2 py-0.5 rounded-full uppercase">
+                        Reopened in Triage
+                      </span>
+                    </h3>
+                    <p className="mt-1 text-xs text-rose-800 leading-relaxed">
+                      This repair was disputed by local residents ({issue.citizenDisputes} community disputes logged). The previous resolution status has been revoked and the ticket has been returned to field officers for re-examination.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <h1 className="mt-4 text-4xl font-black tracking-tight">{issue.title}</h1>
               <p className="mt-4 leading-7 text-slate-600">{issue.description}</p>
               <div className="mt-5 flex items-center gap-2 text-sm text-slate-500"><MapPin size={17}/>{issue.location?.address || `${issue.location?.latitude}, ${issue.location?.longitude}`}</div>
@@ -593,7 +633,7 @@ export default function IssueDetails() {
           {/* Resolution timeline */}
           <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
             <h2 className="text-xl font-black">Resolution Timeline</h2>
-            <div className="mt-6"><StatusTimeline current={issue.phase || issue.status} history={history}/></div>
+            <div className="mt-6"><StatusTimeline current={issue.phase || issue.status} history={history} issue={issue}/></div>
           </div>
 
           {/* Officer Assignment & Audit Card */}

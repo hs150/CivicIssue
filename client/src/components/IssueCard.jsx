@@ -11,7 +11,8 @@ const phaseStyle = {
   RESOLUTION_REVIEW: "bg-purple-50 text-purple-700 border-purple-200",
   RESOLVED: "bg-emerald-50 text-emerald-700 border-emerald-200",
   CLOSED: "bg-slate-100 text-slate-700 border-slate-200",
-  REJECTED: "bg-rose-50 text-rose-700 border-rose-200"
+  REJECTED: "bg-rose-50 text-rose-700 border-rose-200",
+  DISPUTED: "bg-rose-100 text-rose-800 border-rose-300 font-black"
 };
 
 const priorityStyle = {
@@ -43,7 +44,13 @@ export default function IssueCard({ issue }) {
   const [hasUpvoted, setHasUpvoted] = useState(false);
   const [upvoting, setUpvoting] = useState(false);
 
-  const phase = issue.phase || issue.status || "NEW";
+  const isDisputed = Boolean(
+    issue.status === "DISPUTED" ||
+    (issue.citizenDisputes > 0 && issue.citizenDisputes > (issue.citizenConfirmations || 0))
+  );
+
+  const rawPhase = issue.phase || issue.status || "NEW";
+  const phase = isDisputed ? "DISPUTED" : rawPhase;
   const priority = issue.priority || "MEDIUM";
   const hasAIVerification = Boolean(issue.fixVerification?.verified);
   const hasAIScan = Boolean(issue.aiAnalysis || issue.aiConfidence);
@@ -102,7 +109,7 @@ export default function IssueCard({ issue }) {
               phaseStyle[phase] || phaseStyle.NEW
             }`}
           >
-            {phase.replace(/_/g, " ")}
+            {isDisputed ? `⚠ DISPUTED (${issue.citizenDisputes})` : phase.replace(/_/g, " ")}
           </span>
         </div>
 
