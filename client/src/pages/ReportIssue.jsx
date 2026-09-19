@@ -18,6 +18,8 @@ import { useNavigate, Link } from "react-router-dom";
 import { api } from "../api.js";
 import { useToast } from "../context/ToastContext.jsx";
 import MapPicker from "../components/MapPicker.jsx";
+import { VoiceAssistant, isSpeechSupported } from "../services/speechService.js";
+import { Mic, MicOff, Languages, Volume2 } from "lucide-react";
 
 const categories = [
   ["road", "Road Damage"],
@@ -86,6 +88,63 @@ export default function ReportIssue() {
   // =========================================================
 
   const [aiAnalysis, setAiAnalysis] = useState(null);
+
+  // =========================================================
+  // VOICE-TO-REPORT (ENGLISH & HINDI)
+  // =========================================================
+  const [voiceLang, setVoiceLang] = useState("en-IN"); // "en-IN" | "hi-IN"
+  const [isListening, setIsListening] = useState(false);
+  const voiceAssistantRef = useRef(null);
+
+  useEffect(() => {
+    voiceAssistantRef.current = new VoiceAssistant({
+      lang: voiceLang,
+      onStart: () => setIsListening(true),
+      onEnd: () => setIsListening(false),
+      onError: (err) => {
+        setIsListening(false);
+        if (err === "not-allowed") {
+          toast.error("Microphone permission denied. Please allow microphone access.");
+        }
+      },
+      onResult: ({ final }) => {
+        if (final) {
+          setForm((prev) => {
+            const newDesc = prev.description ? `${prev.description} ${final}` : final;
+            const newTitle = prev.title || final.slice(0, 50);
+            return { ...prev, description: newDesc, title: newTitle };
+          });
+          toast.info(`Voice captured (${voiceLang === "hi-IN" ? "हिन्दी" : "English"})`);
+        }
+      }
+    });
+
+    return () => {
+      if (voiceAssistantRef.current) {
+        voiceAssistantRef.current.stop();
+      }
+    };
+  }, [voiceLang]);
+
+  function toggleVoice() {
+    if (!isSpeechSupported()) {
+      toast.warning("Speech recognition is not supported in this browser. Please type manually.");
+      return;
+    }
+
+    if (isListening) {
+      voiceAssistantRef.current?.stop();
+    } else {
+      voiceAssistantRef.current?.start();
+      toast.info(`Listening in ${voiceLang === "hi-IN" ? "हिन्दी (Hindi)" : "English"}... Speak now!`);
+    }
+  }
+
+  function handleVoiceLangChange(lang) {
+    setVoiceLang(lang);
+    voiceAssistantRef.current?.setLanguage(lang);
+    toast.info(`Switched voice language to ${lang === "hi-IN" ? "हिन्दी" : "English"}`);
+  }
 
   useEffect(() => {
     navigator.geolocation?.getCurrentPosition(
@@ -887,6 +946,73 @@ export default function ReportIssue() {
               readOnly
             />
           </label>
+
+          {/* =================================================
+              VOICE-TO-REPORT ASSISTANT
+          ================================================= */}
+
+          <div className="rounded-2xl border border-indigo-200 bg-gradient-to-r from-indigo-50/80 via-white to-purple-50/80 p-3.5 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-950">
+                <Volume2 size={15} className="text-indigo-600" />
+                <span>Voice-to-Report Assistant</span>
+              </div>
+
+              {/* Language Toggle */}
+              <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 text-[11px] font-bold shadow-2xs">
+                <button
+                  type="button"
+                  onClick={() => handleVoiceLangChange("en-IN")}
+                  className={`px-2 py-0.5 rounded-md transition ${
+                    voiceLang === "en-IN"
+                      ? "bg-indigo-600 text-white shadow-xs"
+                      : "text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  EN (English)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => handleVoiceLangChange("hi-IN")}
+                  className={`px-2 py-0.5 rounded-md transition ${
+                    voiceLang === "hi-IN"
+                      ? "bg-indigo-600 text-white shadow-xs"
+                      : "text-slate-500 hover:text-slate-800"
+                  }`}
+                >
+                  हिन्दी (Hindi)
+                </button>
+              </div>
+            </div>
+
+            {/* Mic trigger and status */}
+            <div className="flex items-center gap-2.5">
+              <button
+                type="button"
+                onClick={toggleVoice}
+                className={`flex-1 inline-flex items-center justify-center gap-2 rounded-xl py-2.5 px-4 text-xs font-bold transition-all duration-300 shadow-sm active:scale-95 ${
+                  isListening
+                    ? "bg-rose-600 text-white shadow-rose-600/30 animate-pulse ring-4 ring-rose-600/20"
+                    : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-600/20"
+                }`}
+              >
+                {isListening ? (
+                  <>
+                    <MicOff size={15} />
+                    <span>Listening... Tap to finish</span>
+                  </>
+                ) : (
+                  <>
+                    <Mic size={15} />
+                    <span>Speak in {voiceLang === "hi-IN" ? "हिन्दी" : "English"}</span>
+                  </>
+                )}
+              </button>
+            </div>
+            <p className="text-[10px] text-slate-500">
+              💡 Speak your problem aloud. The transcript will automatically populate your complaint description.
+            </p>
+          </div>
 
           {/* DESCRIPTION */}
 
