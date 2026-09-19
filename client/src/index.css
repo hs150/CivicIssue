@@ -32,3 +32,67 @@ button, input, textarea, select { font: inherit; }
   .field { @apply w-full rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10; }
   .navlink { @apply rounded-lg px-3 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 hover:text-slate-900; }
 }
+
+/* =========================================================
+   CINEMATIC & ULTRA-MODERN STYLING
+========================================================= */
+
+@keyframes anamorphicBeam {
+  0% { transform: translateX(-100%) scaleY(0.4); opacity: 0; }
+  50% { opacity: 0.85; }
+  100% { transform: translateX(200%) scaleY(1.2); opacity: 0; }
+}
+
+@keyframes radarSweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes floatSlow {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-8px); }
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.9; transform: scale(1.08); }
+}
+
+@keyframes textShimmer {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.animate-beam {
+  animation: anamorphicBeam 3.5s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+.animate-radar {
+  animation: radarSweep 6s linear infinite;
+}
+
+.animate-float {
+  animation: floatSlow 5s ease-in-out infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulseGlow 3s ease-in-out infinite;
+}
+
+.text-shimmer {
+  background: linear-gradient(90deg, #34d399 0%, #a7f3d0 25%, #67e8f9 50%, #34d399 75%, #10b981 100%);
+  background-size: 200% auto;
+  color: transparent;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: textShimmer 4s linear infinite;
+}
+
+.cinematic-grid {
+  background-size: 40px 40px;
+  background-image: 
+    linear-gradient(to right, rgba(16, 185, 129, 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(16, 185, 129, 0.07) 1px, transparent 1px);
+}
+
