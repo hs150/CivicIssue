@@ -244,6 +244,90 @@ router.get("/mine", requireAuth, async (req, res, next) => {
 
 
 /* =========================================================
+   PUBLIC CIVIC PULSE & METRICS
+========================================================= */
+
+router.get("/stats", async (req, res, next) => {
+    try {
+        const statsResult = await query(`
+            SELECT
+                COUNT(*)::int AS total,
+                COUNT(*) FILTER (
+                    WHERE phase NOT IN ('RESOLVED', 'CLOSED', 'REJECTED')
+                )::int AS active,
+                COUNT(*) FILTER (
+                    WHERE phase IN ('RESOLVED', 'CLOSED')
+                )::int AS resolved,
+                COUNT(*) FILTER (
+                    WHERE phase = 'RESOLVED' 
+                    AND (resolved_at >= CURRENT_DATE OR updated_at >= CURRENT_DATE)
+                )::int AS "resolvedToday",
+                COUNT(*) FILTER (
+                    WHERE created_at >= CURRENT_DATE
+                )::int AS "reportsToday",
+                COUNT(*) FILTER (
+                    WHERE ai_analysis IS NOT NULL 
+                    AND ai_analysis::text != '{}'
+                )::int AS "aiVerifiedCount",
+                ROUND(
+                    COALESCE(
+                        AVG(EXTRACT(EPOCH FROM (COALESCE(resolved_at, updated_at) - created_at)) / 3600)
+                        FILTER (WHERE phase IN ('RESOLVED', 'CLOSED')),
+                        0
+                    )::numeric,
+                    1
+                ) AS "avgResolutionHours"
+            FROM issues
+        `);
+
+        // Hourly incident volume across recent 12 hours
+        const hourlyResult = await query(`
+            WITH hours AS (
+                SELECT generate_series(
+                    date_trunc('hour', NOW()) - INTERVAL '12 hours',
+                    date_trunc('hour', NOW()),
+                    INTERVAL '2 hours'
+                ) AS h
+            )
+            SELECT
+                to_char(h.h, 'HH24:00') AS time,
+                COUNT(i.id)::int AS count,
+                COUNT(i.id) FILTER (WHERE i.phase IN ('RESOLVED', 'CLOSED'))::int AS resolved
+            FROM hours h
+            LEFT JOIN issues i
+                ON date_trunc('hour', i.created_at) = h.h
+            GROUP BY h.h
+            ORDER BY h.h ASC
+        `);
+
+        const statsRow = statsResult.rows[0] || {};
+        const total = statsRow.total || 0;
+        const aiVerifiedCount = statsRow.aiVerifiedCount || 0;
+        const aiVerifiedPct = total > 0
+            ? Math.round((aiVerifiedCount / total) * 100)
+            : 100;
+
+        res.json({
+            stats: {
+                total,
+                active: statsRow.active || 0,
+                resolved: statsRow.resolved || 0,
+                resolvedToday: statsRow.resolvedToday || 0,
+                reportsToday: statsRow.reportsToday || 0,
+                aiVerifiedCount,
+                aiVerifiedPct,
+                avgResolutionHours: Number(statsRow.avgResolutionHours) || 0
+            },
+            hourlyActivity: hourlyResult.rows || []
+        });
+
+    } catch (error) {
+        next(error);
+    }
+});
+
+
+/* =========================================================
    GEO-DEDUPLICATION: NEARBY ISSUES
 ========================================================= */
 

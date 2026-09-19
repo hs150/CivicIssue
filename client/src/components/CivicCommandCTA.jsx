@@ -1,9 +1,33 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight, MapPinned, Camera, Sparkles, Activity, ShieldCheck } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
+import { api } from "../api.js";
 
 export default function CivicCommandCTA() {
   const { user } = useAuth();
+  const [stats, setStats] = useState({
+    active: 0,
+    resolved: 0,
+    resolvedToday: 0,
+    total: 0
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadStats() {
+      try {
+        const { data } = await api.get("/issues/stats");
+        if (isMounted && data?.stats) {
+          setStats(data.stats);
+        }
+      } catch (err) {
+        console.error("Failed to load CTA stats:", err);
+      }
+    }
+    loadStats();
+    return () => { isMounted = false; };
+  }, []);
 
   return (
     <section className="mx-auto max-w-7xl px-4 sm:px-6">
@@ -82,16 +106,16 @@ export default function CivicCommandCTA() {
             </Link>
           </div>
 
-          {/* Small Live Statistics Under Buttons */}
+          {/* Real Database Statistics Under Buttons */}
           <div className="mt-8 pt-6 border-t border-slate-800/80 flex flex-wrap items-center gap-6 text-xs font-mono text-slate-400">
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-cyan-400 animate-pulse" />
-              <span className="text-slate-200 font-bold">24 Active Issues</span>
+              <span className="text-slate-200 font-bold">{stats.active} Active Issues</span>
             </div>
             <span className="text-slate-700">•</span>
             <div className="flex items-center gap-2">
               <span className="h-2 w-2 rounded-full bg-emerald-400" />
-              <span className="text-slate-200 font-bold">18 Resolved Today</span>
+              <span className="text-slate-200 font-bold">{stats.resolvedToday || stats.resolved} Resolved</span>
             </div>
             <span className="text-slate-700">•</span>
             <div className="flex items-center gap-2">
