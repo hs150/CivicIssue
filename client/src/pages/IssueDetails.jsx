@@ -11,7 +11,7 @@ import { useToast } from "../context/ToastContext.jsx";
 import MapPicker from "../components/MapPicker.jsx";
 import StatusTimeline from "../components/StatusTimeline.jsx";
 import BeforeAfterSlider from "../components/BeforeAfterSlider.jsx";
-import { Share2, UserCheck, Clock } from "lucide-react";
+import { Share2, UserCheck, Clock, Award, ThumbsDown, Users } from "lucide-react";
 
 /* =========================================================
    HELPERS
@@ -311,6 +311,155 @@ function FixComparison({ beforeUrl, afterUrl, verification }) {
 }
 
 /* =========================================================
+   CITIZEN COMMUNITY SIGN-OFF & DISPUTE
+========================================================= */
+
+function CitizenSignOff({ issue, onVerified }) {
+  const { user } = useAuth();
+  const toast = useToast();
+  const [submitting, setSubmitting] = useState(false);
+  const [showDisputeInput, setShowDisputeInput] = useState(false);
+  const [disputeNote, setDisputeNote] = useState("");
+
+  const verifications = issue.citizenVerifications || [];
+  const hasUserVoted = user && verifications.some((v) => v.userId === user.id);
+
+  async function handleVote(action, note = "") {
+    if (!user) {
+      toast.info("Please login to participate in community sign-off.");
+      return;
+    }
+    setSubmitting(true);
+    try {
+      const res = await api.post(`/issues/${issue._id || issue.id}/citizen-verify`, {
+        action,
+        note
+      });
+      toast.success(res.data.message || "Community feedback recorded!");
+      setShowDisputeInput(false);
+      setDisputeNote("");
+      if (onVerified) onVerified();
+    } catch (err) {
+      toast.error(err.response?.data?.message || "Could not record feedback.");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  const isEligible =
+    ["RESOLUTION_REVIEW", "RESOLVED", "CLOSED"].includes(issue.phase || issue.status) ||
+    Boolean(issue.resolutionImageUrl);
+
+  if (!isEligible) return null;
+
+  return (
+    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Users size={20} className="text-emerald-700" />
+          <h2 className="text-lg font-black">Citizen Community Sign-Off</h2>
+        </div>
+        {issue.citizenVerified ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 text-xs font-black shadow-xs">
+            <Award size={13} className="text-amber-600" /> Community Certified
+          </span>
+        ) : (
+          <span className="text-xs font-bold text-slate-400">Neighborhood Peer Review</span>
+        )}
+      </div>
+
+      <p className="text-xs text-slate-500 leading-relaxed">
+        To prevent fake closures, repairs must be validated by local citizens. If 2+ residents confirm the fix, it receives the official Gold Seal of Community Verification.
+      </p>
+
+      {/* Confirmation & Dispute Counters */}
+      <div className="grid grid-cols-2 gap-3">
+        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-3.5 text-center">
+          <p className="text-2xl font-black text-emerald-700">{issue.citizenConfirmations || 0}</p>
+          <p className="text-xs font-bold text-emerald-800 flex items-center justify-center gap-1 mt-0.5">
+            <ThumbsUp size={12} /> Confirmations
+          </p>
+        </div>
+        <div className="rounded-2xl border border-rose-200 bg-rose-50/60 p-3.5 text-center">
+          <p className="text-2xl font-black text-rose-700">{issue.citizenDisputes || 0}</p>
+          <p className="text-xs font-bold text-rose-800 flex items-center justify-center gap-1 mt-0.5">
+            <ThumbsDown size={12} /> Disputes
+          </p>
+        </div>
+      </div>
+
+      {/* Action Buttons */}
+      {!hasUserVoted ? (
+        <div className="space-y-3 pt-1">
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleVote("confirm")}
+              disabled={submitting}
+              className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-xs font-bold text-white shadow-md shadow-emerald-700/20 hover:bg-emerald-800 transition active:scale-95 disabled:opacity-50"
+            >
+              <ThumbsUp size={14} /> Confirm Fix Is Good
+            </button>
+            <button
+              onClick={() => setShowDisputeInput(!showDisputeInput)}
+              disabled={submitting}
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-xs font-bold text-rose-700 hover:bg-rose-100 transition active:scale-95 disabled:opacity-50"
+            >
+              <ThumbsDown size={14} /> Dispute
+            </button>
+          </div>
+
+          {/* Dispute Note Form */}
+          {showDisputeInput && (
+            <div className="rounded-2xl border border-rose-200 bg-rose-50/70 p-3.5 space-y-2 animate-in fade-in duration-200">
+              <p className="text-xs font-bold text-rose-900">Why are you disputing this repair?</p>
+              <textarea
+                className="w-full rounded-xl border border-rose-200 bg-white p-2.5 text-xs text-slate-800 outline-none focus:ring-2 focus:ring-rose-500/20"
+                rows={2}
+                placeholder="E.g., Debris was left behind, water is still leaking, pothole was only half-filled..."
+                value={disputeNote}
+                onChange={(e) => setDisputeNote(e.target.value)}
+              />
+              <button
+                onClick={() => handleVote("dispute", disputeNote)}
+                disabled={submitting}
+                className="w-full rounded-xl bg-rose-700 py-2 text-xs font-bold text-white hover:bg-rose-800 transition"
+              >
+                Submit Dispute to Ward Supervisor
+              </button>
+            </div>
+          )}
+        </div>
+      ) : (
+        <div className="rounded-xl bg-slate-50 border border-slate-200 p-3 text-center text-xs font-bold text-slate-600">
+          ✓ Your community verification vote has been officially logged.
+        </div>
+      )}
+
+      {/* Community review activity feed */}
+      {verifications.length > 0 && (
+        <div className="pt-2 border-t border-slate-100 space-y-2">
+          <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Recent Community Votes</p>
+          <div className="space-y-1.5 max-h-36 overflow-y-auto">
+            {verifications.map((v, i) => (
+              <div key={i} className="flex items-center justify-between text-xs py-1 px-2 rounded-lg bg-slate-50">
+                <div className="flex items-center gap-1.5">
+                  <span className={`h-2 w-2 rounded-full ${v.action === "confirm" ? "bg-emerald-500" : "bg-rose-500"}`} />
+                  <span className="font-semibold text-slate-700">{v.userName}</span>
+                  {v.note && <span className="text-slate-400 truncate max-w-[140px]">"{v.note}"</span>}
+                </div>
+                <span className={`text-[10px] font-black uppercase ${v.action === "confirm" ? "text-emerald-700" : "text-rose-700"}`}>
+                  {v.action === "confirm" ? "Confirmed" : "Disputed"}
+                </span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/* =========================================================
    MAIN COMPONENT
 ========================================================= */
 
@@ -397,6 +546,14 @@ export default function IssueDetails() {
                     AI Fix Verified
                   </Badge>
                 )}
+
+                {/* Citizen Verified Gold Seal */}
+                {issue.citizenVerified && (
+                  <Badge className="bg-amber-100 text-amber-900 border-amber-300 font-black shadow-xs">
+                    <Award size={12} className="text-amber-600" />
+                    Community Certified Gold
+                  </Badge>
+                )}
               </div>
               <h1 className="mt-4 text-4xl font-black tracking-tight">{issue.title}</h1>
               <p className="mt-4 leading-7 text-slate-600">{issue.description}</p>
@@ -423,6 +580,9 @@ export default function IssueDetails() {
               verification={issue.fixVerification}
             />
           )}
+
+          {/* Citizen Community Sign-off & Dispute */}
+          <CitizenSignOff issue={issue} onVerified={load} />
         </div>
 
         {/* ============== RIGHT COLUMN ============== */}

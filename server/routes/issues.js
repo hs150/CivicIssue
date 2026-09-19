@@ -74,6 +74,11 @@ function normalizeIssue(row) {
         fixVerification: row.fix_verification || {},
         resolvedAt: row.resolved_at,
 
+        citizenConfirmations: Number(row.citizen_confirmations) || 0,
+        citizenDisputes: Number(row.citizen_disputes) || 0,
+        citizenVerified: Boolean(row.citizen_verified),
+        citizenVerifications: Array.isArray(row.citizen_verifications) ? row.citizen_verifications : [],
+
         conditions: row.conditions || {},
         aiAnalysis: row.ai_analysis || {},
 
@@ -777,7 +782,7 @@ router.post(
 
                             RETURNING upvotes
                             `,
-                            [issueId]
+                            [req.params.id]
                         );
 
                     return {
@@ -788,6 +793,101 @@ router.post(
                 });
 
             res.json(result);
+
+        } catch (error) {
+            next(error);
+        }
+    }
+);
+
+
+/* =========================================================
+   CITIZEN COMMUNITY SIGN-OFF & DISPUTE
+========================================================= */
+
+router.post(
+    "/:id/citizen-verify",
+    requireAuth,
+    async (req, res, next) => {
+        try {
+            const { action, note = "" } = req.body; // action: "confirm" | "dispute"
+
+            if (!["confirm", "dispute"].includes(action)) {
+                return res.status(400).json({
+                    message: "Action must be 'confirm' or 'dispute'."
+                });
+            }
+
+            const issueId = req.params.id;
+
+            const issueRes = await query(
+                "SELECT id, phase, citizen_verifications, citizen_confirmations, citizen_disputes FROM issues WHERE id = $1",
+                [issueId]
+            );
+
+            if (issueRes.rowCount === 0) {
+                return res.status(404).json({ message: "Issue not found." });
+            }
+
+            const issue = issueRes.rows[0];
+            const verifications = Array.isArray(issue.citizen_verifications) ? issue.citizen_verifications : [];
+
+            // Check if user already submitted
+            const existingIdx = verifications.findIndex(v => v.userId === req.user.id);
+            if (existingIdx >= 0) {
+                return res.status(400).json({
+                    message: "You have already submitted a community review for this issue."
+                });
+            }
+
+            const newVote = {
+                userId: req.user.id,
+                userName: req.user.name || req.user.email,
+                userRole: req.user.role || "citizen",
+                action,
+                note: note.trim(),
+                createdAt: new Date().toISOString()
+            };
+
+            verifications.push(newVote);
+
+            const newConfirmations = (issue.citizen_confirmations || 0) + (action === "confirm" ? 1 : 0);
+            const newDisputes = (issue.citizen_disputes || 0) + (action === "dispute" ? 1 : 0);
+            const isVerified = newConfirmations >= 2 && newConfirmations > newDisputes;
+
+            const updateRes = await query(
+                `
+                UPDATE issues
+                SET
+                    citizen_confirmations = $1,
+                    citizen_disputes = $2,
+                    citizen_verified = $3,
+                    citizen_verifications = $4::jsonb,
+                    updated_at = NOW()
+                WHERE id = $5
+                RETURNING citizen_confirmations, citizen_disputes, citizen_verified, citizen_verifications
+                `,
+                [
+                    newConfirmations,
+                    newDisputes,
+                    isVerified,
+                    JSON.stringify(verifications),
+                    issueId
+                ]
+            );
+
+            res.json({
+                success: true,
+                message: action === "confirm"
+                    ? "Thank you! You have confirmed this fix. 👍"
+                    : "Your dispute has been logged for supervisor re-inspection. ⚠️",
+                data: {
+                    citizenConfirmations: updateRes.rows[0].citizen_confirmations,
+                    citizenDisputes: updateRes.rows[0].citizen_disputes,
+                    citizenVerified: updateRes.rows[0].citizen_verified,
+                    citizenVerifications: updateRes.rows[0].citizen_verifications
+                }
+            });
 
         } catch (error) {
             next(error);
