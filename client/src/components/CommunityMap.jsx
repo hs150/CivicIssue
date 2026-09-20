@@ -84,27 +84,18 @@ export default function CommunityMap({ issues = [], height = "520px" }) {
       scrollWheelZoom: true
     }).setView(initialCenter, 13);
 
-    // 1. High-Resolution Photographic Satellite Imagery (Esri World Imagery)
+    // 1. Google High-Resolution Latest Satellite Imagery (Fresh, continuously updated satellite + modern roads/landmarks)
     const satLayer = L.tileLayer(
-      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      "https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}",
       {
-        maxZoom: 19,
+        maxZoom: 21,
+        subdomains: ["0", "1", "2", "3"],
         className: "leaflet-tile-satellite"
       }
     );
     satLayerRef.current = satLayer;
 
-    // 2. High-Precision Road & Place Labels Overlay
-    const labelsLayer = L.tileLayer(
-      "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
-      {
-        maxZoom: 19,
-        className: "leaflet-tile-satellite-labels"
-      }
-    );
-    labelsLayerRef.current = labelsLayer;
-
-    // 3. Vector OpenStreetMap Street Layer
+    // 2. Vector OpenStreetMap Street Layer
     const streetLayer = L.tileLayer(
       "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
       {
@@ -115,9 +106,8 @@ export default function CommunityMap({ issues = [], height = "520px" }) {
     );
     streetLayerRef.current = streetLayer;
 
-    // Default to Satellite View
+    // Default to Latest Satellite View
     satLayer.addTo(map);
-    labelsLayer.addTo(map);
 
     mapRef.current = map;
 
@@ -139,15 +129,9 @@ export default function CommunityMap({ issues = [], height = "520px" }) {
       if (satLayerRef.current && !map.hasLayer(satLayerRef.current)) {
         satLayerRef.current.addTo(map);
       }
-      if (labelsLayerRef.current && !map.hasLayer(labelsLayerRef.current)) {
-        labelsLayerRef.current.addTo(map);
-      }
     } else {
       if (satLayerRef.current && map.hasLayer(satLayerRef.current)) {
         map.removeLayer(satLayerRef.current);
-      }
-      if (labelsLayerRef.current && map.hasLayer(labelsLayerRef.current)) {
-        map.removeLayer(labelsLayerRef.current);
       }
       if (streetLayerRef.current && !map.hasLayer(streetLayerRef.current)) {
         streetLayerRef.current.addTo(map);

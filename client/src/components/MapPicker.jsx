@@ -19,14 +19,10 @@ export default function MapPicker({ value, onChange, readOnly = false }) {
     const center = [value?.latitude || 28.6139, value?.longitude || 77.2090];
     const map = L.map(ref.current).setView(center, 14);
 
-    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", {
-      maxZoom: 19,
+    L.tileLayer("https://mt{s}.google.com/vt/lyrs=y&x={x}&y={y}&z={z}", {
+      maxZoom: 21,
+      subdomains: ["0", "1", "2", "3"],
       className: "leaflet-tile-satellite"
-    }).addTo(map);
-
-    L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}", {
-      maxZoom: 19,
-      className: "leaflet-tile-satellite-labels"
     }).addTo(map);
 
     mapRef.current = map;
