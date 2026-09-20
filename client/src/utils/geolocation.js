@@ -1,15 +1,13 @@
 /**
- * Robust geolocation service that fetches the user's real local coordinates.
- * Strategy:
- * 1. Checks sessionStorage cache for instant load
- * 2. Attempts high-accuracy browser GPS via navigator.geolocation
- * 3. In parallel/fallback, uses fast IP-based network location if GPS is denied or slow
- * 4. Reverse geocodes coordinates to get true locality & city name
+ * Geolocation service prioritizing real hardware/browser GPS coordinates.
+ * - Always requests high-accuracy device GPS first.
+ * - Listens for live location updates via watchPosition.
+ * - Never permanently locks onto approximate IP data.
  */
 
 export function calculateDistanceKm(lat1, lon1, lat2, lon2) {
   if (!lat1 || !lon1 || !lat2 || !lon2) return null;
-  const R = 6371; // Radius of the Earth in km
+  const R = 6371; // Earth radius in km
   const dLat = ((lat2 - lat1) * Math.PI) / 180;
   const dLon = ((lon2 - lon1) * Math.PI) / 180;
   const a =
@@ -22,130 +20,121 @@ export function calculateDistanceKm(lat1, lon1, lat2, lon2) {
   return (R * c).toFixed(1);
 }
 
-export async function fetchLocalCoordinates() {
-  // 1. Check cached position from session
+/**
+ * Reverse-geocode coordinates to get human-readable locality, city, and state
+ */
+export async function reverseGeocode(lat, lng) {
   try {
-    const cached = sessionStorage.getItem("civic_local_coords");
-    if (cached) {
-      const parsed = JSON.parse(cached);
-      if (parsed && parsed.lat && parsed.lng) {
-        // Return cached immediately, then continue updating in background
-        return parsed;
-      }
-    }
-  } catch {}
+    const res = await fetch(
+      `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`
+    );
+    const data = await res.json();
+    const parts = [
+      data.locality || data.localityInfo?.administrative?.[3]?.name,
+      data.city || data.principalSubdivision
+    ].filter(Boolean);
 
-  // 2. High accuracy browser GPS promise
-  const gpsPromise = new Promise((resolve, reject) => {
+    return parts.length > 0 ? parts.join(", ") : `${lat.toFixed(3)}°, ${lng.toFixed(3)}°`;
+  } catch {
+    return `${lat.toFixed(3)}°, ${lng.toFixed(3)}°`;
+  }
+}
+
+/**
+ * Request real device GPS coordinates directly from the browser.
+ * Returns a Promise that resolves with { lat, lng, city, accuracy, source: 'gps' }.
+ */
+export function getRealDeviceGps(options = {}) {
+  return new Promise((resolve, reject) => {
     if (!navigator.geolocation) {
-      return reject(new Error("Geolocation not supported"));
+      return reject(new Error("Geolocation is not supported by your browser."));
     }
 
     navigator.geolocation.getCurrentPosition(
-      async (pos) => {
-        const lat = pos.coords.latitude;
-        const lng = pos.coords.longitude;
-        let city = "Local Area";
-        let locality = "";
-
-        try {
-          const res = await fetch(
-            `https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${lat}&longitude=${lng}&localityLanguage=en`
-          );
-          const geo = await res.json();
-          city = geo.locality || geo.city || geo.principalSubdivision || "Local Area";
-          locality = geo.locality || "";
-        } catch {}
+      async (position) => {
+        const lat = position.coords.latitude;
+        const lng = position.coords.longitude;
+        const accuracy = position.coords.accuracy;
+        const city = await reverseGeocode(lat, lng);
 
         const result = {
           lat,
           lng,
           city,
-          locality,
+          accuracy,
           source: "gps",
-          accuracy: pos.coords.accuracy
+          timestamp: Date.now()
         };
 
+        // Cache real GPS in session
         try {
-          sessionStorage.setItem("civic_local_coords", JSON.stringify(result));
+          sessionStorage.setItem("civic_gps_coords", JSON.stringify(result));
         } catch {}
 
         resolve(result);
       },
-      (err) => reject(err),
-      { enableHighAccuracy: true, timeout: 6000, maximumAge: 30000 }
+      (error) => {
+        reject(error);
+      },
+      {
+        enableHighAccuracy: true,
+        timeout: options.timeout || 15000,
+        maximumAge: options.maximumAge || 0
+      }
     );
   });
+}
 
-  // 3. Fast IP-based coordinates promise as fallback/companion
-  const ipPromise = async () => {
-    try {
-      const res = await fetch("https://ipwho.is/");
-      const data = await res.json();
-      if (data && data.success !== false && data.latitude && data.longitude) {
-        const result = {
-          lat: data.latitude,
-          lng: data.longitude,
-          city: data.city || data.region || "Local Area",
-          locality: data.city || "",
-          source: "network",
-          accuracy: 5000
-        };
-        try {
-          sessionStorage.setItem("civic_local_coords", JSON.stringify(result));
-        } catch {}
-        return result;
-      }
-    } catch {}
-
-    try {
-      const res2 = await fetch("https://freeipapi.com/api/json");
-      const data2 = await res2.json();
-      if (data2 && data2.latitude && data2.longitude) {
-        const result = {
-          lat: data2.latitude,
-          lng: data2.longitude,
-          city: data2.cityName || data2.regionName || "Local Area",
-          locality: data2.cityName || "",
-          source: "network",
-          accuracy: 5000
-        };
-        try {
-          sessionStorage.setItem("civic_local_coords", JSON.stringify(result));
-        } catch {}
-        return result;
-      }
-    } catch {}
-
-    // Default fallback coordinates if all fails (Connaught Place, New Delhi)
-    return {
-      lat: 28.6139,
-      lng: 77.209,
-      city: "New Delhi",
-      locality: "Central Delhi",
-      source: "default",
-      accuracy: 10000
-    };
-  };
-
-  // Try GPS with a 2.5 second timeout race against IP location
+/**
+ * Fetch local coordinates:
+ * 1. Checks if recent real GPS coordinates are already in memory/session.
+ * 2. Attempts real device GPS.
+ * 3. Only if GPS is unavailable or blocked, falls back to IP estimate with source: 'ip_fallback'.
+ */
+export async function fetchLocalCoordinates() {
+  // Check if we already have verified real GPS coordinates
   try {
-    const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error("GPS timeout")), 2500)
-    );
-    return await Promise.race([gpsPromise, timeoutPromise]);
-  } catch {
-    // If GPS times out or errors, try IP-based location
-    try {
-      return await ipPromise();
-    } catch {
+    const cached = sessionStorage.getItem("civic_gps_coords");
+    if (cached) {
+      const parsed = JSON.parse(cached);
+      if (parsed && parsed.source === "gps" && parsed.lat && parsed.lng) {
+        // If less than 10 minutes old, return it
+        if (Date.now() - (parsed.timestamp || 0) < 10 * 60 * 1000) {
+          return parsed;
+        }
+      }
+    }
+  } catch {}
+
+  // Attempt real hardware GPS first (allow up to 10s for Windows/browser location provider)
+  try {
+    const gpsResult = await getRealDeviceGps({ timeout: 10000 });
+    return gpsResult;
+  } catch (gpsError) {
+    console.warn("Browser GPS not available or denied, checking fallback:", gpsError.message);
+  }
+
+  // Fallback: network IP location (marks source as 'ip_fallback' so UI knows it's approximate)
+  try {
+    const res = await fetch("https://ipwho.is/");
+    const data = await res.json();
+    if (data && data.success !== false && data.latitude && data.longitude) {
+      const city = await reverseGeocode(data.latitude, data.longitude);
       return {
-        lat: 28.6139,
-        lng: 77.209,
-        city: "New Delhi",
-        locality: "Central Delhi",
-        source: "default"
+        lat: data.latitude,
+        lng: data.longitude,
+        city: city || data.city || "Local Area",
+        accuracy: 10000,
+        source: "ip_fallback"
       };
     }
-  }
+  } catch {}
+
+  // Last resort default
+  return {
+    lat: 28.6139,
+    lng: 77.209,
+    city: "New Delhi",
+    source: "default"
+  };
 }

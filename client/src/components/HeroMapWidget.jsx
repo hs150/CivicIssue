@@ -1,10 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Navigation, Plus, Minus, ArrowRight, Clock, Crosshair, Sparkles } from "lucide-react";
+import { MapPin, Navigation, Plus, Minus, ArrowRight, Clock, Crosshair, Sparkles, Compass } from "lucide-react";
 import L from "leaflet";
 import { api } from "../api.js";
 import { getImageUrl } from "../utils/image.js";
-import { fetchLocalCoordinates, calculateDistanceKm } from "../utils/geolocation.js";
+import { fetchLocalCoordinates, getRealDeviceGps, reverseGeocode, calculateDistanceKm } from "../utils/geolocation.js";
 
 const MARKER_COLORS = {
   URGENT: "#EF4444",
@@ -57,7 +57,7 @@ function createUserLocationIcon() {
 export default function HeroMapWidget() {
   const [issues, setIssues] = useState([]);
   const [selectedIssue, setSelectedIssue] = useState(null);
-  const [cityLabel, setCityLabel] = useState("Fetching Local Coordinates...");
+  const [cityLabel, setCityLabel] = useState("Locating your area...");
   const [userLocation, setUserLocation] = useState(null);
   const [isLocating, setIsLocating] = useState(true);
   const [coordDetails, setCoordDetails] = useState(null);
@@ -67,30 +67,85 @@ export default function HeroMapWidget() {
   const markersRef = useRef([]);
   const userMarkerRef = useRef(null);
 
-  // 1. Fetch Real Local Coordinates (GPS with Network fallback)
-  const refreshLocalCoordinates = async () => {
+  // Explicit Hardware GPS Request Handler
+  const requestDeviceGps = async () => {
     setIsLocating(true);
     try {
-      const coords = await fetchLocalCoordinates();
-      if (coords && coords.lat && coords.lng) {
-        setUserLocation({ lat: coords.lat, lng: coords.lng });
-        setCoordDetails(coords);
-        setCityLabel(`${coords.city || "Local Area"} (${coords.lat.toFixed(3)}°, ${coords.lng.toFixed(3)}°)`);
+      const realGps = await getRealDeviceGps({ timeout: 15000 });
+      if (realGps && realGps.lat && realGps.lng) {
+        setUserLocation({ lat: realGps.lat, lng: realGps.lng });
+        setCoordDetails(realGps);
+        setCityLabel(realGps.city);
 
         if (mapRef.current) {
-          mapRef.current.flyTo([coords.lat, coords.lng], 14, { duration: 1.2 });
+          mapRef.current.flyTo([realGps.lat, realGps.lng], 15, { duration: 1.2 });
         }
       }
     } catch (err) {
-      console.error("Failed to fetch local coordinates:", err);
-      setCityLabel("Live Map");
+      console.warn("GPS request error:", err.message);
+      // Inform user if permission is blocked in browser
+      if (err.code === 1) {
+        alert("Location access is currently blocked by your browser for this site.\n\nPlease click the lock or tune icon in your browser address bar and enable 'Location' permission.");
+      }
     } finally {
       setIsLocating(false);
     }
   };
 
+  // 1. Initial Coordinate Fetch + Active Hardware GPS Watcher
   useEffect(() => {
-    refreshLocalCoordinates();
+    let watchId = null;
+
+    // A. Initial fetch (real GPS or fast network approximation)
+    fetchLocalCoordinates()
+      .then((coords) => {
+        if (coords && coords.lat && coords.lng) {
+          setUserLocation({ lat: coords.lat, lng: coords.lng });
+          setCoordDetails(coords);
+          setCityLabel(coords.city || "Local Area");
+
+          if (mapRef.current) {
+            mapRef.current.setView([coords.lat, coords.lng], 14);
+          }
+        }
+      })
+      .finally(() => setIsLocating(false));
+
+    // B. Live Device GPS Watcher (locks onto true physical GPS as soon as browser resolves)
+    if (navigator.geolocation) {
+      watchId = navigator.geolocation.watchPosition(
+        async (pos) => {
+          const lat = pos.coords.latitude;
+          const lng = pos.coords.longitude;
+          const city = await reverseGeocode(lat, lng);
+          const realGps = {
+            lat,
+            lng,
+            city,
+            accuracy: pos.coords.accuracy,
+            source: "gps"
+          };
+          setUserLocation({ lat, lng });
+          setCoordDetails(realGps);
+          setCityLabel(city);
+          setIsLocating(false);
+
+          if (mapRef.current) {
+            mapRef.current.flyTo([lat, lng], 15, { duration: 1.0 });
+          }
+        },
+        (err) => {
+          console.warn("Live GPS watch notice:", err.message);
+        },
+        { enableHighAccuracy: true, maximumAge: 10000, timeout: 20000 }
+      );
+    }
+
+    return () => {
+      if (watchId !== null && navigator.geolocation) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+    };
   }, []);
 
   // 2. Fetch real issues from backend
@@ -273,12 +328,10 @@ export default function HeroMapWidget() {
   const handleZoomIn = () => mapRef.current?.zoomIn();
   const handleZoomOut = () => mapRef.current?.zoomOut();
   const handleRecenter = () => {
-    if (!mapRef.current) return;
-    if (userLocation) {
+    if (mapRef.current && userLocation) {
       mapRef.current.flyTo([userLocation.lat, userLocation.lng], 15, { duration: 1.2 });
-    } else {
-      refreshLocalCoordinates();
     }
+    requestDeviceGps();
   };
 
   // Calculate friendly relative time
@@ -309,18 +362,21 @@ export default function HeroMapWidget() {
         {/* Real Location Tag & Fetch Trigger */}
         <button
           type="button"
-          onClick={refreshLocalCoordinates}
-          title="Click to re-fetch live local coordinates"
+          onClick={requestDeviceGps}
+          title="Click to detect your exact physical GPS coordinates"
           className="inline-flex items-center gap-1.5 rounded-full border border-[#E2E8F0] bg-[#F8FAFC] hover:bg-emerald-50/50 hover:border-[#00A881]/40 px-3 py-1 text-xs font-bold text-[#07111F] shadow-2xs transition-all cursor-pointer group"
         >
           <span className="flex h-2 w-2 relative">
-            {isLocating && (
+            {isLocating ? (
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00A881] opacity-75" />
-            )}
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00A881]" />
+            ) : null}
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${coordDetails?.source === 'gps' ? 'bg-[#00A881]' : 'bg-amber-500'}`} />
           </span>
-          <MapPin size={13} className="text-[#00A881]" />
-          <span>{cityLabel}</span>
+          <MapPin size={13} className={coordDetails?.source === 'gps' ? "text-[#00A881]" : "text-amber-600"} />
+          <span className="max-w-[180px] sm:max-w-[220px] truncate">{cityLabel}</span>
+          <span className="text-[10px] font-mono font-normal text-slate-400 hidden sm:inline">
+            {coordDetails?.source === 'gps' ? '• GPS Locked' : '• Tap for GPS'}
+          </span>
           <Crosshair size={11} className="text-[#94A3B8] group-hover:text-[#00A881] ml-0.5 transition-colors" />
         </button>
 
