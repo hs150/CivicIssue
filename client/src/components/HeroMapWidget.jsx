@@ -62,10 +62,14 @@ export default function HeroMapWidget() {
   const [isLocating, setIsLocating] = useState(true);
   const [coordDetails, setCoordDetails] = useState(null);
   const [imgError, setImgError] = useState(false);
+  const [mapMode, setMapMode] = useState("satellite"); // "satellite" | "street"
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
   const userMarkerRef = useRef(null);
+  const satLayerRef = useRef(null);
+  const labelsLayerRef = useRef(null);
+  const streetLayerRef = useRef(null);
 
   // Explicit Hardware GPS Request Handler
   const requestDeviceGps = async () => {
@@ -183,11 +187,40 @@ export default function HeroMapWidget() {
       scrollWheelZoom: false
     }).setView(initialCenter, 13);
 
-    // Clean, 100% free, keyless OpenStreetMap tiles (no watermarks, no API key required)
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      maxZoom: 19,
-      subdomains: ["a", "b", "c"]
-    }).addTo(map);
+    // 1. High-Resolution Photographic Satellite Imagery (Esri World Imagery - 100% free, keyless, sub-meter clarity)
+    const satLayer = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      {
+        maxZoom: 19,
+        className: "leaflet-tile-satellite"
+      }
+    );
+    satLayerRef.current = satLayer;
+
+    // 2. High-Precision Road & City Landmark Overlay (shows roads, places, boundaries over the satellite image)
+    const labelsLayer = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+      {
+        maxZoom: 19,
+        className: "leaflet-tile-satellite-labels"
+      }
+    );
+    labelsLayerRef.current = labelsLayer;
+
+    // 3. Vector OpenStreetMap Street Layer
+    const streetLayer = L.tileLayer(
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        maxZoom: 19,
+        subdomains: ["a", "b", "c"],
+        className: "leaflet-tile-street"
+      }
+    );
+    streetLayerRef.current = streetLayer;
+
+    // Default to Satellite View
+    satLayer.addTo(map);
+    labelsLayer.addTo(map);
 
     mapRef.current = map;
 
@@ -206,6 +239,34 @@ export default function HeroMapWidget() {
       mapRef.current = null;
     };
   }, []);
+
+  // Synchronize Satellite / Street Layer Mode Switch
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (mapMode === "satellite") {
+      if (streetLayerRef.current && map.hasLayer(streetLayerRef.current)) {
+        map.removeLayer(streetLayerRef.current);
+      }
+      if (satLayerRef.current && !map.hasLayer(satLayerRef.current)) {
+        satLayerRef.current.addTo(map);
+      }
+      if (labelsLayerRef.current && !map.hasLayer(labelsLayerRef.current)) {
+        labelsLayerRef.current.addTo(map);
+      }
+    } else {
+      if (satLayerRef.current && map.hasLayer(satLayerRef.current)) {
+        map.removeLayer(satLayerRef.current);
+      }
+      if (labelsLayerRef.current && map.hasLayer(labelsLayerRef.current)) {
+        map.removeLayer(labelsLayerRef.current);
+      }
+      if (streetLayerRef.current && !map.hasLayer(streetLayerRef.current)) {
+        streetLayerRef.current.addTo(map);
+      }
+    }
+  }, [mapMode]);
 
   // 4. Update User Marker
   useEffect(() => {
@@ -409,6 +470,36 @@ export default function HeroMapWidget() {
       <div className="relative mt-3 h-[300px] sm:h-[360px] w-full rounded-xl sm:rounded-2xl overflow-hidden border border-[#E2E8F0]">
         {/* Leaflet DOM container */}
         <div ref={containerRef} className="h-full w-full z-0" />
+
+        {/* Layer Mode Switcher: 🛰️ Satellite vs 🗺️ Street */}
+        <div className="absolute right-3.5 top-3.5 z-20 flex items-center rounded-xl border border-white/20 bg-slate-950/85 p-0.5 shadow-xl backdrop-blur-md">
+          <button
+            type="button"
+            onClick={() => setMapMode("satellite")}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all cursor-pointer text-[11px] font-bold ${
+              mapMode === "satellite"
+                ? "bg-[#00A881] text-white shadow-xs ring-1 ring-[#00A881]"
+                : "text-slate-300 hover:text-white hover:bg-white/10"
+            }`}
+            title="High-Resolution True-Color Satellite Imagery"
+          >
+            <span>🛰️</span>
+            <span>Satellite</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setMapMode("street")}
+            className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all cursor-pointer text-[11px] font-bold ${
+              mapMode === "street"
+                ? "bg-[#00A881] text-white shadow-xs ring-1 ring-[#00A881]"
+                : "text-slate-300 hover:text-white hover:bg-white/10"
+            }`}
+            title="Standard Vector Street Map"
+          >
+            <span>🗺️</span>
+            <span>Street</span>
+          </button>
+        </div>
 
         {/* Floating Active Issue Card with REAL DATA */}
         {selectedIssue && (

@@ -48,10 +48,14 @@ function createUserMarker() {
 
 export default function CommunityMap({ issues = [], height = "520px" }) {
   const [userLocation, setUserLocation] = useState(null);
+  const [mapMode, setMapMode] = useState("satellite"); // "satellite" | "street"
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
   const userMarkerRef = useRef(null);
+  const satLayerRef = useRef(null);
+  const labelsLayerRef = useRef(null);
+  const streetLayerRef = useRef(null);
 
   // 1. Fetch Local Coordinates
   useEffect(() => {
@@ -80,9 +84,40 @@ export default function CommunityMap({ issues = [], height = "520px" }) {
       scrollWheelZoom: true
     }).setView(initialCenter, 13);
 
-    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }).addTo(map);
+    // 1. High-Resolution Photographic Satellite Imagery (Esri World Imagery)
+    const satLayer = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+      {
+        maxZoom: 19,
+        className: "leaflet-tile-satellite"
+      }
+    );
+    satLayerRef.current = satLayer;
+
+    // 2. High-Precision Road & Place Labels Overlay
+    const labelsLayer = L.tileLayer(
+      "https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}",
+      {
+        maxZoom: 19,
+        className: "leaflet-tile-satellite-labels"
+      }
+    );
+    labelsLayerRef.current = labelsLayer;
+
+    // 3. Vector OpenStreetMap Street Layer
+    const streetLayer = L.tileLayer(
+      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+      {
+        maxZoom: 19,
+        subdomains: ["a", "b", "c"],
+        className: "leaflet-tile-street"
+      }
+    );
+    streetLayerRef.current = streetLayer;
+
+    // Default to Satellite View
+    satLayer.addTo(map);
+    labelsLayer.addTo(map);
 
     mapRef.current = map;
 
@@ -91,6 +126,34 @@ export default function CommunityMap({ issues = [], height = "520px" }) {
       mapRef.current = null;
     };
   }, []);
+
+  // Synchronize Satellite / Street Layer Mode Switch
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    if (mapMode === "satellite") {
+      if (streetLayerRef.current && map.hasLayer(streetLayerRef.current)) {
+        map.removeLayer(streetLayerRef.current);
+      }
+      if (satLayerRef.current && !map.hasLayer(satLayerRef.current)) {
+        satLayerRef.current.addTo(map);
+      }
+      if (labelsLayerRef.current && !map.hasLayer(labelsLayerRef.current)) {
+        labelsLayerRef.current.addTo(map);
+      }
+    } else {
+      if (satLayerRef.current && map.hasLayer(satLayerRef.current)) {
+        map.removeLayer(satLayerRef.current);
+      }
+      if (labelsLayerRef.current && map.hasLayer(labelsLayerRef.current)) {
+        map.removeLayer(labelsLayerRef.current);
+      }
+      if (streetLayerRef.current && !map.hasLayer(streetLayerRef.current)) {
+        streetLayerRef.current.addTo(map);
+      }
+    }
+  }, [mapMode]);
 
   // 3. Update User Marker
   useEffect(() => {
@@ -183,9 +246,40 @@ export default function CommunityMap({ issues = [], height = "520px" }) {
 
   return (
     <div
-      ref={containerRef}
       style={{ height, width: "100%" }}
       className="relative overflow-hidden rounded-2xl border border-slate-200 shadow-sm"
-    />
+    >
+      <div ref={containerRef} className="h-full w-full z-0" />
+
+      {/* Layer Mode Switcher: 🛰️ Satellite vs 🗺️ Street */}
+      <div className="absolute right-3.5 top-3.5 z-[1000] flex items-center rounded-xl border border-white/20 bg-slate-950/85 p-0.5 shadow-xl backdrop-blur-md">
+        <button
+          type="button"
+          onClick={() => setMapMode("satellite")}
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all cursor-pointer text-[11px] font-bold ${
+            mapMode === "satellite"
+              ? "bg-[#00A881] text-white shadow-xs ring-1 ring-[#00A881]"
+              : "text-slate-300 hover:text-white hover:bg-white/10"
+          }`}
+          title="High-Resolution True-Color Satellite Imagery"
+        >
+          <span>🛰️</span>
+          <span>Satellite</span>
+        </button>
+        <button
+          type="button"
+          onClick={() => setMapMode("street")}
+          className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all cursor-pointer text-[11px] font-bold ${
+            mapMode === "street"
+              ? "bg-[#00A881] text-white shadow-xs ring-1 ring-[#00A881]"
+              : "text-slate-300 hover:text-white hover:bg-white/10"
+          }`}
+          title="Standard Vector Street Map"
+        >
+          <span>🗺️</span>
+          <span>Street</span>
+        </button>
+      </div>
+    </div>
   );
 }

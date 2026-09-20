@@ -232,10 +232,10 @@ body {
   color: #ffffff !important;
 }
 
-/* Leaflet dark map tiles styling */
-.dark .leaflet-tile,
-[data-theme="midnight"] .leaflet-tile,
-[data-theme="navy"] .leaflet-tile {
+/* Leaflet dark map tiles styling - only invert vector street tiles, keep satellite photos true to life */
+.dark .leaflet-tile-street,
+[data-theme="midnight"] .leaflet-tile-street,
+[data-theme="navy"] .leaflet-tile-street {
   filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
 }
 
