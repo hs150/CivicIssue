@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { LogIn, LogOut, Menu, ShieldCheck, X, Plus, Search, Moon, Sun, Send, Github, Linkedin, Twitter, Youtube, ChevronDown, FileText } from "lucide-react";
+import { LogOut, Menu, ShieldCheck, X, Plus, Search, Moon, Sun, Send, Github, Linkedin, Twitter, Youtube, ChevronDown, FileText } from "lucide-react";
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useTheme } from "../context/ThemeContext.jsx";

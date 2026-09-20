@@ -73,7 +73,7 @@ export default function AiAnalysisDemo() {
     <section id="ai-verification" className="scroll-mt-24 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       
       {/* Pure Monochrome Dark Container */}
-      <div className="rounded-3xl bg-black text-white p-6 sm:p-10 lg:p-14 shadow-2xl border border-neutral-800 relative overflow-hidden">
+      <div className="cta-dark-section rounded-3xl bg-black text-white p-6 sm:p-10 lg:p-14 shadow-2xl border border-neutral-800 relative overflow-hidden">
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
           
@@ -93,7 +93,7 @@ export default function AiAnalysisDemo() {
             </h2>
 
             {/* Description */}
-            <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-normal">
+            <p className="text-xs sm:text-sm text-neutral-300 leading-relaxed font-normal" style={{ color: "rgba(255,255,255,0.75)" }}>
               We use advanced verification checks to ensure reported issues are genuine, accurate, and actionable — no fake reports, no noise.
             </p>
 
@@ -181,10 +181,10 @@ export default function AiAnalysisDemo() {
                     <Check size={10} strokeWidth={3.5} />
                   </div>
                   <div>
-                    <h4 className="text-xs font-bold text-white leading-tight">
+                    <h4 className="text-xs font-bold text-white leading-tight" style={{ color: "#ffffff" }}>
                       {item.title}
                     </h4>
-                    <p className="text-[11px] text-neutral-400 mt-0.5">
+                    <p className="text-[11px] text-neutral-400 mt-0.5" style={{ color: "rgba(255,255,255,0.55)" }}>
                       {item.desc}
                     </p>
                   </div>

@@ -261,13 +261,40 @@ body {
   font-weight: 700 !important;
 }
 
-[data-theme="light"] h1,
-[data-theme="light"] h2,
-[data-theme="light"] h3,
-[data-theme="light"] h4,
-[data-theme="light"] h5,
-[data-theme="light"] h6 {
+[data-theme="light"] h1:not(.cta-dark-section *),
+[data-theme="light"] h2:not(.cta-dark-section *),
+[data-theme="light"] h3:not(.cta-dark-section *),
+[data-theme="light"] h4:not(.cta-dark-section *),
+[data-theme="light"] h5:not(.cta-dark-section *),
+[data-theme="light"] h6:not(.cta-dark-section *) {
   color: #000000 !important;
+}
+
+/* CTA dark-overlay sections always use white text regardless of theme */
+.cta-dark-section h1,
+.cta-dark-section h2,
+.cta-dark-section h3,
+.cta-dark-section h4,
+.cta-dark-section > * p,
+.cta-dark-section > * > p {
+  color: #ffffff !important;
+}
+
+/* Only standalone spans (not inside a/button) get forced white */
+.cta-dark-section span:not(a span):not(button span):not(.no-override) {
+  color: #ffffff !important;
+}
+
+/* Muted text inside dark sections stays muted (not pitch black) */
+.cta-dark-section .text-neutral-300,
+.cta-dark-section .text-neutral-400 {
+  color: rgba(255,255,255,0.6) !important;
+}
+
+/* Buttons and links inside dark sections keep their own text color */
+.cta-dark-section a span,
+.cta-dark-section button span {
+  color: inherit !important;
 }
 
 [data-theme="light"] p {

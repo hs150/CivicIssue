@@ -56,12 +56,8 @@ export function ThemeProvider({ children }) {
   }, [theme, activeThemeConfig]);
 
   function setTheme(themeId) {
-    const normalized = themeId === "dark" || themeId === "midnight" || themeId === "navy" ? "dark" : "light";
+    const normalized = themeId === "dark" ? "dark" : "light";
     setThemeState(normalized);
-  }
-
-  function toggleTheme() {
-    setThemeState((prev) => (prev === "dark" ? "light" : "dark"));
   }
 
   function toggleMode() {
@@ -75,7 +71,6 @@ export function ThemeProvider({ children }) {
       value={{
         theme,
         setTheme,
-        toggleTheme,
         toggleMode,
         isDark,
         themes: THEMES,
