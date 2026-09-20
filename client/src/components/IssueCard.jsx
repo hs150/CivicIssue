@@ -133,7 +133,7 @@ export default function IssueCard({ issue }) {
           )}
           {!hasAIVerification && hasAIScan && (
             <span className="inline-flex items-center gap-1 rounded-lg bg-slate-950/85 px-2 py-0.5 text-[10px] font-bold text-teal-300 backdrop-blur-md border border-teal-500/30 shadow-md">
-              <Sparkles size={11} className="text-teal-400" /> Gemini Scanned
+              <Sparkles size={11} className="text-teal-400" /> CIVICORA Scanned
             </span>
           )}
         </div>

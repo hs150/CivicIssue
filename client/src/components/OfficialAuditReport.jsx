@@ -76,7 +76,7 @@ export default function OfficialAuditReport({ issue, onClose }) {
                   Autonomous AI Verification & Audit Trail
                 </p>
                 <p className="text-xs text-slate-600">
-                  Multimodal Gemini Vision Model analyzed location markers, repair textures, and fraud indicators.
+                  Multimodal Vision Model analyzed location markers, repair textures, and fraud indicators.
                 </p>
               </div>
             </div>

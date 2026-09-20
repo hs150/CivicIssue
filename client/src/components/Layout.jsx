@@ -1,13 +1,15 @@
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { LogIn, LogOut, Menu, ShieldCheck, X, Plus, Sparkles, Activity, Shield } from "lucide-react";
+import { LogIn, LogOut, Menu, ShieldCheck, X, Plus, Search, Moon, Sun, Send, Github, Linkedin, Twitter, Youtube } from "lucide-react";
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
-import ThemeSelector from "./ThemeSelector.jsx";
+import { useTheme } from "../context/ThemeContext.jsx";
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -33,9 +35,18 @@ export default function Layout({ children }) {
     }
   };
 
+  const handleSearchSubmit = (e) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/issues?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      navigate("/issues");
+    }
+  };
+
   useEffect(() => {
     function onScroll() {
-      setScrolled(window.scrollY > 20);
+      setScrolled(window.scrollY > 15);
     }
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
@@ -44,88 +55,104 @@ export default function Layout({ children }) {
   return (
     <div className="min-h-screen flex flex-col bg-[#F7F9F8] text-[#07111F]">
       {/* =========================================================
-          STICKY PREMIUM NAVBAR
-          Translucent white background, backdrop blur, subtle border #DDE5E1
+          STICKY NAVBAR (Matches Screenshot)
+          White translucent, pill search, theme button, Report Issue +
       ========================================================= */}
       <header
-        className={`sticky top-0 z-50 transition-all duration-300 ${
+        className={`sticky top-0 z-50 transition-all duration-200 ${
           scrolled
-            ? "py-3 bg-white/80 backdrop-blur-md border-b border-[#DDE5E1] shadow-xs"
-            : "py-4 bg-[#F7F9F8]/90 backdrop-blur-sm border-b border-[#DDE5E1]/80"
+            ? "py-2.5 bg-white/90 backdrop-blur-md border-b border-[#E2E8F0] shadow-xs"
+            : "py-3.5 bg-white border-b border-[#EAEFEA]"
         }`}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+          
           {/* Logo on Left */}
           <Link
             to="/"
-            className="flex items-center gap-2.5 font-black text-[#07111F] group"
+            className="flex items-center gap-2.5 font-bold text-[#07111F] group"
             onClick={close}
           >
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#00C896] text-[#020817] font-black text-lg shadow-sm transition-transform group-hover:scale-105">
-              C
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#00A881] text-white font-extrabold text-base shadow-xs transition-transform group-hover:scale-105">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                <path d="m9 12 2 2 4-4" />
+              </svg>
             </div>
-            <div className="flex flex-col">
-              <span className="text-lg font-black tracking-tight leading-none text-[#07111F]">
-                Civic<span className="text-[#00C896]">Connect</span>
-              </span>
-              <span className="text-[10px] font-mono font-semibold tracking-wider text-[#64748B] uppercase mt-0.5">
-                CIVIC INTELLIGENCE OS
-              </span>
-            </div>
+            <span className="text-xl font-black tracking-tight text-[#07111F]">
+              CivicConnect
+            </span>
           </Link>
 
-          {/* Center Navigation Links */}
+          {/* Center Navigation Links (Home, How it works, Live Pulse, Issues, About) */}
           <nav
             className={`${
               open
-                ? "absolute left-0 right-0 top-full flex flex-col border-b border-[#DDE5E1] bg-white p-5 shadow-xl md:hidden"
+                ? "absolute left-0 right-0 top-full flex flex-col border-b border-[#E2E8F0] bg-white p-5 shadow-xl md:hidden"
                 : "hidden"
             } md:flex md:items-center md:gap-1 text-sm font-medium text-[#64748B]`}
           >
+            <NavLink
+              to="/"
+              onClick={close}
+              className={({ isActive }) =>
+                `rounded-full px-3.5 py-1.5 transition ${
+                  isActive && location.hash === ""
+                    ? "font-bold text-[#00A881] bg-[#00A881]/10"
+                    : "hover:text-[#07111F]"
+                }`
+              }
+            >
+              Home
+            </NavLink>
+
             <a
               href="#how-it-works"
               onClick={(e) => handleAnchorClick(e, "#how-it-works")}
-              className="rounded-lg px-3 py-1.5 transition hover:text-[#07111F] hover:bg-slate-100"
+              className="rounded-full px-3.5 py-1.5 transition hover:text-[#07111F]"
             >
               How it works
             </a>
+
             <a
               href="#live-pulse"
               onClick={(e) => handleAnchorClick(e, "#live-pulse")}
-              className="rounded-lg px-3 py-1.5 transition hover:text-[#07111F] hover:bg-slate-100"
+              className="rounded-full px-3.5 py-1.5 transition hover:text-[#07111F]"
             >
               Live Pulse
             </a>
-            <a
-              href="#ai-verification"
-              onClick={(e) => handleAnchorClick(e, "#ai-verification")}
-              className="rounded-lg px-3 py-1.5 transition hover:text-[#07111F] hover:bg-slate-100"
-            >
-              AI Verification
-            </a>
+
             <NavLink
               to="/issues"
               onClick={close}
               className={({ isActive }) =>
-                `rounded-lg px-3 py-1.5 transition ${
+                `rounded-full px-3.5 py-1.5 transition ${
                   isActive
-                    ? "font-bold text-[#07111F] bg-slate-100"
-                    : "hover:text-[#07111F] hover:bg-slate-100"
+                    ? "font-bold text-[#00A881] bg-[#00A881]/10"
+                    : "hover:text-[#07111F]"
                 }`
               }
             >
               Issues
             </NavLink>
 
+            <a
+              href="#about"
+              onClick={(e) => handleAnchorClick(e, "#about")}
+              className="rounded-full px-3.5 py-1.5 transition hover:text-[#07111F]"
+            >
+              About
+            </a>
+
             {user && (
               <NavLink
                 to="/my-issues"
                 onClick={close}
                 className={({ isActive }) =>
-                  `rounded-lg px-3 py-1.5 transition ${
+                  `rounded-full px-3.5 py-1.5 transition ${
                     isActive
-                      ? "font-bold text-[#07111F] bg-slate-100"
-                      : "hover:text-[#07111F] hover:bg-slate-100"
+                      ? "font-bold text-[#00A881] bg-[#00A881]/10"
+                      : "hover:text-[#07111F]"
                   }`
                 }
               >
@@ -137,56 +164,50 @@ export default function Layout({ children }) {
               <NavLink
                 to="/dashboard"
                 onClick={close}
-                className="inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 hover:bg-indigo-100 transition ml-1"
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold text-[#00A881] bg-[#00A881]/10 border border-[#00A881]/30 hover:bg-[#00A881]/20 transition ml-1"
               >
-                <ShieldCheck size={14} /> Officer Desk
+                <ShieldCheck size={13} /> Officer Desk
               </NavLink>
             )}
-
-            {/* Mobile-only session actions */}
-            <div className="pt-4 border-t border-[#DDE5E1] mt-3 flex flex-col gap-2 md:hidden">
-              <Link
-                to="/report"
-                onClick={close}
-                className="flex items-center justify-center gap-2 rounded-xl bg-[#00C896] px-4 py-2.5 text-sm font-bold text-[#020817]"
-              >
-                <Plus size={16} /> Report Issue
-              </Link>
-              {user ? (
-                <button
-                  onClick={handleLogout}
-                  className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 py-2 text-sm font-semibold text-slate-700"
-                >
-                  <LogOut size={16} /> Log Out ({user.name || user.email})
-                </button>
-              ) : (
-                <Link
-                  to="/login"
-                  onClick={close}
-                  className="flex items-center justify-center gap-2 rounded-xl border border-slate-300 py-2 text-sm font-semibold text-slate-700"
-                >
-                  <LogIn size={16} /> Login
-                </Link>
-              )}
-            </div>
           </nav>
 
-          {/* Right Side: Theme switcher + Report Issue button + Auth */}
-          <div className="flex items-center gap-2.5">
-            <div className="hidden sm:block">
-              <ThemeSelector />
-            </div>
+          {/* Right Side: Search Input + Theme Switcher + Report Issue Button */}
+          <div className="flex items-center gap-3">
+            
+            {/* Search Input Bar (Matches screenshot: Search issues...) */}
+            <form onSubmit={handleSearchSubmit} className="hidden lg:flex items-center relative">
+              <Search size={14} className="absolute left-3.5 text-[#94A3B8]" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search issues..."
+                className="h-9 w-44 xl:w-52 rounded-full border border-[#E2E8F0] bg-[#F8FAFC] pl-9 pr-3 text-xs text-[#07111F] placeholder-[#94A3B8] focus:border-[#00A881] focus:bg-white focus:outline-none transition"
+              />
+            </form>
 
+            {/* Theme Toggle Button (Circular icon button) */}
+            <button
+              onClick={toggleTheme}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B] hover:text-[#07111F] hover:bg-slate-100 transition"
+              title="Toggle Theme"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+            </button>
+
+            {/* Report Issue Button (Pill button: Report Issue +) */}
             <Link
               to="/report"
-              className="inline-flex items-center gap-1.5 rounded-xl bg-[#00C896] hover:bg-[#008F70] px-4 py-2 text-sm font-bold text-[#020817] hover:text-white transition shadow-sm active:scale-95"
+              className="inline-flex items-center gap-1.5 rounded-full bg-[#00A881] hover:bg-[#008F70] px-4 py-2 text-xs sm:text-sm font-bold text-white transition shadow-xs active:scale-95"
             >
-              <Plus size={16} />
               <span>Report Issue</span>
+              <Plus size={15} strokeWidth={2.5} />
             </Link>
 
+            {/* Auth / Profile controls */}
             {user ? (
-              <div className="hidden md:flex items-center gap-2 pl-2">
+              <div className="hidden sm:flex items-center gap-2 pl-1">
                 <div
                   className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-xs font-bold text-slate-800 border border-slate-300"
                   title={user.email}
@@ -195,26 +216,24 @@ export default function Layout({ children }) {
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="rounded-lg p-1.5 text-[#64748B] hover:text-rose-600 transition"
-                  title="Sign out"
+                  className="text-xs text-[#64748B] hover:text-rose-600 transition font-medium"
                 >
-                  <LogOut size={16} />
+                  Log out
                 </button>
               </div>
             ) : (
               <Link
                 to="/login"
-                className="hidden md:inline-flex items-center gap-1 rounded-xl border border-[#DDE5E1] bg-white px-3.5 py-2 text-sm font-semibold text-[#07111F] hover:bg-slate-50 transition shadow-2xs"
+                className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-[#64748B] hover:text-[#07111F] px-2 py-1"
               >
-                <LogIn size={15} />
-                <span>Login</span>
+                Login
               </Link>
             )}
 
             {/* Mobile Menu Hamburger */}
             <button
               onClick={() => setOpen(!open)}
-              className="rounded-xl p-2 text-slate-700 hover:bg-slate-100 md:hidden"
+              className="rounded-lg p-2 text-slate-700 hover:bg-slate-100 md:hidden"
               aria-label="Toggle navigation"
             >
               {open ? <X size={22} /> : <Menu size={22} />}
@@ -227,67 +246,101 @@ export default function Layout({ children }) {
       <main className="flex-1">{children}</main>
 
       {/* =========================================================
-          COMPACT & PROFESSIONAL DARK FOOTER
-          Dark navy #020817 with subtle borders and government-grade trust
+          FOOTER (Exact Match to Screenshot)
+          Clean light background, 4 columns, subscription box, bottom note
       ========================================================= */}
-      <footer className="border-t border-slate-800 bg-[#020817] text-[#64748B]">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-10 md:py-12">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            {/* Column 1: Brand & GovTech Mission */}
-            <div className="md:col-span-2 space-y-3">
-              <Link to="/" className="flex items-center gap-2 font-black text-white">
-                <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-[#00C896] text-[#020817] font-black text-sm">
-                  C
+      <footer className="border-t border-[#EAEFEA] bg-white text-[#64748B]">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 md:py-16">
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
+            
+            {/* Column 1: Brand, Tagline, Description & Socials (4 Cols) */}
+            <div className="md:col-span-4 space-y-3">
+              <Link to="/" className="flex items-center gap-2 font-bold text-[#07111F]">
+                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#00A881] text-white font-extrabold text-sm">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+                    <path d="m9 12 2 2 4-4" />
+                  </svg>
                 </div>
-                <span className="text-base font-extrabold tracking-tight">
-                  Civic<span className="text-[#00C896]">Connect</span>
-                </span>
+                <span className="text-base font-extrabold tracking-tight">CivicConnect</span>
               </Link>
-              <p className="text-xs text-slate-400 leading-relaxed max-w-md">
-                An enterprise civic intelligence platform connecting citizens, automated vision inspection, and municipal field units for verified physical infrastructure repairs.
+              <p className="text-xs font-semibold text-[#00A881]">
+                Cleaner Cities. Stronger Communities.
               </p>
-              <div className="pt-1 flex items-center gap-2 text-[11px] font-mono text-[#00C896]">
-                <span className="h-1.5 w-1.5 rounded-full bg-[#00C896] animate-pulse" />
-                <span>MUNICIPAL PUBLIC LEDGER • 100% AUDITABLE</span>
+              <p className="text-xs text-[#64748B] leading-relaxed max-w-sm">
+                A transparent, citizen-driven platform for cleaner, safer and smarter cities.
+              </p>
+              <div className="flex items-center gap-3 pt-2 text-[#64748B]">
+                <a href="https://github.com" target="_blank" rel="noreferrer" className="hover:text-[#07111F] transition">
+                  <Github size={16} />
+                </a>
+                <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-[#07111F] transition">
+                  <Linkedin size={16} />
+                </a>
+                <a href="https://twitter.com" target="_blank" rel="noreferrer" className="hover:text-[#07111F] transition">
+                  <Twitter size={16} />
+                </a>
+                <a href="https://youtube.com" target="_blank" rel="noreferrer" className="hover:text-[#07111F] transition">
+                  <Youtube size={16} />
+                </a>
               </div>
             </div>
 
-            {/* Column 2: Navigation */}
-            <div className="space-y-2.5">
-              <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-200">
-                Platform
-              </h4>
-              <ul className="space-y-1.5 text-xs">
-                <li><Link to="/issues" className="hover:text-white transition">Explore Issues</Link></li>
-                <li><Link to="/report" className="hover:text-white transition">Report an Issue</Link></li>
-                <li><Link to="/my-issues" className="hover:text-white transition">Citizen Tracking</Link></li>
-                <li><Link to="/dashboard" className="hover:text-white transition">Officer Desk</Link></li>
+            {/* Column 2: Platform Links (2 Cols) */}
+            <div className="md:col-span-2 space-y-3">
+              <h4 className="text-xs font-bold text-[#07111F]">Platform</h4>
+              <ul className="space-y-2 text-xs">
+                <li><a href="#how-it-works" onClick={(e) => handleAnchorClick(e, "#how-it-works")} className="hover:text-[#07111F] transition">How it works</a></li>
+                <li><a href="#live-pulse" onClick={(e) => handleAnchorClick(e, "#live-pulse")} className="hover:text-[#07111F] transition">Live Pulse</a></li>
+                <li><Link to="/issues" className="hover:text-[#07111F] transition">Issues</Link></li>
+                <li><Link to="/report" className="hover:text-[#07111F] transition">Report Issue</Link></li>
               </ul>
             </div>
 
-            {/* Column 3: Trust & Security */}
-            <div className="space-y-2.5">
-              <h4 className="text-xs font-mono font-bold uppercase tracking-wider text-slate-200">
-                Integrity
-              </h4>
-              <ul className="space-y-1.5 text-xs text-slate-400">
-                <li>Multimodal Vision Models</li>
-                <li>500m Geo-Deduplication</li>
-                <li>Anti-Corruption Image Trails</li>
-                <li>Citizen Community Sign-Off</li>
+            {/* Column 3: Resources Links (2 Cols) */}
+            <div className="md:col-span-2 space-y-3">
+              <h4 className="text-xs font-bold text-[#07111F]">Resources</h4>
+              <ul className="space-y-2 text-xs">
+                <li><a href="#docs" className="hover:text-[#07111F] transition">Documentation</a></li>
+                <li><a href="#privacy" className="hover:text-[#07111F] transition">Privacy Policy</a></li>
+                <li><a href="#terms" className="hover:text-[#07111F] transition">Terms of Service</a></li>
+                <li><a href="#contact" className="hover:text-[#07111F] transition">Contact</a></li>
               </ul>
+            </div>
+
+            {/* Column 4: Subscribe (4 Cols) */}
+            <div className="md:col-span-4 space-y-3">
+              <h4 className="text-xs font-bold text-[#07111F]">Subscribe</h4>
+              <p className="text-xs text-[#64748B]">
+                Get updates about new features and city initiatives.
+              </p>
+              <form onSubmit={(e) => { e.preventDefault(); alert("Subscribed successfully!"); }} className="flex items-center relative max-w-sm">
+                <input
+                  type="email"
+                  placeholder="Enter your email"
+                  required
+                  className="h-9 w-full rounded-full border border-[#E2E8F0] bg-[#F8FAFC] px-4 pr-10 text-xs text-[#07111F] placeholder-[#94A3B8] focus:border-[#00A881] focus:bg-white focus:outline-none transition"
+                />
+                <button
+                  type="submit"
+                  className="absolute right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#00A881] text-white hover:bg-[#008F70] transition shadow-xs"
+                >
+                  <Send size={11} className="-ml-0.5" />
+                </button>
+              </form>
+            </div>
+
+          </div>
+
+          {/* Bottom Bar */}
+          <div className="mt-12 pt-6 border-t border-[#EAEFEA] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#94A3B8]">
+            <p>© 2024 CivicConnect. All rights reserved.</p>
+            <div className="flex items-center gap-1.5 text-xs text-[#64748B]">
+              <span>Cleaner Cities. Brighter Tomorrow.</span>
+              <span className="h-1.5 w-1.5 rounded-full bg-[#00A881]" />
             </div>
           </div>
 
-          {/* Bottom Row */}
-          <div className="mt-8 pt-6 border-t border-slate-800/80 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs font-mono text-slate-500">
-            <p>© {new Date().getFullYear()} CivicConnect Platform. All municipal rights reserved.</p>
-            <div className="flex items-center gap-4">
-              <span>SECURITY: ISO-27001 ENCLAVE</span>
-              <span>•</span>
-              <span>IN EMERGENCY CALL 112 DIRECTLY</span>
-            </div>
-          </div>
         </div>
       </footer>
     </div>

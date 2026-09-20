@@ -1,115 +1,52 @@
-import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, MapPinned, ShieldCheck, Activity } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
-import { api } from "../api.js";
+import nightGhatsImg from "../assets/city_ghats_night_panorama.jpg";
 
 export default function CivicCommandCTA() {
   const { user } = useAuth();
-  const [stats, setStats] = useState({
-    active: 0,
-    resolved: 0,
-    resolvedToday: 0,
-    total: 0
-  });
-
-  useEffect(() => {
-    let isMounted = true;
-    async function loadStats() {
-      try {
-        const { data } = await api.get("/issues/stats");
-        if (isMounted && data?.stats) {
-          setStats(data.stats);
-        }
-      } catch (err) {
-        console.error("Failed to load CTA stats:", err);
-      }
-    }
-    loadStats();
-    return () => { isMounted = false; };
-  }, []);
-
-  const handleExploreMap = (e) => {
-    const el = document.getElementById("civic-map");
-    if (el) {
-      e.preventDefault();
-      el.scrollIntoView({ behavior: "smooth" });
-    }
-  };
 
   return (
     <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div className="relative overflow-hidden rounded-2xl border border-slate-800 bg-[#020817] p-8 sm:p-12 lg:p-16 text-white shadow-xl">
+      <div className="relative overflow-hidden rounded-3xl bg-[#06101E] text-white p-8 sm:p-12 lg:p-14 shadow-2xl border border-slate-800">
         
-        {/* Subtle grid and radial glow in background */}
-        <div
-          className="absolute inset-0 opacity-15 pointer-events-none"
-          style={{
-            backgroundImage: `
-              radial-gradient(circle at 80% 20%, rgba(0, 200, 150, 0.25), transparent 50%),
-              linear-gradient(to right, rgba(255, 255, 255, 0.05) 1px, transparent 1px),
-              linear-gradient(to bottom, rgba(255, 255, 255, 0.05) 1px, transparent 1px)
-            `,
-            backgroundSize: "100% 100%, 36px 36px, 36px 36px"
-          }}
-        />
+        {/* Background Image: Night Ghats Panorama with dark gradient overlay */}
+        <div className="absolute inset-0 z-0">
+          <img
+            src={nightGhatsImg}
+            alt="City Skyline"
+            className="h-full w-full object-cover object-center opacity-35"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#06101E] via-[#06101E]/80 to-transparent" />
+        </div>
 
-        {/* Content Area */}
-        <div className="relative z-10 max-w-2xl">
+        {/* Content Row */}
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           
-          {/* Small Badge */}
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#00C896]/30 bg-[#00C896]/10 px-3.5 py-1 text-xs font-mono font-bold text-[#00C896] mb-6">
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00C896] opacity-75" />
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00C896]" />
+          {/* Left Text */}
+          <div className="max-w-xl space-y-2">
+            <span className="text-[10px] sm:text-xs font-mono font-bold tracking-widest text-[#94A3B8] uppercase">
+              BE THE CHANGE
             </span>
-            <span>CITIZEN INTELLIGENCE DISPATCH</span>
+            
+            <h2 className="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight text-white">
+              Your City. Your Voice.
+            </h2>
+            
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-normal pt-1">
+              Report civic issues, track progress, and make your city a better place.
+            </p>
           </div>
 
-          {/* Large Headline: YOUR CITY. YOUR VOICE. */}
-          <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight uppercase">
-            Your City. <br />
-            <span className="text-[#00C896]">Your Voice.</span>
-          </h2>
-
-          {/* Subtitle: Turn a report into a verified action. */}
-          <p className="mt-4 text-base sm:text-lg text-slate-300 font-normal leading-relaxed">
-            Turn a report into a verified action.
-          </p>
-
-          {/* Action Buttons: Report an Issue →, Explore the Map */}
-          <div className="mt-8 flex flex-wrap items-center gap-4">
+          {/* Right Button */}
+          <div className="shrink-0">
             <Link
               to={user ? "/report" : "/login"}
-              className="group inline-flex items-center gap-2 rounded-xl bg-[#00C896] hover:bg-[#008F70] px-6 py-3.5 font-bold text-[#020817] hover:text-white transition shadow-sm active:scale-95 text-sm sm:text-base"
+              className="inline-flex items-center gap-2 rounded-full bg-[#00C896] hover:bg-[#008F70] px-6 py-3.5 text-xs sm:text-sm font-bold text-[#06101E] hover:text-white transition shadow-lg active:scale-95"
             >
               <span>Report an Issue</span>
-              <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">
-                →
-              </span>
+              <ArrowRight size={14} strokeWidth={2.5} />
             </Link>
-
-            <a
-              href="#civic-map"
-              onClick={handleExploreMap}
-              className="inline-flex items-center gap-2 rounded-xl border border-slate-700 bg-slate-900/80 px-6 py-3.5 font-bold text-white hover:bg-slate-800 hover:border-slate-600 transition text-sm sm:text-base"
-            >
-              <MapPinned size={17} className="text-[#00C896]" />
-              <span>Explore the Map</span>
-            </a>
-          </div>
-
-          {/* Small Trust / Telemetry Metrics */}
-          <div className="mt-8 pt-6 border-t border-slate-800/80 flex flex-wrap items-center gap-6 text-xs font-mono text-slate-400">
-            <div className="flex items-center gap-2">
-              <span className="h-2 w-2 rounded-full bg-[#00C896] animate-pulse" />
-              <span className="text-slate-200 font-semibold">{stats.active || 14} Active In Pipeline</span>
-            </div>
-            <span className="text-slate-700">•</span>
-            <div className="flex items-center gap-2">
-              <ShieldCheck size={14} className="text-[#00C896]" />
-              <span>100% Anti-Fraud Audit Trail</span>
-            </div>
           </div>
 
         </div>
