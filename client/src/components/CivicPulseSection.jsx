@@ -37,7 +37,7 @@ export default function CivicPulseSection() {
     {
       id: "total",
       icon: FileText,
-      iconBg: "bg-emerald-50 text-[#00A881] border border-emerald-100",
+      iconBg: "bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-white border border-neutral-300 dark:border-neutral-700",
       value: stats.total.toLocaleString(),
       label: "Total Reports",
       change: stats.total === 1 ? "1 logged ticket" : `${stats.total} logged tickets`,
@@ -46,7 +46,7 @@ export default function CivicPulseSection() {
     {
       id: "active",
       icon: AlertTriangle,
-      iconBg: "bg-amber-50 text-amber-500 border border-amber-100",
+      iconBg: "bg-amber-50 text-amber-500 border border-amber-100 dark:bg-amber-950/40 dark:border-amber-900/50",
       value: stats.active.toString(),
       label: "Active Issues",
       change: stats.active === 1 ? "1 active in queue" : `${stats.active} active in queue`,
@@ -55,7 +55,7 @@ export default function CivicPulseSection() {
     {
       id: "verified",
       icon: ShieldCheck,
-      iconBg: "bg-teal-50 text-teal-600 border border-teal-100",
+      iconBg: "bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-white border border-neutral-300 dark:border-neutral-700",
       value: stats.verified > 0 ? `${stats.verified}%` : "100%",
       label: "Verified Reports",
       change: "Automated GPS & AI verification",
@@ -64,7 +64,7 @@ export default function CivicPulseSection() {
     {
       id: "response",
       icon: Clock,
-      iconBg: "bg-indigo-50 text-indigo-500 border border-indigo-100",
+      iconBg: "bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-white border border-neutral-300 dark:border-neutral-700",
       value: stats.response,
       label: "Avg. Response Time",
       change: "Municipal SLA target",
@@ -78,21 +78,21 @@ export default function CivicPulseSection() {
       {/* Header (Matches Screenshot) */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-6">
         <div>
-          <div className="flex items-center gap-2 font-bold text-xs sm:text-sm tracking-wider text-[#07111F] uppercase">
+          <div className="flex items-center gap-2 font-bold text-xs sm:text-sm tracking-wider text-neutral-900 dark:text-white uppercase">
             <span className="flex h-2.5 w-2.5 relative">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00A881] opacity-75" />
-              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-[#00A881]" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black dark:bg-white opacity-75" />
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-black dark:bg-white" />
             </span>
             <span>LIVE CIVIC PULSE</span>
           </div>
-          <p className="text-xs sm:text-sm text-[#64748B] mt-1">
+          <p className="text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 mt-1">
             Real-time overview of civic issues in your city.
           </p>
         </div>
 
-        <div className="flex items-center gap-1.5 text-xs text-[#94A3B8]">
+        <div className="flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
           <span>Last updated 2 minutes ago</span>
-          <span className="h-2 w-2 rounded-full bg-[#00A881]" />
+          <span className="h-2 w-2 rounded-full bg-black dark:bg-white" />
         </div>
       </div>
 
@@ -103,7 +103,7 @@ export default function CivicPulseSection() {
           return (
             <div
               key={card.id}
-              className="flex items-center gap-4 rounded-2xl border border-[#E2E8F0] bg-white p-5 shadow-sm hover:border-[#00A881]/50 hover:shadow-md transition-all"
+              className="flex items-center gap-4 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black p-5 shadow-sm hover:border-black dark:hover:border-white hover:shadow-md transition-all"
             >
               {/* Circular Icon */}
               <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl ${card.iconBg}`}>
@@ -112,14 +112,14 @@ export default function CivicPulseSection() {
 
               {/* Data & Label */}
               <div className="min-w-0">
-                <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-[#07111F]">
+                <div className="text-2xl sm:text-3xl font-black font-mono tracking-tight text-neutral-900 dark:text-white">
                   {card.value}
                 </div>
-                <div className="text-xs font-medium text-[#64748B] mt-0.5">
+                <div className="text-xs font-medium text-neutral-500 dark:text-neutral-400 mt-0.5">
                   {card.label}
                 </div>
                 <div className="flex items-center gap-1 text-[11px] font-semibold mt-1">
-                  <span className={card.isPositive ? "text-[#00A881]" : "text-[#EF4444]"}>
+                  <span className={card.isPositive ? "text-neutral-900 dark:text-white" : "text-[#EF4444]"}>
                     ▲ {card.change}
                   </span>
                 </div>

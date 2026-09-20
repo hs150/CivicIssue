@@ -75,8 +75,8 @@ export default function CivicMapPreview() {
     const p = (priority || "").toUpperCase();
     if (p === "CRITICAL" || p === "URGENT") return "#EF4444"; // Red
     if (p === "HIGH") return "#F5A524"; // Warning / Amber
-    if (p === "MEDIUM") return "#06B6D4"; // Cyan
-    return "#00C896"; // Low / Resolved Green
+    if (p === "MEDIUM") return "#94A3B8"; // Neutral / Silver
+    return "#FFFFFF"; // Low / Resolved Monochrome White
   }
 
   // Format timestamp nicely
@@ -94,28 +94,28 @@ export default function CivicMapPreview() {
 
   return (
     <section id="civic-map" className="scroll-mt-24 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-      <div className="rounded-2xl border border-slate-800 bg-[#020817] p-6 sm:p-8 lg:p-10 shadow-xl text-white overflow-hidden relative">
+      <div className="rounded-2xl border border-neutral-800 bg-black p-6 sm:p-8 lg:p-10 shadow-xl text-white overflow-hidden relative">
         
         {/* Section Header */}
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-slate-800">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 pb-6 border-b border-neutral-800">
           <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-[#00C896]/30 bg-[#00C896]/10 px-3 py-1 text-xs font-mono font-bold text-[#00C896]">
+            <div className="inline-flex items-center gap-2 rounded-full border border-neutral-700 bg-neutral-900 px-3 py-1 text-xs font-mono font-bold text-white">
               <span className="relative flex h-2 w-2">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00C896] opacity-75" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00C896]" />
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
               </span>
               <span>LIVE CIVIC ISSUES MAP</span>
             </div>
             <h2 className="mt-2 text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
               Civic Intelligence Map
             </h2>
-            <p className="text-xs sm:text-sm text-[#64748B] mt-1 font-light">
+            <p className="text-xs sm:text-sm text-neutral-400 mt-1 font-light">
               Interactive spatial view of active, verified, and resolved municipal reports.
             </p>
           </div>
 
           {/* Filters: All, Road, Water, Waste, Lighting */}
-          <div className="flex flex-wrap items-center gap-1.5 bg-slate-900/90 p-1.5 rounded-xl border border-slate-800 text-xs font-mono">
+          <div className="flex flex-wrap items-center gap-1.5 bg-neutral-900 p-1.5 rounded-xl border border-neutral-800 text-xs font-mono">
             {categories.map((cat) => (
               <button
                 key={cat}
@@ -123,8 +123,8 @@ export default function CivicMapPreview() {
                 onClick={() => setActiveCategory(cat)}
                 className={`rounded-lg px-3 py-1.5 font-bold transition cursor-pointer ${
                   activeCategory === cat
-                    ? "bg-[#00C896] text-[#020817] shadow-sm"
-                    : "text-slate-400 hover:text-white"
+                    ? "bg-white text-black shadow-sm"
+                    : "text-neutral-400 hover:text-white"
                 }`}
               >
                 {cat}
@@ -175,39 +175,39 @@ export default function CivicMapPreview() {
                 {/* Pin Core */}
                 <div
                   className={`relative flex h-7 w-7 items-center justify-center rounded-full border-2 shadow-lg transition-transform group-hover:scale-125 ${
-                    isSelected ? "scale-125 border-white ring-4 ring-[#00C896]/40" : "border-slate-950"
+                    isSelected ? "scale-125 border-white ring-4 ring-white/40" : "border-black"
                   }`}
                   style={{ backgroundColor: severityColor }}
                 >
-                  <MapPin size={13} className="text-[#020817] font-bold" />
+                  <MapPin size={13} className="text-black font-bold" />
                 </div>
 
                 {/* Mini Tooltip on Hover */}
-                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-700 bg-slate-900/95 px-2.5 py-1 text-[11px] font-mono text-white shadow-xl pointer-events-none">
+                <div className="absolute left-1/2 -translate-x-1/2 bottom-full mb-2 hidden group-hover:flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-neutral-700 bg-black/95 px-2.5 py-1 text-[11px] font-mono text-white shadow-xl pointer-events-none">
                   <span className="font-bold">{issue.title?.slice(0, 24)}...</span>
-                  <span className="text-slate-400">({issue.priority || "MEDIUM"})</span>
+                  <span className="text-neutral-400">({issue.priority || "MEDIUM"})</span>
                 </div>
               </div>
             );
           })}
 
           {/* Floating Telemetry Badge (Top Left) */}
-          <div className="absolute top-4 left-4 z-30 flex items-center gap-3 rounded-xl border border-slate-800 bg-slate-900/90 px-3.5 py-2 text-xs font-mono backdrop-blur-md shadow-lg">
+          <div className="absolute top-4 left-4 z-30 flex items-center gap-3 rounded-xl border border-neutral-800 bg-black/90 px-3.5 py-2 text-xs font-mono backdrop-blur-md shadow-lg">
             <span className="flex items-center gap-1.5 text-white font-bold">
-              <span className="h-2 w-2 rounded-full bg-[#00C896] animate-pulse" />
+              <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
               <span>{filteredIssues.length} Visible Pins</span>
             </span>
-            <span className="text-slate-700">•</span>
-            <span className="text-slate-400 capitalize">{activeCategory} Category</span>
+            <span className="text-neutral-700">•</span>
+            <span className="text-neutral-400 capitalize">{activeCategory} Category</span>
           </div>
 
           {/* Selected Real Issue Card (Bottom Right / Mobile Floating) */}
           {selectedIssue && (
-            <div className="absolute bottom-4 right-4 z-30 w-72 sm:w-80 rounded-xl border border-slate-800 bg-slate-900/95 p-4 text-xs backdrop-blur-md shadow-2xl">
+            <div className="absolute bottom-4 right-4 z-30 w-72 sm:w-80 rounded-xl border border-neutral-800 bg-black/95 p-4 text-xs backdrop-blur-md shadow-2xl">
               
               {/* Header: Issue ID & Severity */}
-              <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                <span className="font-mono text-[11px] text-[#00C896] font-bold">
+              <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
+                <span className="font-mono text-[11px] text-white font-bold">
                   {selectedIssue.issueCode || selectedIssue.id.slice(0, 11)}
                 </span>
                 <span
@@ -226,17 +226,17 @@ export default function CivicMapPreview() {
               <h4 className="mt-2.5 text-sm font-bold text-white line-clamp-1">
                 {selectedIssue.title}
               </h4>
-              <p className="text-[11px] text-slate-400 mt-0.5 capitalize">
-                Category: <strong className="text-slate-200">{selectedIssue.category || "General"}</strong>
+              <p className="text-[11px] text-neutral-400 mt-0.5 capitalize">
+                Category: <strong className="text-neutral-200">{selectedIssue.category || "General"}</strong>
               </p>
 
               {/* Metadata Grid: AI Verification Status, Location, Timestamp */}
-              <div className="mt-3 space-y-2 bg-slate-950/70 p-2.5 rounded-lg border border-slate-800 text-[11px] font-mono">
+              <div className="mt-3 space-y-2 bg-neutral-900/90 p-2.5 rounded-lg border border-neutral-800 text-[11px] font-mono">
                 
                 {/* AI Verification Status */}
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">AI Status</span>
-                  <span className="text-[#00C896] font-bold flex items-center gap-1">
+                  <span className="text-neutral-400">AI Status</span>
+                  <span className="text-white font-bold flex items-center gap-1">
                     <ShieldCheck size={12} />
                     <span>AI Verified ✓</span>
                   </span>
@@ -244,16 +244,16 @@ export default function CivicMapPreview() {
 
                 {/* Location */}
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Location</span>
-                  <span className="text-slate-200 truncate max-w-[150px] text-right">
+                  <span className="text-neutral-400">Location</span>
+                  <span className="text-neutral-200 truncate max-w-[150px] text-right">
                     {selectedIssue.address || (selectedIssue.latitude ? `${selectedIssue.latitude.toFixed(3)}°, ${selectedIssue.longitude.toFixed(3)}°` : "GPS Logged")}
                   </span>
                 </div>
 
                 {/* Timestamp */}
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Timestamp</span>
-                  <span className="text-slate-300">
+                  <span className="text-neutral-400">Timestamp</span>
+                  <span className="text-neutral-300">
                     {formatTimestamp(selectedIssue.createdAt)}
                   </span>
                 </div>
@@ -261,15 +261,15 @@ export default function CivicMapPreview() {
               </div>
 
               {/* Action Link to Full Ticket */}
-              <div className="mt-3 pt-2 border-t border-slate-800 flex items-center justify-between">
+              <div className="mt-3 pt-2 border-t border-neutral-800 flex items-center justify-between">
                 <Link
                   to={`/issues/${selectedIssue.id}`}
-                  className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#00C896] hover:underline transition"
+                  className="inline-flex items-center gap-1.5 text-[11px] font-bold text-white hover:underline transition"
                 >
                   <span>View Details</span>
                   <ArrowRight size={12} />
                 </Link>
-                <span className="text-[10px] font-mono text-slate-500">
+                <span className="text-[10px] font-mono text-neutral-500">
                   STATUS: {selectedIssue.phase || selectedIssue.status}
                 </span>
               </div>

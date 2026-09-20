@@ -39,7 +39,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#F7F9F8] text-[#07111F] selection:bg-[#00A881]/20 selection:text-[#00A881] space-y-16 sm:space-y-20 pb-20">
+    <div className="relative min-h-screen bg-[#F7F9F8] dark:bg-black text-[#07111F] dark:text-white selection:bg-neutral-800 selection:text-white space-y-16 sm:space-y-20 pb-20 transition-colors">
       
       {/* ========================================================================
           1. HERO SECTION (Exact Match to Screenshot)
@@ -54,18 +54,18 @@ export default function Home() {
             <div className="lg:col-span-5 space-y-6">
               
               {/* Category Kicker */}
-              <div className="text-[11px] sm:text-xs font-mono font-bold tracking-wider text-[#00A881] uppercase">
+              <div className="text-[11px] sm:text-xs font-mono font-bold tracking-wider text-neutral-500 dark:text-neutral-400 uppercase">
                 CLEANER CITIES . STRONGER COMMUNITIES.
               </div>
 
               {/* Main Headline */}
-              <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-black tracking-tight text-[#07111F] leading-[1.12]">
+              <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] font-black tracking-tight text-neutral-900 dark:text-white leading-[1.12]">
                 Report. Track. <br />
-                <span className="text-[#00A881]">Real Change.</span>
+                <span className="text-black dark:text-white underline decoration-neutral-400 dark:decoration-neutral-600 underline-offset-4">Real Change.</span>
               </h1>
 
               {/* Subtitle */}
-              <p className="max-w-md text-xs sm:text-sm text-[#64748B] leading-relaxed font-normal">
+              <p className="max-w-md text-xs sm:text-sm text-neutral-600 dark:text-neutral-300 leading-relaxed font-normal">
                 CivicConnect helps citizens report civic issues, track their resolution, and build more transparent, accountable cities.
               </p>
 
@@ -73,7 +73,7 @@ export default function Home() {
               <div className="flex flex-wrap items-center gap-3 pt-1">
                 <Link
                   to={user ? "/report" : "/login"}
-                  className="group inline-flex items-center gap-2 rounded-full bg-[#00A881] hover:bg-[#008F70] px-5 sm:px-6 py-3 font-bold text-white transition shadow-xs active:scale-95 text-xs sm:text-sm"
+                  className="group inline-flex items-center gap-2 rounded-full bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 px-5 sm:px-6 py-3 font-bold transition shadow-xs active:scale-95 text-xs sm:text-sm"
                 >
                   <span>Report an Issue</span>
                   <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">
@@ -84,7 +84,7 @@ export default function Home() {
                 <a
                   href="#hero-map-section"
                   onClick={handleScrollToMap}
-                  className="inline-flex items-center gap-2 rounded-full border border-[#E2E8F0] bg-white px-5 sm:px-6 py-3 font-bold text-[#07111F] hover:bg-slate-50 hover:border-slate-300 transition shadow-2xs text-xs sm:text-sm"
+                  className="inline-flex items-center gap-2 rounded-full border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-5 sm:px-6 py-3 font-bold text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition shadow-2xs text-xs sm:text-sm"
                 >
                   <span>View Live Map</span>
                 </a>
@@ -92,24 +92,24 @@ export default function Home() {
 
               {/* Social Proof Row: Avatars + Text */}
               <div className="pt-4 flex items-center gap-3">
-                {/* 4 Overlapping Avatar Circles */}
+                {/* 4 Overlapping Avatar Circles (Monochrome Black/White/Grey) */}
                 <div className="flex -space-x-2 overflow-hidden">
-                  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white ring-2 ring-white shadow-xs" title="Citizen Contributor">
+                  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-neutral-900 dark:bg-neutral-100 text-[10px] font-bold text-white dark:text-black ring-2 ring-white dark:ring-black shadow-xs" title="Citizen Contributor">
                     AM
                   </div>
-                  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white ring-2 ring-white shadow-xs" title="Municipal Officer">
+                  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-neutral-700 text-[10px] font-bold text-white ring-2 ring-white dark:ring-black shadow-xs" title="Municipal Officer">
                     TO
                   </div>
-                  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-teal-700 text-[10px] font-bold text-white ring-2 ring-white shadow-xs" title="Civic Contributor">
+                  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-neutral-600 text-[10px] font-bold text-white ring-2 ring-white dark:ring-black shadow-xs" title="Civic Contributor">
                     CC
                   </div>
-                  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#00A881] text-[10px] font-bold text-white ring-2 ring-white shadow-xs">
+                  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-black dark:bg-white text-[10px] font-bold text-white dark:text-black ring-2 ring-white dark:ring-black shadow-xs">
                     {totalCount > 0 ? `+${totalCount}` : "LIVE"}
                   </div>
                 </div>
 
                 {/* Social Proof Text */}
-                <p className="text-[11px] text-[#64748B] leading-tight">
+                <p className="text-[11px] text-neutral-500 dark:text-neutral-400 leading-tight">
                   Real citizens reporting <br />
                   across smart city wards
                 </p>

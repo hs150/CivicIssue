@@ -111,10 +111,10 @@ export default function IssueLifecycleTimeline() {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-8">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#07111F]">
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
             Track an Issue
           </h2>
-          <p className="mt-1 text-xs sm:text-sm text-[#64748B]">
+          <p className="mt-1 text-xs sm:text-sm text-neutral-600 dark:text-neutral-300">
             Follow the complete lifecycle of a civic issue.
           </p>
         </div>
@@ -125,7 +125,7 @@ export default function IssueLifecycleTimeline() {
             <select
               value={selectedId}
               onChange={(e) => setSelectedId(e.target.value)}
-              className="rounded-full border border-[#E2E8F0] bg-white px-3 py-1.5 text-xs font-mono font-bold text-[#07111F] focus:outline-none"
+              className="rounded-full border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-black px-3 py-1.5 text-xs font-mono font-bold text-neutral-900 dark:text-white focus:outline-none"
             >
               {issues.map(i => (
                 <option key={i.id} value={i.id}>
@@ -135,12 +135,12 @@ export default function IssueLifecycleTimeline() {
             </select>
           )}
 
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#E2E8F0] bg-white px-3.5 py-1.5 text-xs font-mono shadow-2xs">
-            <span className="font-semibold text-[#07111F]">#{issue.issueCode || "CC-46655614"}</span>
+          <div className="inline-flex items-center gap-2 rounded-full border border-neutral-300 dark:border-neutral-800 bg-white dark:bg-black px-3.5 py-1.5 text-xs font-mono shadow-2xs">
+            <span className="font-semibold text-neutral-900 dark:text-white">#{issue.issueCode || "CC-46655614"}</span>
             <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold border ${
               issue.phase === "RESOLVED"
-                ? "bg-emerald-50 text-[#00A881] border-emerald-200"
-                : "bg-amber-50 text-amber-600 border-amber-200"
+                ? "bg-black text-white dark:bg-white dark:text-black border-neutral-800 dark:border-neutral-200"
+                : "bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200 border-neutral-300 dark:border-neutral-700"
             }`}>
               {issue.phase || issue.status || "IN_PROGRESS"}
             </span>
@@ -153,26 +153,26 @@ export default function IssueLifecycleTimeline() {
         
         {/* LEFT COLUMN: Real History Timeline (7 Cols) */}
         <div className="lg:col-span-7 space-y-6 pt-2">
-          <div className="relative pl-6 space-y-7 before:absolute before:left-2.5 before:top-2 before:bottom-3 before:w-0.5 before:bg-[#00A881]">
+          <div className="relative pl-6 space-y-7 before:absolute before:left-2.5 before:top-2 before:bottom-3 before:w-0.5 before:bg-neutral-300 dark:before:bg-neutral-700">
             {timelineSteps.map((step, idx) => (
               <div key={step.id || idx} className="relative flex items-start gap-4">
                 
-                {/* Green Circle Checkmark */}
-                <div className="relative z-10 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#00A881] text-white shadow-xs">
+                {/* Monochrome Checkmark Circle */}
+                <div className="relative z-10 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-black text-white dark:bg-white dark:text-black shadow-xs">
                   <Check size={11} strokeWidth={3.5} />
                 </div>
 
                 {/* Step Content */}
                 <div className="flex-1 -mt-0.5">
                   <div className="flex flex-wrap items-baseline gap-2">
-                    <h4 className="text-sm font-bold text-[#07111F] capitalize">
+                    <h4 className="text-sm font-bold text-neutral-900 dark:text-white capitalize">
                       {step.title}
                     </h4>
-                    <span className="text-xs text-[#94A3B8] font-medium">
+                    <span className="text-xs text-neutral-500 dark:text-neutral-400 font-medium">
                       {step.timestamp}
                     </span>
                   </div>
-                  <p className="text-xs text-[#64748B] mt-0.5">
+                  <p className="text-xs text-neutral-600 dark:text-neutral-300 mt-0.5">
                     {step.desc}
                   </p>
                 </div>
@@ -182,10 +182,10 @@ export default function IssueLifecycleTimeline() {
         </div>
 
         {/* RIGHT COLUMN: Real Issue Card with Image & Details Table (5 Cols) */}
-        <div className="lg:col-span-5 rounded-2xl border border-[#E2E8F0] bg-white overflow-hidden shadow-sm">
+        <div className="lg:col-span-5 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black overflow-hidden shadow-sm">
           
           {/* Photo with After/Before Tag */}
-          <div className="relative aspect-16/10 w-full overflow-hidden bg-slate-100 flex items-center justify-center">
+          <div className="relative aspect-16/10 w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 flex items-center justify-center">
             {photoSrc ? (
               <img
                 src={photoSrc}
@@ -201,13 +201,13 @@ export default function IssueLifecycleTimeline() {
             ) : null}
             <div
               style={{ display: photoSrc ? "none" : "flex" }}
-              className="h-full w-full items-center justify-center text-slate-400 text-xs font-mono bg-slate-100"
+              className="h-full w-full items-center justify-center text-neutral-400 text-xs font-mono bg-neutral-100 dark:bg-neutral-900"
             >
               No Photo Available
             </div>
             
             <div className="absolute top-3 right-3">
-              <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-[#00A881] border border-emerald-200 backdrop-blur-md">
+              <span className="inline-flex items-center gap-1 rounded-full bg-white/95 text-black border border-neutral-200 dark:bg-black/90 dark:text-white dark:border-neutral-700 px-2.5 py-0.5 text-[10px] font-bold backdrop-blur-md shadow-xs">
                 <Check size={10} strokeWidth={3} />
                 <span>{issue.resolutionImageUrl ? "Proof of Fix" : "Verified Issue"}</span>
               </span>
@@ -216,21 +216,21 @@ export default function IssueLifecycleTimeline() {
 
           {/* Card Body */}
           <div className="p-5">
-            <h3 className="text-base font-bold text-[#07111F]">
+            <h3 className="text-base font-bold text-neutral-900 dark:text-white">
               {issue.title || "Civic Incident"}
             </h3>
             
-            <p className="mt-1 text-xs text-[#64748B] flex items-center gap-1">
-              <MapPin size={12} className="text-[#94A3B8]" />
+            <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400 flex items-center gap-1">
+              <MapPin size={12} className="text-neutral-400" />
               <span>{issue.address || (issue.latitude ? `${Number(issue.latitude).toFixed(4)}, ${Number(issue.longitude).toFixed(4)}` : "GPS Logged")}</span>
             </p>
 
             {/* Key-Value Details Table */}
-            <div className="mt-4 divide-y divide-[#F1F5F9] border-t border-[#F1F5F9] text-xs">
+            <div className="mt-4 divide-y divide-neutral-100 dark:divide-neutral-800 border-t border-neutral-100 dark:border-neutral-800 text-xs">
               {detailsRows.map((row) => (
                 <div key={row.label} className="py-2 flex items-center justify-between">
-                  <span className="text-[#94A3B8]">{row.label}</span>
-                  <span className="font-semibold text-[#07111F]">{row.value}</span>
+                  <span className="text-neutral-500 dark:text-neutral-400">{row.label}</span>
+                  <span className="font-semibold text-neutral-900 dark:text-white">{row.value}</span>
                 </div>
               ))}
             </div>

@@ -16,8 +16,8 @@ export default function CivicIntroAnimation({ onComplete }) {
 
     // 1. SCENE & CAMERA
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x030712); // Deep charcoal black void
-    scene.fog = new THREE.FogExp2(0x030712, 0.038);
+    scene.background = new THREE.Color(0x000000); // Pure pitch black void
+    scene.fog = new THREE.FogExp2(0x000000, 0.04);
 
     const camera = new THREE.PerspectiveCamera(48, width / height, 0.1, 100);
     // Initial camera close to the ground
@@ -32,20 +32,20 @@ export default function CivicIntroAnimation({ onComplete }) {
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     container.appendChild(renderer.domElement);
 
-    // 3. LIGHTING (Restrained, cool cyan / enterprise palette)
-    const ambientLight = new THREE.AmbientLight(0x0f2938, 1.6);
+    // 3. LIGHTING (Pure high-contrast monochrome palette)
+    const ambientLight = new THREE.AmbientLight(0xffffff, 1.4);
     scene.add(ambientLight);
 
-    const dirLight = new THREE.DirectionalLight(0x38bdf8, 2.2);
+    const dirLight = new THREE.DirectionalLight(0xffffff, 2.4);
     dirLight.position.set(12, 20, 10);
     scene.add(dirLight);
 
-    const pointLight = new THREE.PointLight(0x10b981, 2.5, 25);
+    const pointLight = new THREE.PointLight(0xffffff, 2.5, 25);
     pointLight.position.set(0, 3, 2);
     scene.add(pointLight);
 
-    // 4. PROCEDURAL PERSPECTIVE GRID
-    const gridHelper = new THREE.GridHelper(50, 50, 0x06b6d4, 0x0a2233);
+    // 4. PROCEDURAL PERSPECTIVE GRID (Clean white and charcoal)
+    const gridHelper = new THREE.GridHelper(50, 50, 0xffffff, 0x222222);
     gridHelper.position.y = 0;
     scene.add(gridHelper);
 
@@ -55,14 +55,14 @@ export default function CivicIntroAnimation({ onComplete }) {
 
     const buildingBoxGeo = new THREE.BoxGeometry(1, 1, 1);
     const buildingMat = new THREE.MeshLambertMaterial({
-      color: 0x07111c,
-      emissive: 0x041724,
+      color: 0x111111,
+      emissive: 0x080808,
       transparent: true,
       opacity: 0
     });
 
     const edgeLineMat = new THREE.LineBasicMaterial({
-      color: 0x0284c7,
+      color: 0xffffff,
       transparent: true,
       opacity: 0
     });
@@ -118,7 +118,7 @@ export default function CivicIntroAnimation({ onComplete }) {
 
     particleGeo.setAttribute("position", new THREE.BufferAttribute(particlePositions, 3));
     const particleMat = new THREE.PointsMaterial({
-      color: 0x38bdf8,
+      color: 0xffffff,
       size: 0.12,
       transparent: true,
       opacity: 0,
@@ -154,7 +154,7 @@ export default function CivicIntroAnimation({ onComplete }) {
 
       // Core sphere
       const sphereMat = new THREE.MeshBasicMaterial({
-        color: coord.isCenterFocus ? 0x00f2fe : 0x10b981,
+        color: 0xffffff,
         transparent: true,
         opacity: 0.95
       });
@@ -164,7 +164,7 @@ export default function CivicIntroAnimation({ onComplete }) {
 
       // Vertical beam
       const beamMat = new THREE.MeshBasicMaterial({
-        color: coord.isCenterFocus ? 0x38bdf8 : 0x34d399,
+        color: 0xffffff,
         transparent: true,
         opacity: 0.75,
         blending: THREE.AdditiveBlending
@@ -175,7 +175,7 @@ export default function CivicIntroAnimation({ onComplete }) {
 
       // Ground pulse ring
       const ringMat = new THREE.MeshBasicMaterial({
-        color: coord.isCenterFocus ? 0x00f2fe : 0x10b981,
+        color: 0xffffff,
         transparent: true,
         opacity: 0.8,
         side: THREE.DoubleSide
@@ -199,7 +199,7 @@ export default function CivicIntroAnimation({ onComplete }) {
     const networkLineGeo = new THREE.BufferGeometry();
     networkLineGeo.setAttribute("position", new THREE.Float32BufferAttribute(linePairs, 3));
     const networkLineMat = new THREE.LineBasicMaterial({
-      color: 0x38bdf8,
+      color: 0xffffff,
       transparent: true,
       opacity: 0,
       blending: THREE.AdditiveBlending
@@ -217,21 +217,21 @@ export default function CivicIntroAnimation({ onComplete }) {
     const centralOrb = new THREE.Mesh(
       new THREE.SphereGeometry(0.65, 24, 24),
       new THREE.MeshBasicMaterial({
-        color: 0x00f2fe,
+        color: 0xffffff,
         transparent: true,
         opacity: 0.95
       })
     );
     centralNodeGroup.add(centralOrb);
 
-    // Rotating Gyro Rings
+    // Rotating Gyro Rings (pure monochrome white and silver)
     const gyroRingGeo1 = new THREE.TorusGeometry(1.4, 0.025, 16, 64);
-    const gyroRingMat1 = new THREE.MeshBasicMaterial({ color: 0x38bdf8, transparent: true, opacity: 0.8 });
+    const gyroRingMat1 = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.8 });
     const gyro1 = new THREE.Mesh(gyroRingGeo1, gyroRingMat1);
     centralNodeGroup.add(gyro1);
 
     const gyroRingGeo2 = new THREE.TorusGeometry(1.8, 0.02, 16, 64);
-    const gyroRingMat2 = new THREE.MeshBasicMaterial({ color: 0x10b981, transparent: true, opacity: 0.7 });
+    const gyroRingMat2 = new THREE.MeshBasicMaterial({ color: 0x888888, transparent: true, opacity: 0.7 });
     const gyro2 = new THREE.Mesh(gyroRingGeo2, gyroRingMat2);
     gyro2.rotation.x = Math.PI / 3;
     centralNodeGroup.add(gyro2);
@@ -491,7 +491,7 @@ export default function CivicIntroAnimation({ onComplete }) {
 
   return (
     <div
-      className={`fixed inset-0 z-[9999] bg-[#030712] overflow-hidden select-none transition-opacity duration-500 ${
+      className={`fixed inset-0 z-[9999] bg-black overflow-hidden select-none transition-opacity duration-500 ${
         uiStage === 4 ? "opacity-0 pointer-events-none" : "opacity-100"
       }`}
     >
@@ -502,50 +502,50 @@ export default function CivicIntroAnimation({ onComplete }) {
       <div
         className="absolute inset-0 pointer-events-none"
         style={{
-          background: "radial-gradient(ellipse at center, transparent 40%, rgba(3, 7, 18, 0.75) 100%)"
+          background: "radial-gradient(ellipse at center, transparent 40%, rgba(0, 0, 0, 0.85) 100%)"
         }}
       />
 
-      {/* STAGE 1: MINIMAL FLOATING ISSUE DETECTION BADGE (1.5s - 2.2s) */}
+      {/* STAGE 1: MINIMAL FLOATING ISSUE DETECTION BADGE */}
       {uiStage === 1 && (
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none transition-all duration-300">
-          <div className="ml-16 mt-4 rounded-xl border border-cyan-500/40 bg-slate-950/80 px-4 py-2.5 backdrop-blur-md shadow-[0_0_25px_rgba(6,182,212,0.25)] text-left">
-            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-cyan-300">
-              <span className="h-2 w-2 rounded-full bg-cyan-400 animate-ping" />
+          <div className="ml-16 mt-4 rounded-xl border border-white/20 bg-black/90 px-4 py-2.5 backdrop-blur-md shadow-2xl text-left">
+            <div className="flex items-center gap-2 text-xs font-mono font-bold tracking-wider text-white">
+              <span className="h-2 w-2 rounded-full bg-white animate-ping" />
               <span>ISSUE DETECTED</span>
             </div>
-            <div className="mt-1 flex items-center justify-between gap-4 text-[11px] font-mono text-slate-400">
+            <div className="mt-1 flex items-center justify-between gap-4 text-[11px] font-mono text-neutral-400">
               <span>LOCATION VERIFIED</span>
-              <span className="font-bold text-amber-400">PRIORITY HIGH</span>
+              <span className="font-bold text-white">PRIORITY HIGH</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* STAGE 2: CIVIC CATEGORIES NETWORK FLASH (2.5s - 3.1s) */}
+      {/* STAGE 2: CIVIC CATEGORIES NETWORK FLASH */}
       {uiStage === 2 && (
         <div className="absolute inset-0 pointer-events-none flex items-center justify-center">
           <div className="relative w-full max-w-lg h-64 flex items-center justify-center">
-            <div className="absolute -top-6 text-xs font-mono font-bold tracking-widest text-cyan-400 bg-slate-950/70 px-3 py-1 rounded-full border border-cyan-500/30">
+            <div className="absolute -top-6 text-xs font-mono font-bold tracking-widest text-white bg-black/85 px-3 py-1 rounded-full border border-white/30">
               ROADS
             </div>
-            <div className="absolute -bottom-6 text-xs font-mono font-bold tracking-widest text-emerald-400 bg-slate-950/70 px-3 py-1 rounded-full border border-emerald-500/30">
+            <div className="absolute -bottom-6 text-xs font-mono font-bold tracking-widest text-white bg-black/85 px-3 py-1 rounded-full border border-white/30">
               WASTE
             </div>
-            <div className="absolute -left-4 text-xs font-mono font-bold tracking-widest text-sky-400 bg-slate-950/70 px-3 py-1 rounded-full border border-sky-500/30">
+            <div className="absolute -left-4 text-xs font-mono font-bold tracking-widest text-white bg-black/85 px-3 py-1 rounded-full border border-white/30">
               WATER
             </div>
-            <div className="absolute -right-4 text-xs font-mono font-bold tracking-widest text-amber-400 bg-slate-950/70 px-3 py-1 rounded-full border border-amber-500/30">
+            <div className="absolute -right-4 text-xs font-mono font-bold tracking-widest text-white bg-black/85 px-3 py-1 rounded-full border border-white/30">
               LIGHTING
             </div>
-            <div className="absolute text-[10px] font-mono font-semibold tracking-widest text-slate-300 bg-slate-900/60 px-2.5 py-0.5 rounded-full border border-slate-700">
+            <div className="absolute text-[10px] font-mono font-semibold tracking-widest text-white bg-black/90 px-2.5 py-0.5 rounded-full border border-white/40">
               SAFETY
             </div>
           </div>
         </div>
       )}
 
-      {/* STAGE 3: BRAND REVEAL (4.1s - 4.8s) */}
+      {/* STAGE 3: BRAND REVEAL */}
       {uiStage === 3 && (
         <div className="absolute inset-0 pointer-events-none flex flex-col items-center justify-center text-center">
           {/* Procedural Geometric Logo Shield SVG */}
@@ -553,37 +553,30 @@ export default function CivicIntroAnimation({ onComplete }) {
             <svg width="68" height="68" viewBox="0 0 68 68" fill="none" xmlns="http://www.w3.org/2000/svg">
               <path
                 d="M34 6L56 16V34C56 46.5 46.5 57.5 34 62C21.5 57.5 12 46.5 12 34V16L34 6Z"
-                stroke="url(#shield-grad)"
+                stroke="#FFFFFF"
                 strokeWidth="2.5"
-                fill="rgba(6, 182, 212, 0.08)"
+                fill="rgba(255, 255, 255, 0.08)"
               />
               <path
                 d="M34 18V50M18 34H50"
-                stroke="rgba(56, 189, 248, 0.5)"
+                stroke="rgba(255, 255, 255, 0.6)"
                 strokeWidth="1.5"
                 strokeDasharray="2 3"
               />
-              <circle cx="34" cy="34" r="5" fill="#38bdf8" />
-              <defs>
-                <linearGradient id="shield-grad" x1="12" y1="6" x2="56" y2="62" gradientUnits="userSpaceOnUse">
-                  <stop stopColor="#38bdf8" />
-                  <stop offset="0.5" stopColor="#00f2fe" />
-                  <stop offset="1" stopColor="#10b981" />
-                </linearGradient>
-              </defs>
+              <circle cx="34" cy="34" r="5" fill="#FFFFFF" />
             </svg>
           </div>
 
           <h1 className="text-4xl sm:text-5xl font-black tracking-[0.2em] text-white">
-            CIVIC<span className="text-cyan-400">ISSUE</span>
+            CIVICCONNECT.
           </h1>
 
-          <p className="mt-3 text-xs sm:text-sm font-mono tracking-[0.35em] text-slate-400 uppercase">
+          <p className="mt-3 text-xs sm:text-sm font-mono tracking-[0.35em] text-neutral-400 uppercase">
             REPORT • TRACK • RESOLVE
           </p>
 
           {/* Horizontal Light Sweep */}
-          <div className="mt-6 h-[1px] w-64 bg-gradient-to-r from-transparent via-cyan-400 to-transparent shadow-[0_0_15px_rgba(56,189,248,0.8)]" />
+          <div className="mt-6 h-[1px] w-64 bg-gradient-to-r from-transparent via-white to-transparent shadow-[0_0_15px_rgba(255,255,255,0.8)]" />
         </div>
       )}
 
@@ -594,10 +587,10 @@ export default function CivicIntroAnimation({ onComplete }) {
           onClick={handleSkip}
           onMouseEnter={() => setSkipHover(true)}
           onMouseLeave={() => setSkipHover(false)}
-          className="flex items-center gap-1.5 rounded-full border border-slate-800/80 bg-slate-950/70 px-3.5 py-1.5 text-[11px] font-mono text-slate-400 hover:text-white hover:border-cyan-500/40 transition cursor-pointer backdrop-blur-md"
+          className="flex items-center gap-1.5 rounded-full border border-neutral-800 bg-black/80 px-3.5 py-1.5 text-[11px] font-mono text-neutral-300 hover:text-white hover:border-white/40 transition cursor-pointer backdrop-blur-md"
         >
           <span>SKIP</span>
-          <kbd className="rounded bg-slate-900 px-1 py-0.2 text-[9px] text-slate-500 border border-slate-800">
+          <kbd className="rounded bg-neutral-900 px-1 py-0.2 text-[9px] text-neutral-400 border border-neutral-700">
             ESC
           </kbd>
         </button>

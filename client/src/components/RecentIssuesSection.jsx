@@ -5,10 +5,10 @@ import { api } from "../api.js";
 import { getImageUrl } from "../utils/image.js";
 
 const PRIORITY_BADGES = {
-  URGENT: { bg: "bg-rose-50 text-[#EF4444] border-rose-200", dot: "bg-[#EF4444]" },
-  HIGH: { bg: "bg-rose-50 text-[#EF4444] border-rose-200", dot: "bg-[#EF4444]" },
-  MEDIUM: { bg: "bg-amber-50 text-amber-600 border-amber-200", dot: "bg-amber-500" },
-  LOW: { bg: "bg-emerald-50 text-[#00A881] border-emerald-200", dot: "bg-[#00A881]" }
+  URGENT: { bg: "bg-rose-50 dark:bg-rose-950/40 text-[#EF4444] border-rose-200 dark:border-rose-900/50", dot: "bg-[#EF4444]" },
+  HIGH: { bg: "bg-rose-50 dark:bg-rose-950/40 text-[#EF4444] border-rose-200 dark:border-rose-900/50", dot: "bg-[#EF4444]" },
+  MEDIUM: { bg: "bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 border-amber-200 dark:border-amber-900/50", dot: "bg-amber-500" },
+  LOW: { bg: "bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-white border-neutral-300 dark:border-neutral-700", dot: "bg-neutral-900 dark:bg-white" }
 };
 
 export default function RecentIssuesSection() {
@@ -54,17 +54,17 @@ export default function RecentIssuesSection() {
       {/* Header */}
       <div className="flex items-end justify-between gap-4 pb-8">
         <div>
-          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#07111F]">
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-neutral-900 dark:text-white">
             Recent Issues
           </h2>
-          <p className="mt-1 text-xs sm:text-sm text-[#64748B]">
+          <p className="mt-1 text-xs sm:text-sm text-neutral-600 dark:text-neutral-300">
             See what's happening in your city.
           </p>
         </div>
 
         <Link
           to="/issues"
-          className="inline-flex items-center gap-1.5 rounded-full border border-[#E2E8F0] bg-white px-4 py-2 text-xs font-bold text-[#07111F] hover:bg-slate-50 hover:border-slate-300 transition shadow-2xs"
+          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-black px-4 py-2 text-xs font-bold text-neutral-900 dark:text-white hover:bg-neutral-100 dark:hover:bg-neutral-800 transition shadow-2xs"
         >
           <span>View All Issues</span>
           <ArrowRight size={13} />
@@ -82,11 +82,11 @@ export default function RecentIssuesSection() {
             <Link
               key={issue.id}
               to={`/issues/${issue.id}`}
-              className="group flex flex-col justify-between rounded-2xl border border-[#E2E8F0] bg-white overflow-hidden shadow-xs hover:border-[#00A881]/50 hover:shadow-md transition-all"
+              className="group flex flex-col justify-between rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black overflow-hidden shadow-xs hover:border-black dark:hover:border-white hover:shadow-md transition-all"
             >
               <div>
                 {/* Real Issue Image */}
-                <div className="relative aspect-16/10 w-full overflow-hidden bg-slate-100 flex items-center justify-center">
+                <div className="relative aspect-16/10 w-full overflow-hidden bg-neutral-100 dark:bg-neutral-900 flex items-center justify-center">
                   {imgSrc ? (
                     <img
                       src={imgSrc}
@@ -102,15 +102,15 @@ export default function RecentIssuesSection() {
                   ) : null}
                   <div
                     style={{ display: imgSrc ? "none" : "flex" }}
-                    className="h-full w-full flex-col items-center justify-center text-slate-400 gap-1 p-4 text-center bg-slate-100"
+                    className="h-full w-full flex-col items-center justify-center text-neutral-400 gap-1 p-4 text-center bg-neutral-100 dark:bg-neutral-900"
                   >
-                    <AlertTriangle size={24} className="text-[#00A881]" />
+                    <AlertTriangle size={24} className="text-neutral-400" />
                     <span className="text-[10px] font-mono">No Photo Uploaded</span>
                   </div>
                   
                   {/* Priority Tag Pill on top right */}
                   <div className="absolute top-3 right-3">
-                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border backdrop-blur-md bg-white/90 ${badge.bg}`}>
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border backdrop-blur-md bg-white/90 dark:bg-black/90 ${badge.bg}`}>
                       <span className={`h-1.5 w-1.5 rounded-full ${badge.dot}`} />
                       <span>{issue.priority || "MEDIUM"}</span>
                     </span>
@@ -119,16 +119,16 @@ export default function RecentIssuesSection() {
 
                 {/* Title & Location */}
                 <div className="p-4 pb-2">
-                  <h3 className="text-sm font-bold text-[#07111F] group-hover:text-[#00A881] transition line-clamp-1" title={issue.title}>
+                  <h3 className="text-sm font-bold text-neutral-900 dark:text-white group-hover:underline transition line-clamp-1" title={issue.title}>
                     {issue.title}
                   </h3>
                   
-                  <p className="mt-1 text-xs text-[#64748B] flex items-center gap-1 truncate">
-                    <MapPin size={12} className="text-[#94A3B8] shrink-0" />
+                  <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400 flex items-center gap-1 truncate">
+                    <MapPin size={12} className="text-neutral-400 shrink-0" />
                     <span>{issue.address || (issue.latitude ? `${Number(issue.latitude).toFixed(4)}, ${Number(issue.longitude).toFixed(4)}` : "GPS Logged")}</span>
                   </p>
 
-                  <p className="mt-1 text-[11px] text-[#94A3B8] flex items-center gap-1">
+                  <p className="mt-1 text-[11px] text-neutral-400 flex items-center gap-1">
                     <Clock size={11} />
                     <span>{getTimeAgo(issue.createdAt)}</span>
                   </p>
@@ -136,11 +136,11 @@ export default function RecentIssuesSection() {
               </div>
 
               {/* Bottom Footer: Category & Code */}
-              <div className="px-4 py-3 border-t border-[#F1F5F9] flex items-center justify-between text-xs font-mono">
-                <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-[#64748B] capitalize">
+              <div className="px-4 py-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-xs font-mono">
+                <span className="rounded bg-neutral-100 dark:bg-neutral-900 px-2 py-0.5 text-[11px] font-semibold text-neutral-600 dark:text-neutral-300 capitalize">
                   {issue.category || "General"}
                 </span>
-                <span className="text-[11px] font-semibold text-[#94A3B8]">
+                <span className="text-[11px] font-semibold text-neutral-400">
                   #{issue.issueCode || issue.id.slice(0, 8)}
                 </span>
               </div>
@@ -151,15 +151,15 @@ export default function RecentIssuesSection() {
         {/* Report New Issue Card */}
         <Link
           to="/report"
-          className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#E2E8F0] bg-white/60 p-6 text-center hover:border-[#00A881] hover:bg-emerald-50/30 transition-all group min-h-[260px]"
+          className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-neutral-300 dark:border-neutral-700 bg-white/60 dark:bg-black/60 p-6 text-center hover:border-black dark:hover:border-white hover:bg-neutral-50 dark:hover:bg-neutral-900 transition-all group min-h-[260px]"
         >
-          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-[#00A881] group-hover:scale-110 transition-transform">
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-white group-hover:scale-110 transition-transform">
             <Plus size={22} strokeWidth={2.5} />
           </div>
-          <h4 className="mt-3 text-sm font-bold text-[#07111F] group-hover:text-[#00A881] transition">
+          <h4 className="mt-3 text-sm font-bold text-neutral-900 dark:text-white group-hover:underline transition">
             Report an Issue
           </h4>
-          <p className="mt-1 text-xs text-[#64748B] max-w-[200px]">
+          <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400 max-w-[200px]">
             Spot a pothole, broken light, or waste problem in your area?
           </p>
         </Link>

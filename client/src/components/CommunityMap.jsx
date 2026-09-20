@@ -8,7 +8,7 @@ const MARKER_COLORS = {
   URGENT: "#ef4444",
   HIGH: "#f97316",
   MEDIUM: "#eab308",
-  LOW: "#10b981"
+  LOW: "#64748B"
 };
 
 function createPinIcon(priority = "MEDIUM") {
@@ -242,8 +242,8 @@ export default function CommunityMap({ issues = [], height = "520px" }) {
           onClick={() => setMapMode("satellite")}
           className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all cursor-pointer text-[11px] font-bold ${
             mapMode === "satellite"
-              ? "bg-[#00A881] text-white shadow-xs ring-1 ring-[#00A881]"
-              : "text-slate-300 hover:text-white hover:bg-white/10"
+              ? "bg-white text-black shadow-xs ring-1 ring-white"
+              : "text-neutral-300 hover:text-white hover:bg-white/10"
           }`}
           title="High-Resolution True-Color Satellite Imagery"
         >
@@ -255,8 +255,8 @@ export default function CommunityMap({ issues = [], height = "520px" }) {
           onClick={() => setMapMode("street")}
           className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all cursor-pointer text-[11px] font-bold ${
             mapMode === "street"
-              ? "bg-[#00A881] text-white shadow-xs ring-1 ring-[#00A881]"
-              : "text-slate-300 hover:text-white hover:bg-white/10"
+              ? "bg-white text-black shadow-xs ring-1 ring-white"
+              : "text-neutral-300 hover:text-white hover:bg-white/10"
           }`}
           title="Standard Vector Street Map"
         >

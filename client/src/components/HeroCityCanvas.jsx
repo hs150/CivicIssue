@@ -81,7 +81,7 @@ export default function HeroCityCanvas() {
     dirLight.position.set(10, 20, 12);
     scene.add(dirLight);
 
-    const pointLight = new THREE.PointLight(0x10b981, 2.2, 20);
+    const pointLight = new THREE.PointLight(0xffffff, 2.2, 20);
     pointLight.position.set(0, 4, 2);
     scene.add(pointLight);
 
@@ -147,7 +147,7 @@ export default function HeroCityCanvas() {
     // Color resolution for issue status
     function getStatusColor(issue) {
       const phase = (issue.phase || issue.status || "").toUpperCase();
-      if (phase === "RESOLVED" || phase === "CLOSED") return 0x10b981; // Green
+      if (phase === "RESOLVED" || phase === "CLOSED") return 0xffffff; // Monochrome White
       if (phase === "IN_PROGRESS") return 0xf59e0b; // Orange
       if (phase === "RESOLUTION_REVIEW") return 0x38bdf8; // Cyan / AI Verified
       return 0xef4444; // Red (NEW / URGENT)
@@ -310,74 +310,74 @@ export default function HeroCityCanvas() {
       <div ref={mountRef} className="h-full w-full cursor-grab active:cursor-grabbing rounded-xl overflow-hidden" />
 
       {/* Top Left Live Status Panel - Bound to Real Database Telemetry */}
-      <div className="absolute top-4 left-4 z-10 flex items-center gap-2 rounded-xl border border-slate-800 bg-slate-900/90 px-3 py-1.5 text-xs text-white backdrop-blur-md shadow-lg">
+      <div className="absolute top-4 left-4 z-10 flex items-center gap-2 rounded-xl border border-neutral-800 bg-black/90 px-3 py-1.5 text-xs text-white backdrop-blur-md shadow-lg">
         <span className="relative flex h-2 w-2">
-          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00C896] opacity-75" />
-          <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00C896]" />
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-white opacity-75" />
+          <span className="relative inline-flex rounded-full h-2 w-2 bg-white" />
         </span>
-        <span className="font-mono text-[11px] tracking-wider text-slate-300 font-bold uppercase">
+        <span className="font-mono text-[11px] tracking-wider text-neutral-300 font-bold uppercase">
           CIVIC RADAR
         </span>
-        <span className="text-slate-600">•</span>
-        <span className="text-[11px] text-[#00C896] font-semibold">{stats.active} Active</span>
-        <span className="text-slate-600">•</span>
-        <span className="text-[11px] text-cyan-400 font-semibold">{stats.aiVerifiedCount} Verified</span>
-        <span className="text-slate-600">•</span>
-        <span className="text-[11px] text-slate-400 font-semibold">{stats.resolvedToday || stats.resolved} Resolved</span>
+        <span className="text-neutral-600">•</span>
+        <span className="text-[11px] text-white font-semibold">{stats.active} Active</span>
+        <span className="text-neutral-600">•</span>
+        <span className="text-[11px] text-neutral-300 font-semibold">{stats.aiVerifiedCount} Verified</span>
+        <span className="text-neutral-600">•</span>
+        <span className="text-[11px] text-neutral-400 font-semibold">{stats.resolvedToday || stats.resolved} Resolved</span>
       </div>
 
       {/* Bottom Floating Legend Pills */}
       <div className="absolute bottom-4 left-4 z-10 flex flex-wrap gap-2 text-[10px] font-mono">
-        <span className="flex items-center gap-1 rounded-lg border border-[#00C896]/30 bg-slate-900/90 px-2.5 py-1 text-[#00C896] backdrop-blur-md">
-          <span className="h-1.5 w-1.5 rounded-full bg-[#00C896]" /> Resolved
+        <span className="flex items-center gap-1 rounded-lg border border-neutral-700 bg-black/90 px-2.5 py-1 text-white backdrop-blur-md">
+          <span className="h-1.5 w-1.5 rounded-full bg-white" /> Resolved
         </span>
-        <span className="flex items-center gap-1 rounded-lg border border-cyan-500/30 bg-slate-900/90 px-2.5 py-1 text-cyan-400 backdrop-blur-md">
-          <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" /> AI Verified
+        <span className="flex items-center gap-1 rounded-lg border border-neutral-700 bg-black/90 px-2.5 py-1 text-neutral-300 backdrop-blur-md">
+          <span className="h-1.5 w-1.5 rounded-full bg-neutral-300" /> AI Verified
         </span>
-        <span className="flex items-center gap-1 rounded-lg border border-amber-500/30 bg-slate-900/90 px-2.5 py-1 text-amber-400 backdrop-blur-md">
+        <span className="flex items-center gap-1 rounded-lg border border-amber-500/30 bg-black/90 px-2.5 py-1 text-amber-400 backdrop-blur-md">
           <span className="h-1.5 w-1.5 rounded-full bg-amber-400" /> In Progress
         </span>
-        <span className="flex items-center gap-1 rounded-lg border border-rose-500/30 bg-slate-900/90 px-2.5 py-1 text-rose-400 backdrop-blur-md">
+        <span className="flex items-center gap-1 rounded-lg border border-rose-500/30 bg-black/90 px-2.5 py-1 text-rose-400 backdrop-blur-md">
           <span className="h-1.5 w-1.5 rounded-full bg-rose-400" /> Critical
         </span>
       </div>
 
       {/* HERO MICRO-UI: Floating Real AI Verification / Active Issue Card */}
       {selectedIssue && (
-        <div className="absolute top-4 right-4 z-10 w-60 rounded-xl border border-slate-800 bg-slate-900/90 p-3.5 text-xs text-white backdrop-blur-xl shadow-xl">
-          <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-            <span className="flex items-center gap-1.5 text-[10px] font-mono font-bold tracking-widest text-[#00C896] uppercase">
+        <div className="absolute top-4 right-4 z-10 w-60 rounded-xl border border-neutral-800 bg-black/90 p-3.5 text-xs text-white backdrop-blur-xl shadow-xl">
+          <div className="flex items-center justify-between border-b border-neutral-800 pb-2">
+            <span className="flex items-center gap-1.5 text-[10px] font-mono font-bold tracking-widest text-white uppercase">
               <Sparkles size={11} /> {selectedIssue.issueCode || "LIVE ISSUE"}
             </span>
-            <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[9px] font-bold text-slate-300 border border-slate-700">
+            <span className="rounded bg-neutral-800 px-1.5 py-0.5 font-mono text-[9px] font-bold text-neutral-300 border border-neutral-700">
               {selectedIssue.phase || selectedIssue.status}
             </span>
           </div>
 
           <div className="mt-2.5 space-y-1.5">
-            <p className="font-bold text-slate-100 truncate text-[11px]" title={selectedIssue.title}>
+            <p className="font-bold text-white truncate text-[11px]" title={selectedIssue.title}>
               {selectedIssue.title}
             </p>
-            <div className="flex items-center justify-between text-[10px] text-slate-400">
+            <div className="flex items-center justify-between text-[10px] text-neutral-400">
               <span>Category</span>
-              <span className="font-bold text-slate-200 capitalize">{selectedIssue.category || "General"}</span>
+              <span className="font-bold text-neutral-200 capitalize">{selectedIssue.category || "General"}</span>
             </div>
-            <div className="flex items-center justify-between text-[10px] text-slate-400">
+            <div className="flex items-center justify-between text-[10px] text-neutral-400">
               <span>Priority</span>
               <span className="font-bold text-amber-400">{selectedIssue.priority || "MEDIUM"}</span>
             </div>
-            <div className="flex items-center justify-between text-[10px] text-slate-400">
+            <div className="flex items-center justify-between text-[10px] text-neutral-400">
               <span>Community Votes</span>
-              <span className="font-mono text-[#00C896]">{selectedIssue.upvotes || 0} Upvotes</span>
+              <span className="font-mono text-white">{selectedIssue.upvotes || 0} Upvotes</span>
             </div>
           </div>
 
-          <div className="mt-3 pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px] font-semibold text-[#00C896]">
+          <div className="mt-3 pt-2 border-t border-neutral-800 flex items-center justify-between text-[10px] font-semibold text-white">
             <div className="flex items-center gap-1.5">
-              <CheckCircle2 size={12} className="text-[#00C896] shrink-0" />
+              <CheckCircle2 size={12} className="text-white shrink-0" />
               <span>{selectedIssue.phase === "RESOLVED" ? "Resolved & Audited" : "In Live Pipeline"}</span>
             </div>
-            <span className="text-slate-500 font-mono text-[9px]">
+            <span className="text-neutral-500 font-mono text-[9px]">
               {selectedIssue.latitude ? `${selectedIssue.latitude.toFixed(2)}, ${selectedIssue.longitude.toFixed(2)}` : "GPS LOGGED"}
             </span>
           </div>

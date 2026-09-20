@@ -70,16 +70,16 @@ export default function Layout({ children }) {
           {/* Logo on Left */}
           <Link
             to="/"
-            className="flex items-center gap-2.5 font-bold text-[#07111F] group"
+            className="flex items-center gap-2.5 font-bold text-neutral-900 dark:text-white group"
             onClick={close}
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#00A881] text-white font-extrabold text-base shadow-xs transition-transform group-hover:scale-105">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white dark:bg-white dark:text-black font-extrabold text-base shadow-xs transition-transform group-hover:scale-105">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 <path d="m9 12 2 2 4-4" />
               </svg>
             </div>
-            <span className="text-xl font-black tracking-tight text-[#07111F]">
+            <span className="text-xl font-black tracking-tight text-neutral-900 dark:text-white">
               CivicConnect
             </span>
           </Link>
@@ -88,9 +88,9 @@ export default function Layout({ children }) {
           <nav
             className={`${
               open
-                ? "absolute left-0 right-0 top-full flex flex-col border-b border-[#E2E8F0] bg-white p-5 shadow-xl md:hidden"
+                ? "absolute left-0 right-0 top-full flex flex-col border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black p-5 shadow-xl md:hidden"
                 : "hidden"
-            } md:flex md:items-center md:gap-1 text-sm font-medium text-[#64748B]`}
+            } md:flex md:items-center md:gap-1 text-sm font-medium text-neutral-600 dark:text-neutral-400`}
           >
             <NavLink
               to="/"
@@ -98,8 +98,8 @@ export default function Layout({ children }) {
               className={({ isActive }) =>
                 `rounded-full px-3.5 py-1.5 transition ${
                   isActive && location.hash === ""
-                    ? "font-bold text-[#00A881] bg-[#00A881]/10"
-                    : "hover:text-[#07111F]"
+                    ? "font-bold text-black dark:text-white bg-neutral-100 dark:bg-neutral-800"
+                    : "hover:text-black dark:hover:text-white"
                 }`
               }
             >
@@ -109,7 +109,7 @@ export default function Layout({ children }) {
             <a
               href="#how-it-works"
               onClick={(e) => handleAnchorClick(e, "#how-it-works")}
-              className="rounded-full px-3.5 py-1.5 transition hover:text-[#07111F]"
+              className="rounded-full px-3.5 py-1.5 transition hover:text-black dark:hover:text-white"
             >
               How it works
             </a>
@@ -117,7 +117,7 @@ export default function Layout({ children }) {
             <a
               href="#live-pulse"
               onClick={(e) => handleAnchorClick(e, "#live-pulse")}
-              className="rounded-full px-3.5 py-1.5 transition hover:text-[#07111F]"
+              className="rounded-full px-3.5 py-1.5 transition hover:text-black dark:hover:text-white"
             >
               Live Pulse
             </a>
@@ -128,8 +128,8 @@ export default function Layout({ children }) {
               className={({ isActive }) =>
                 `rounded-full px-3.5 py-1.5 transition ${
                   isActive
-                    ? "font-bold text-[#00A881] bg-[#00A881]/10"
-                    : "hover:text-[#07111F]"
+                    ? "font-bold text-black dark:text-white bg-neutral-100 dark:bg-neutral-800"
+                    : "hover:text-black dark:hover:text-white"
                 }`
               }
             >
@@ -139,7 +139,7 @@ export default function Layout({ children }) {
             <a
               href="#about"
               onClick={(e) => handleAnchorClick(e, "#about")}
-              className="rounded-full px-3.5 py-1.5 transition hover:text-[#07111F]"
+              className="rounded-full px-3.5 py-1.5 transition hover:text-black dark:hover:text-white"
             >
               About
             </a>
@@ -151,8 +151,8 @@ export default function Layout({ children }) {
                 className={({ isActive }) =>
                   `rounded-full px-3.5 py-1.5 transition ${
                     isActive
-                      ? "font-bold text-[#00A881] bg-[#00A881]/10"
-                      : "hover:text-[#07111F]"
+                      ? "font-bold text-black dark:text-white bg-neutral-100 dark:bg-neutral-800"
+                      : "hover:text-black dark:hover:text-white"
                   }`
                 }
               >
@@ -164,7 +164,7 @@ export default function Layout({ children }) {
               <NavLink
                 to="/dashboard"
                 onClick={close}
-                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold text-[#00A881] bg-[#00A881]/10 border border-[#00A881]/30 hover:bg-[#00A881]/20 transition ml-1"
+                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold text-black dark:text-white bg-neutral-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition ml-1"
               >
                 <ShieldCheck size={13} /> Officer Desk
               </NavLink>
@@ -174,15 +174,15 @@ export default function Layout({ children }) {
           {/* Right Side: Search Input + Theme Switcher + Report Issue Button */}
           <div className="flex items-center gap-3">
             
-            {/* Search Input Bar (Matches screenshot: Search issues...) */}
+            {/* Search Input Bar */}
             <form onSubmit={handleSearchSubmit} className="hidden lg:flex items-center relative">
-              <Search size={14} className="absolute left-3.5 text-[#94A3B8]" />
+              <Search size={14} className="absolute left-3.5 text-neutral-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search issues..."
-                className="h-9 w-44 xl:w-52 rounded-full border border-[#E2E8F0] bg-[#F8FAFC] pl-9 pr-3 text-xs text-[#07111F] placeholder-[#94A3B8] focus:border-[#00A881] focus:bg-white focus:outline-none transition"
+                className="h-9 w-44 xl:w-52 rounded-full border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 pl-9 pr-3 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:border-black dark:focus:border-white focus:bg-white dark:focus:bg-black focus:outline-none transition"
               />
             </form>
 
@@ -190,7 +190,7 @@ export default function Layout({ children }) {
             <button
               type="button"
               onClick={toggleMode}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E2E8F0] dark:border-[#222222] bg-[#F8FAFC] dark:bg-[#121212] text-black dark:text-white hover:bg-slate-100 dark:hover:bg-[#1C1C1E] transition shadow-2xs cursor-pointer active:scale-90"
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 transition shadow-2xs cursor-pointer active:scale-90"
               title={`Switch to ${isDark ? "White & Black (Light)" : "Black & White (Dark)"}`}
               aria-label="Toggle theme mode"
             >
@@ -204,7 +204,7 @@ export default function Layout({ children }) {
             {/* Report Issue Button (Pill button: Report Issue +) */}
             <Link
               to="/report"
-              className="inline-flex items-center gap-1.5 rounded-full bg-[#00A881] hover:bg-[#008F70] px-4 py-2 text-xs sm:text-sm font-bold text-white transition shadow-xs active:scale-95"
+              className="inline-flex items-center gap-1.5 rounded-full bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 px-4 py-2 text-xs sm:text-sm font-bold transition shadow-xs active:scale-95"
             >
               <span>Report Issue</span>
               <Plus size={15} strokeWidth={2.5} />
@@ -260,8 +260,8 @@ export default function Layout({ children }) {
             
             {/* Column 1: Brand, Tagline, Description & Socials (4 Cols) */}
             <div className="md:col-span-4 space-y-3">
-              <Link to="/" className="flex items-center gap-2 font-bold text-[#07111F]">
-                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-[#00A881] text-white font-extrabold text-sm">
+              <Link to="/" className="flex items-center gap-2 font-bold text-neutral-900 dark:text-white">
+                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-black text-white dark:bg-white dark:text-black font-extrabold text-sm">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                     <path d="m9 12 2 2 4-4" />
@@ -269,23 +269,23 @@ export default function Layout({ children }) {
                 </div>
                 <span className="text-base font-extrabold tracking-tight">CivicConnect</span>
               </Link>
-              <p className="text-xs font-semibold text-[#00A881]">
+              <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">
                 Cleaner Cities. Stronger Communities.
               </p>
-              <p className="text-xs text-[#64748B] leading-relaxed max-w-sm">
+              <p className="text-xs text-neutral-600 dark:text-neutral-400 leading-relaxed max-w-sm">
                 A transparent, citizen-driven platform for cleaner, safer and smarter cities.
               </p>
-              <div className="flex items-center gap-3 pt-2 text-[#64748B]">
-                <a href="https://github.com" target="_blank" rel="noreferrer" className="hover:text-[#07111F] transition">
+              <div className="flex items-center gap-3 pt-2 text-neutral-400 dark:text-neutral-500">
+                <a href="https://github.com" target="_blank" rel="noreferrer" className="hover:text-black dark:hover:text-white transition">
                   <Github size={16} />
                 </a>
-                <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-[#07111F] transition">
+                <a href="https://linkedin.com" target="_blank" rel="noreferrer" className="hover:text-black dark:hover:text-white transition">
                   <Linkedin size={16} />
                 </a>
-                <a href="https://twitter.com" target="_blank" rel="noreferrer" className="hover:text-[#07111F] transition">
+                <a href="https://twitter.com" target="_blank" rel="noreferrer" className="hover:text-black dark:hover:text-white transition">
                   <Twitter size={16} />
                 </a>
-                <a href="https://youtube.com" target="_blank" rel="noreferrer" className="hover:text-[#07111F] transition">
+                <a href="https://youtube.com" target="_blank" rel="noreferrer" className="hover:text-black dark:hover:text-white transition">
                   <Youtube size={16} />
                 </a>
               </div>
@@ -293,30 +293,30 @@ export default function Layout({ children }) {
 
             {/* Column 2: Platform Links (2 Cols) */}
             <div className="md:col-span-2 space-y-3">
-              <h4 className="text-xs font-bold text-[#07111F]">Platform</h4>
+              <h4 className="text-xs font-bold text-neutral-900 dark:text-white">Platform</h4>
               <ul className="space-y-2 text-xs">
-                <li><a href="#how-it-works" onClick={(e) => handleAnchorClick(e, "#how-it-works")} className="hover:text-[#07111F] transition">How it works</a></li>
-                <li><a href="#live-pulse" onClick={(e) => handleAnchorClick(e, "#live-pulse")} className="hover:text-[#07111F] transition">Live Pulse</a></li>
-                <li><Link to="/issues" className="hover:text-[#07111F] transition">Issues</Link></li>
-                <li><Link to="/report" className="hover:text-[#07111F] transition">Report Issue</Link></li>
+                <li><a href="#how-it-works" onClick={(e) => handleAnchorClick(e, "#how-it-works")} className="hover:text-black dark:hover:text-white transition">How it works</a></li>
+                <li><a href="#live-pulse" onClick={(e) => handleAnchorClick(e, "#live-pulse")} className="hover:text-black dark:hover:text-white transition">Live Pulse</a></li>
+                <li><Link to="/issues" className="hover:text-black dark:hover:text-white transition">Issues</Link></li>
+                <li><Link to="/report" className="hover:text-black dark:hover:text-white transition">Report Issue</Link></li>
               </ul>
             </div>
 
             {/* Column 3: Resources Links (2 Cols) */}
             <div className="md:col-span-2 space-y-3">
-              <h4 className="text-xs font-bold text-[#07111F]">Resources</h4>
+              <h4 className="text-xs font-bold text-neutral-900 dark:text-white">Resources</h4>
               <ul className="space-y-2 text-xs">
-                <li><a href="#docs" className="hover:text-[#07111F] transition">Documentation</a></li>
-                <li><a href="#privacy" className="hover:text-[#07111F] transition">Privacy Policy</a></li>
-                <li><a href="#terms" className="hover:text-[#07111F] transition">Terms of Service</a></li>
-                <li><a href="#contact" className="hover:text-[#07111F] transition">Contact</a></li>
+                <li><a href="#docs" className="hover:text-black dark:hover:text-white transition">Documentation</a></li>
+                <li><a href="#privacy" className="hover:text-black dark:hover:text-white transition">Privacy Policy</a></li>
+                <li><a href="#terms" className="hover:text-black dark:hover:text-white transition">Terms of Service</a></li>
+                <li><a href="#contact" className="hover:text-black dark:hover:text-white transition">Contact</a></li>
               </ul>
             </div>
 
             {/* Column 4: Subscribe (4 Cols) */}
             <div className="md:col-span-4 space-y-3">
-              <h4 className="text-xs font-bold text-[#07111F]">Subscribe</h4>
-              <p className="text-xs text-[#64748B]">
+              <h4 className="text-xs font-bold text-neutral-900 dark:text-white">Subscribe</h4>
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">
                 Get updates about new features and city initiatives.
               </p>
               <form onSubmit={(e) => { e.preventDefault(); alert("Subscribed successfully!"); }} className="flex items-center relative max-w-sm">
@@ -324,11 +324,11 @@ export default function Layout({ children }) {
                   type="email"
                   placeholder="Enter your email"
                   required
-                  className="h-9 w-full rounded-full border border-[#E2E8F0] bg-[#F8FAFC] px-4 pr-10 text-xs text-[#07111F] placeholder-[#94A3B8] focus:border-[#00A881] focus:bg-white focus:outline-none transition"
+                  className="h-9 w-full rounded-full border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 px-4 pr-10 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:border-black dark:focus:border-white focus:bg-white dark:focus:bg-black focus:outline-none transition"
                 />
                 <button
                   type="submit"
-                  className="absolute right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#00A881] text-white hover:bg-[#008F70] transition shadow-xs"
+                  className="absolute right-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 transition shadow-xs"
                 >
                   <Send size={11} className="-ml-0.5" />
                 </button>
@@ -338,11 +338,11 @@ export default function Layout({ children }) {
           </div>
 
           {/* Bottom Bar */}
-          <div className="mt-12 pt-6 border-t border-[#EAEFEA] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#94A3B8]">
+          <div className="mt-12 pt-6 border-t border-neutral-200 dark:border-neutral-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-neutral-400 dark:text-neutral-500">
             <p>© 2024 CivicConnect. All rights reserved.</p>
-            <div className="flex items-center gap-1.5 text-xs text-[#64748B]">
+            <div className="flex items-center gap-1.5 text-xs text-neutral-500 dark:text-neutral-400">
               <span>Cleaner Cities. Brighter Tomorrow.</span>
-              <span className="h-1.5 w-1.5 rounded-full bg-[#00A881]" />
+              <span className="h-1.5 w-1.5 rounded-full bg-black dark:bg-white" />
             </div>
           </div>
 

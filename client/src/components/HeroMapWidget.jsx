@@ -11,12 +11,12 @@ const MARKER_COLORS = {
   CRITICAL: "#EF4444",
   HIGH: "#EF4444",
   MEDIUM: "#F59E0B",
-  LOW: "#00A881",
-  RESOLVED: "#00A881"
+  LOW: "#64748B",
+  RESOLVED: "#1E293B"
 };
 
 function createPinIcon(priority = "MEDIUM", isSelected = false) {
-  const color = MARKER_COLORS[(priority || "").toUpperCase()] || "#00A881";
+  const color = MARKER_COLORS[(priority || "").toUpperCase()] || "#1E293B";
   const size = isSelected ? 34 : 26;
   const innerSize = isSelected ? 24 : 18;
 
@@ -409,61 +409,61 @@ export default function HeroMapWidget() {
           type="button"
           onClick={requestDeviceGps}
           title="Click to detect your exact physical GPS coordinates"
-          className="inline-flex items-center gap-1.5 rounded-full border border-[#E2E8F0] bg-[#F8FAFC] hover:bg-emerald-50/50 hover:border-[#00A881]/40 px-3 py-1 text-xs font-bold text-[#07111F] shadow-2xs transition-all cursor-pointer group"
+          className="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 hover:bg-neutral-200 dark:hover:bg-neutral-800 px-3 py-1 text-xs font-bold text-neutral-900 dark:text-white shadow-2xs transition-all cursor-pointer group"
         >
           <span className="flex h-2 w-2 relative">
             {isLocating ? (
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00A881] opacity-75" />
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-black dark:bg-white opacity-75" />
             ) : null}
-            <span className={`relative inline-flex rounded-full h-2 w-2 ${coordDetails?.source === 'gps' ? 'bg-[#00A881]' : 'bg-amber-500'}`} />
+            <span className={`relative inline-flex rounded-full h-2 w-2 ${coordDetails?.source === 'gps' ? 'bg-black dark:bg-white' : 'bg-amber-500'}`} />
           </span>
-          <MapPin size={13} className={coordDetails?.source === 'gps' ? "text-[#00A881]" : "text-amber-600"} />
+          <MapPin size={13} className={coordDetails?.source === 'gps' ? "text-neutral-900 dark:text-white" : "text-amber-600"} />
           <span className="max-w-[180px] sm:max-w-[220px] truncate">{cityLabel}</span>
-          <span className="text-[10px] font-mono font-normal text-slate-400 hidden sm:inline">
+          <span className="text-[10px] font-mono font-normal text-neutral-400 hidden sm:inline">
             {coordDetails?.source === 'gps' ? '• GPS Locked' : '• Tap for GPS'}
           </span>
-          <Crosshair size={11} className="text-[#94A3B8] group-hover:text-[#00A881] ml-0.5 transition-colors" />
+          <Crosshair size={11} className="text-neutral-400 group-hover:text-neutral-900 dark:group-hover:text-white ml-0.5 transition-colors" />
         </button>
 
         {/* Real Category Counts from database */}
-        <div className="flex items-center gap-3 text-[11px] font-medium text-[#64748B]">
+        <div className="flex items-center gap-3 text-[11px] font-medium text-neutral-500 dark:text-neutral-400">
           <span className="inline-flex items-center gap-1">
             <span className="h-2 w-2 rounded-full bg-[#EF4444]" />
-            <span>Roads</span> <strong className="text-[#07111F]">{categoryCounts.roads}</strong>
+            <span>Roads</span> <strong className="text-neutral-900 dark:text-white">{categoryCounts.roads}</strong>
           </span>
           <span className="inline-flex items-center gap-1">
             <span className="h-2 w-2 rounded-full bg-[#3B82F6]" />
-            <span>Water</span> <strong className="text-[#07111F]">{categoryCounts.water}</strong>
+            <span>Water</span> <strong className="text-neutral-900 dark:text-white">{categoryCounts.water}</strong>
           </span>
           <span className="inline-flex items-center gap-1">
             <span className="h-2 w-2 rounded-full bg-[#F59E0B]" />
-            <span>Waste</span> <strong className="text-[#07111F]">{categoryCounts.waste}</strong>
+            <span>Waste</span> <strong className="text-neutral-900 dark:text-white">{categoryCounts.waste}</strong>
           </span>
           <span className="hidden sm:inline-flex items-center gap-1">
             <span className="h-2 w-2 rounded-full bg-[#EAB308]" />
-            <span>Lighting</span> <strong className="text-[#07111F]">{categoryCounts.lighting}</strong>
+            <span>Lighting</span> <strong className="text-neutral-900 dark:text-white">{categoryCounts.lighting}</strong>
           </span>
           <span className="hidden sm:inline-flex items-center gap-1">
-            <span className="h-2 w-2 rounded-full bg-[#94A3B8]" />
-            <span>Others</span> <strong className="text-[#07111F]">{categoryCounts.others}</strong>
+            <span className="h-2 w-2 rounded-full bg-neutral-400" />
+            <span>Others</span> <strong className="text-neutral-900 dark:text-white">{categoryCounts.others}</strong>
           </span>
         </div>
       </div>
 
       {/* Real Interactive Leaflet Map Canvas */}
-      <div className="relative mt-3 h-[300px] sm:h-[360px] w-full rounded-xl sm:rounded-2xl overflow-hidden border border-[#E2E8F0]">
+      <div className="relative mt-3 h-[300px] sm:h-[360px] w-full rounded-xl sm:rounded-2xl overflow-hidden border border-neutral-200 dark:border-neutral-800">
         {/* Leaflet DOM container */}
         <div ref={containerRef} className="h-full w-full z-0" />
 
         {/* Layer Mode Switcher: 🛰️ Satellite vs 🗺️ Street */}
-        <div className="absolute right-3.5 top-3.5 z-20 flex items-center rounded-xl border border-white/20 bg-slate-950/85 p-0.5 shadow-xl backdrop-blur-md">
+        <div className="absolute right-3.5 top-3.5 z-20 flex items-center rounded-xl border border-white/20 bg-black/85 p-0.5 shadow-xl backdrop-blur-md">
           <button
             type="button"
             onClick={() => setMapMode("satellite")}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all cursor-pointer text-[11px] font-bold ${
               mapMode === "satellite"
-                ? "bg-[#00A881] text-white shadow-xs ring-1 ring-[#00A881]"
-                : "text-slate-300 hover:text-white hover:bg-white/10"
+                ? "bg-white text-black shadow-xs ring-1 ring-white"
+                : "text-neutral-300 hover:text-white hover:bg-white/10"
             }`}
             title="High-Resolution True-Color Satellite Imagery"
           >
@@ -475,8 +475,8 @@ export default function HeroMapWidget() {
             onClick={() => setMapMode("street")}
             className={`flex items-center gap-1.5 px-3 py-1 rounded-lg transition-all cursor-pointer text-[11px] font-bold ${
               mapMode === "street"
-                ? "bg-[#00A881] text-white shadow-xs ring-1 ring-[#00A881]"
-                : "text-slate-300 hover:text-white hover:bg-white/10"
+                ? "bg-white text-black shadow-xs ring-1 ring-white"
+                : "text-neutral-300 hover:text-white hover:bg-white/10"
             }`}
             title="Standard Vector Street Map"
           >
@@ -487,9 +487,9 @@ export default function HeroMapWidget() {
 
         {/* Floating Active Issue Card with REAL DATA */}
         {selectedIssue && (
-          <div className="absolute left-4 sm:left-6 bottom-4 sm:bottom-6 z-20 flex items-center gap-3 rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-white/95 p-2.5 sm:p-3 shadow-lg backdrop-blur-md max-w-[290px] sm:max-w-[320px]">
+          <div className="absolute left-4 sm:left-6 bottom-4 sm:bottom-6 z-20 flex items-center gap-3 rounded-xl sm:rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white/95 dark:bg-black/95 p-2.5 sm:p-3 shadow-lg backdrop-blur-md max-w-[290px] sm:max-w-[320px]">
             {/* Real Thumbnail Image */}
-            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-100 flex items-center justify-center">
+            <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-lg overflow-hidden shrink-0 border border-neutral-200 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 flex items-center justify-center">
               {!imgError && getImageUrl(selectedIssue.imageUrl) ? (
                 <img
                   src={getImageUrl(selectedIssue.imageUrl)}
@@ -498,23 +498,23 @@ export default function HeroMapWidget() {
                   onError={() => setImgError(true)}
                 />
               ) : (
-                <MapPin size={22} className="text-[#00A881]" />
+                <MapPin size={22} className="text-neutral-400" />
               )}
             </div>
 
             {/* Real Issue Details */}
             <div className="flex-1 min-w-0 pr-1">
               <div className="flex items-center gap-1.5">
-                <h4 className="text-xs font-bold text-[#07111F] truncate" title={selectedIssue.title}>
+                <h4 className="text-xs font-bold text-neutral-900 dark:text-white truncate" title={selectedIssue.title}>
                   {selectedIssue.title}
                 </h4>
-                <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 px-1.5 py-0.5 text-[9px] font-bold text-[#EF4444] shrink-0 border border-rose-100">
+                <span className="inline-flex items-center gap-1 rounded-full bg-rose-50 dark:bg-rose-950/40 px-1.5 py-0.5 text-[9px] font-bold text-[#EF4444] shrink-0 border border-rose-100 dark:border-rose-900/50">
                   <span className="h-1 w-1 rounded-full bg-[#EF4444]" /> {selectedIssue.priority || "Medium"}
                 </span>
               </div>
 
-              <p className="mt-1 text-[11px] text-[#64748B] flex items-center gap-1 truncate">
-                <MapPin size={10} className="text-[#94A3B8] shrink-0" />
+              <p className="mt-1 text-[11px] text-neutral-500 dark:text-neutral-400 flex items-center gap-1 truncate">
+                <MapPin size={10} className="text-neutral-400 shrink-0" />
                 <span>
                   {selectedIssue.address ||
                     `${Number(selectedIssue.latitude).toFixed(4)}, ${Number(selectedIssue.longitude).toFixed(4)}`}
@@ -522,18 +522,18 @@ export default function HeroMapWidget() {
               </p>
 
               {distanceToSelected && (
-                <p className="text-[10px] text-[#00A881] font-semibold flex items-center gap-1 mt-0.5">
+                <p className="text-[10px] text-neutral-800 dark:text-neutral-200 font-semibold flex items-center gap-1 mt-0.5">
                   <span>📍 {distanceToSelected} km from you</span>
                 </p>
               )}
 
               <div className="mt-1 flex items-center justify-between">
-                <span className="text-[10px] text-[#94A3B8] flex items-center gap-1">
+                <span className="text-[10px] text-neutral-400 flex items-center gap-1">
                   <Clock size={10} /> {getTimeAgo(selectedIssue.createdAt)}
                 </span>
                 <Link
                   to={`/issues/${selectedIssue.id}`}
-                  className="text-xs font-bold text-[#00A881] hover:translate-x-0.5 transition-transform"
+                  className="text-xs font-bold text-neutral-900 dark:text-white hover:translate-x-0.5 transition-transform"
                   title="Open ticket"
                 >
                   <ArrowRight size={13} />
@@ -544,11 +544,11 @@ export default function HeroMapWidget() {
         )}
 
         {/* Real Leaflet Map Controls on Right */}
-        <div className="absolute right-4 bottom-4 z-20 flex flex-col rounded-xl border border-[#E2E8F0] bg-white shadow-md overflow-hidden text-[#64748B]">
+        <div className="absolute right-4 bottom-4 z-20 flex flex-col rounded-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black shadow-md overflow-hidden text-neutral-500 dark:text-neutral-400">
           <button
             type="button"
             onClick={handleZoomIn}
-            className="flex h-7 w-7 items-center justify-center hover:bg-slate-50 transition border-b border-slate-100 cursor-pointer"
+            className="flex h-7 w-7 items-center justify-center hover:bg-neutral-100 dark:hover:bg-neutral-800 transition border-b border-neutral-100 dark:border-neutral-800 cursor-pointer"
             title="Zoom in"
           >
             <Plus size={13} />
@@ -556,7 +556,7 @@ export default function HeroMapWidget() {
           <button
             type="button"
             onClick={handleZoomOut}
-            className="flex h-7 w-7 items-center justify-center hover:bg-slate-50 transition border-b border-slate-100 cursor-pointer"
+            className="flex h-7 w-7 items-center justify-center hover:bg-neutral-100 dark:hover:bg-neutral-800 transition border-b border-neutral-100 dark:border-neutral-800 cursor-pointer"
             title="Zoom out"
           >
             <Minus size={13} />
@@ -564,7 +564,7 @@ export default function HeroMapWidget() {
           <button
             type="button"
             onClick={handleRecenter}
-            className="flex h-7 w-7 items-center justify-center hover:bg-slate-50 transition text-[#00A881] cursor-pointer"
+            className="flex h-7 w-7 items-center justify-center hover:bg-neutral-100 dark:hover:bg-neutral-800 transition text-neutral-900 dark:text-white cursor-pointer"
             title="Recenter to my local coordinates"
           >
             <Navigation size={12} />
