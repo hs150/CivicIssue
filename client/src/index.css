@@ -6,14 +6,18 @@
 ========================================================= */
 
 :root, [data-theme="emerald"] {
-  --theme-bg: #f5f7f4;
+  --theme-bg: #F7F9F8;
   --theme-card: #ffffff;
-  --theme-surface: #f8fafc;
-  --theme-border: #e2e8f0;
-  --theme-text: #0f172a;
-  --theme-text-muted: #64748b;
-  --theme-primary: #059669;
-  --theme-accent: #10b981;
+  --theme-surface: #ffffff;
+  --theme-border: #DDE5E1;
+  --theme-text: #07111F;
+  --theme-text-muted: #64748B;
+  --theme-primary: #00C896;
+  --theme-primary-dark: #008F70;
+  --theme-accent: #00C896;
+  --theme-dark: #020817;
+  --theme-warning: #F5A524;
+  --theme-danger: #EF4444;
 }
 
 [data-theme="midnight"], .dark[data-theme="midnight"] {

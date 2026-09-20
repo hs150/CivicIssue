@@ -1,12 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { 
   ArrowRight, Sparkles, ShieldCheck, MapPin, Shield, 
-  Layers, CheckCircle2, ChevronRight, Activity, Terminal
+  Activity, Clock, CheckCircle2, ChevronRight, MapPinned
 } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
+import { api } from "../api.js";
 
-// Next-Gen Civic Intelligence Components
+// Enterprise Civic Intelligence Components
 import HeroCityCanvas from "../components/HeroCityCanvas.jsx";
 import CivicPulseSection from "../components/CivicPulseSection.jsx";
 import CivicWorkflowSection from "../components/CivicWorkflowSection.jsx";
@@ -17,77 +18,81 @@ import CivicCommandCTA from "../components/CivicCommandCTA.jsx";
 
 export default function Home() {
   const { user } = useAuth();
+  const [stats, setStats] = useState({
+    total: 2481,
+    aiVerifiedPct: 94,
+    avgResolutionHours: 24
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadStats() {
+      try {
+        const { data } = await api.get("/issues/stats");
+        if (isMounted && data?.stats) {
+          setStats({
+            total: data.stats.total || 2481,
+            aiVerifiedPct: data.stats.aiVerifiedPct || 94,
+            avgResolutionHours: data.stats.avgResolutionHours || 24
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load hero metrics:", err);
+      }
+    }
+    loadStats();
+    return () => { isMounted = false; };
+  }, []);
+
+  const handleScrollToMap = (e) => {
+    e.preventDefault();
+    const mapEl = document.getElementById("civic-map");
+    if (mapEl) {
+      mapEl.scrollIntoView({ behavior: "smooth" });
+    }
+  };
 
   return (
-    <div className="relative min-h-screen overflow-hidden">
+    <div className="relative min-h-screen bg-[#F7F9F8] text-[#07111F] selection:bg-[#00C896]/20 selection:text-[#008F70]">
+      
       {/* ========================================================================
-          GLOBAL LAYERED BACKGROUND (Hero & Upper Atmosphere)
-          Soft radial gradient: radial-gradient(circle at 50% 0%, #e8f8f4, #f7faf9 45%, #ffffff)
-          with subtle grid patterns, low-opacity data lines, and radial lighting
+          1. HERO SECTION
+          Two-column high-density layout
+          Left: Small badge, editorial headline, supporting text, dual CTAs, trust metrics
+          Right: Interactive civic intelligence dashboard / 3D radar canvas
       ======================================================================== */}
-      <div 
-        className="pointer-events-none absolute inset-0 z-0 h-[1400px] w-full"
-        style={{
-          background: "radial-gradient(circle at 50% 0%, #e8f8f4 0%, #f7faf9 45%, #ffffff 100%)"
-        }}
-      />
-
-      {/* Subtle technical grid pattern overlay */}
-      <div
-        className="pointer-events-none absolute inset-0 z-0 h-[1400px] w-full opacity-[0.035]"
-        style={{
-          backgroundImage: "radial-gradient(circle at 1px 1px, #0f172a 1px, transparent 0)",
-          backgroundSize: "32px 32px"
-        }}
-      />
-
-      {/* Low-opacity ambient geometric lighting */}
-      <div className="pointer-events-none absolute top-[-100px] left-1/2 -translate-x-1/2 h-[600px] w-[900px] rounded-full bg-emerald-300/15 blur-[120px] z-0" />
-      <div className="pointer-events-none absolute top-[300px] right-[-150px] h-[450px] w-[500px] rounded-full bg-cyan-300/15 blur-[100px] z-0" />
-
-      {/* ========================================================================
-          1. HERO SECTION (Light Rhythm)
-          Left: Large Headline, Supporting Copy, Dual CTAs, Trust/Tech Badges
-          Right: 3D Procedural Digital City Visualization & AI Micro-Card
-      ======================================================================== */}
-      <section className="relative z-10 pt-6 pb-16 md:pt-12 md:pb-24">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+      <section className="relative z-10 pt-8 pb-14 md:pt-14 md:pb-20 border-b border-[#DDE5E1]/60">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             
             {/* LEFT COLUMN: Hero Copy & Actions */}
             <div className="lg:col-span-6 space-y-6">
               
-              {/* Trust & Architecture Pills */}
-              <div className="flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-300 bg-emerald-50/90 px-3 py-1 text-xs font-mono font-bold text-emerald-800 shadow-2xs backdrop-blur-xs">
-                  <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  CIVIC INTELLIGENCE PLATFORM
+              {/* Small Badge: LIVE CIVIC INTELLIGENCE */}
+              <div className="inline-flex items-center gap-2 rounded-full border border-[#00C896]/30 bg-[#00C896]/10 px-3 py-1 text-xs font-mono font-bold text-[#008F70]">
+                <span className="relative flex h-2 w-2">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00C896] opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00C896]" />
                 </span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-cyan-200 bg-cyan-50/90 px-3 py-1 text-xs font-mono font-bold text-cyan-800 shadow-2xs backdrop-blur-xs">
-                  <Sparkles size={11} className="text-cyan-600" />
-                  GEMINI VISION 2.5
-                </span>
+                <span>LIVE CIVIC INTELLIGENCE</span>
               </div>
 
-              {/* Core Hero Message */}
-              <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-black tracking-tight text-slate-950 leading-[1.08]">
-                Report problems.{" "}
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-700">
-                  Verify fixes with AI.
-                </span>{" "}
-                Restore civic trust.
+              {/* Large Headline: "Your city has problems. Now it can see them." */}
+              <h1 className="text-4xl sm:text-5xl lg:text-[3.5rem] font-extrabold tracking-tight text-[#07111F] leading-[1.12]">
+                Your city has problems. <br />
+                <span className="text-[#00C896]">Now it can see them.</span>
               </h1>
 
-              {/* Supporting Description */}
-              <p className="max-w-xl text-base sm:text-lg leading-relaxed text-slate-600 font-normal">
-                An intelligent municipal command platform that unifies citizen issue reporting, real-time multimodal vision inspection, 500m geo-deduplication, and tamper-proof Before/After proof-of-fix verification.
+              {/* Supporting Text */}
+              <p className="max-w-xl text-base sm:text-lg text-[#64748B] leading-relaxed font-normal">
+                Report civic issues, verify evidence with AI, and track every resolution from report to repair.
               </p>
 
-              {/* Primary & Secondary Action Buttons */}
-              <div className="flex flex-wrap items-center gap-4 pt-2">
+              {/* Dual CTA Buttons: Report an Issue →, Explore Live Map */}
+              <div className="flex flex-wrap items-center gap-4 pt-1">
                 <Link
                   to={user ? "/report" : "/login"}
-                  className="group inline-flex items-center gap-2 rounded-xl bg-slate-950 px-6 py-4 font-bold text-white shadow-xl shadow-slate-950/20 hover:bg-slate-900 transition-all active:scale-95"
+                  className="group inline-flex items-center gap-2 rounded-xl bg-[#00C896] hover:bg-[#008F70] px-6 py-3.5 font-bold text-[#020817] hover:text-white transition shadow-sm active:scale-95 text-sm sm:text-base"
                 >
                   <span>Report an Issue</span>
                   <span className="inline-block transition-transform duration-200 group-hover:translate-x-1">
@@ -95,33 +100,49 @@ export default function Home() {
                   </span>
                 </Link>
                 
-                <Link
-                  to="/issues"
-                  className="inline-flex items-center gap-2 rounded-xl border border-slate-300/80 bg-white/90 px-6 py-4 font-bold text-slate-800 shadow-2xs hover:bg-slate-50 hover:border-slate-400 transition"
+                <a
+                  href="#civic-map"
+                  onClick={handleScrollToMap}
+                  className="inline-flex items-center gap-2 rounded-xl border border-[#DDE5E1] bg-white px-6 py-3.5 font-bold text-[#07111F] hover:bg-slate-50 hover:border-slate-400 transition shadow-2xs text-sm sm:text-base"
                 >
-                  <span>Explore Issues Map</span>
-                  <ChevronRight size={16} className="text-slate-400" />
-                </Link>
+                  <MapPinned size={17} className="text-[#008F70]" />
+                  <span>Explore Live Map</span>
+                </a>
               </div>
 
-              {/* Trust & Technology Badges */}
-              <div className="pt-4 border-t border-slate-200/80 flex flex-wrap items-center gap-y-2 gap-x-6 text-xs text-slate-500 font-medium">
-                <div className="flex items-center gap-1.5">
-                  <ShieldCheck size={16} className="text-emerald-600" />
-                  <span>Before/After Anti-Fraud</span>
+              {/* Small Trust Metrics: 2,481 Issues Tracked, 94% AI Verified, <24h Average Response */}
+              <div className="pt-6 border-t border-[#DDE5E1] grid grid-cols-3 gap-4">
+                <div>
+                  <div className="text-xl sm:text-2xl font-black font-mono text-[#07111F]">
+                    {stats.total.toLocaleString()}
+                  </div>
+                  <div className="text-xs text-[#64748B] font-medium mt-0.5">
+                    Issues Tracked
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <MapPin size={16} className="text-cyan-600" />
-                  <span>500m Proximity Clustering</span>
+
+                <div className="border-l border-[#DDE5E1] pl-4">
+                  <div className="text-xl sm:text-2xl font-black font-mono text-[#008F70]">
+                    {stats.aiVerifiedPct}%
+                  </div>
+                  <div className="text-xs text-[#64748B] font-medium mt-0.5">
+                    AI Verified
+                  </div>
                 </div>
-                <div className="flex items-center gap-1.5">
-                  <Activity size={16} className="text-teal-600" />
-                  <span>Dynamic Route Optimizer</span>
+
+                <div className="border-l border-[#DDE5E1] pl-4">
+                  <div className="text-xl sm:text-2xl font-black font-mono text-[#07111F]">
+                    &lt;24h
+                  </div>
+                  <div className="text-xs text-[#64748B] font-medium mt-0.5">
+                    Average Response
+                  </div>
                 </div>
               </div>
+
             </div>
 
-            {/* RIGHT COLUMN: Interactive Miniature Civic Intelligence 3D City */}
+            {/* RIGHT COLUMN: Interactive Civic Intelligence Map / Dashboard */}
             <div className="lg:col-span-6 w-full">
               <HeroCityCanvas />
             </div>
@@ -131,50 +152,58 @@ export default function Home() {
       </section>
 
       {/* ========================================================================
-          2. LIVE CIVIC PULSE (White Rhythm)
-          4 Synchronized Telemetry Counters & Hourly Velocity Histogram
+          2. LIVE CIVIC PULSE SECTION
+          Real-time metrics: Total Reports, Active Issues, AI Verified, Avg Response Time,
+          Activity graph, and Last Updated indicator.
       ======================================================================== */}
-      <div className="relative z-10 py-10 bg-white border-y border-slate-100">
+      <div className="relative z-10 py-14 sm:py-16">
         <CivicPulseSection />
       </div>
 
       {/* ========================================================================
-          3. CIVICCONNECT WORKFLOW (Light Rhythm)
-          5-Stage Operational Pipeline with Dynamic SVG Connecting Lines
+          3. HOW CIVICCONNECT WORKS
+          5-step horizontal operational process:
+          01 Report, 02 AI Inspection, 03 Evidence Verification, 04 Officer Action, 05 Citizen Resolution
       ======================================================================== */}
-      <div className="relative z-10 py-20 bg-slate-50/60">
+      <div className="relative z-10 py-14 sm:py-16 bg-[#F7F9F8] border-t border-[#DDE5E1]">
         <CivicWorkflowSection />
       </div>
 
       {/* ========================================================================
-          4. AI-POWERED CIVIC VERIFICATION (Dedicated Technical Scan Interface)
-          Procedural Hazard Scanner, Laser Beam, Bounding Box HUD & 5-Step Sequence
+          4. AI VERIFICATION (High-Impact Deep Navy Section)
+          "AI doesn't just analyze reports. It verifies them."
+          Split screen with live evidence scanner & AI Evidence Analysis panel:
+          Damage detected ✓, Location verified ✓, Timestamp valid ✓, Duplicate check ✓, Trust Score 98.7%
       ======================================================================== */}
-      <div className="relative z-10 py-20 bg-white border-t border-slate-100">
+      <div className="relative z-10">
         <AiAnalysisDemo />
       </div>
 
       {/* ========================================================================
-          5. LIVE CIVIC MAP (Dark Rhythm - Command Center Radar)
-          Full-Featured Geospatial Radar, Active/Verified/Resolved Pins & Telemetry
+          5. CIVIC ISSUES MAP
+          Full-width interactive geospatial section with category filters:
+          All, Road, Water, Waste, Lighting, colored severity markers & details card.
       ======================================================================== */}
-      <div className="relative z-10 py-20 bg-slate-950">
+      <div className="relative z-10 py-14 sm:py-16">
         <CivicMapPreview />
       </div>
 
       {/* ========================================================================
-          6. ISSUE LIFECYCLE (White Rhythm)
-          Horizontal Timeline with Timestamps (10:32 -> 13:16) & Cryptographic Audit
+          6. ISSUE LIFECYCLE
+          5-Stage tracking timeline: Submitted, AI Verified, Officer Assigned,
+          Work In Progress, Resolved with side-by-side details card.
       ======================================================================== */}
-      <div className="relative z-10">
+      <div className="relative z-10 py-14 sm:py-16 border-t border-[#DDE5E1]">
         <IssueLifecycleTimeline />
       </div>
 
       {/* ========================================================================
-          7. COMMAND-CENTER CTA (Dark Rhythm)
-          "YOUR CITY. YOUR VOICE." with City Skyline Silhouette & Live Stats
+          7. FINAL CTA
+          "YOUR CITY. YOUR VOICE."
+          "Turn a report into a verified action."
+          Buttons: Report an Issue →, Explore the Map
       ======================================================================== */}
-      <div className="relative z-10 py-20 bg-slate-900/40">
+      <div className="relative z-10 py-14 sm:py-16">
         <CivicCommandCTA />
       </div>
 
