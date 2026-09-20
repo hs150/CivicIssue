@@ -128,10 +128,10 @@ export default function HeroMapWidget() {
       scrollWheelZoom: false
     }).setView(initialCenter, 13);
 
-    // Modern clean CartoDB Voyager tiles
-    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+    // Clean, 100% free, keyless OpenStreetMap tiles (no watermarks, no API key required)
+    L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       maxZoom: 19,
-      subdomains: "abcd"
+      subdomains: ["a", "b", "c"]
     }).addTo(map);
 
     mapRef.current = map;
