@@ -1,6 +1,6 @@
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { LogIn, LogOut, Menu, ShieldCheck, X, Plus, Search, Moon, Sun, Send, Github, Linkedin, Twitter, Youtube } from "lucide-react";
-import { useState, useEffect } from "react";
+import { LogIn, LogOut, Menu, ShieldCheck, X, Plus, Search, Moon, Sun, Send, Github, Linkedin, Twitter, Youtube, ChevronDown, FileText } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useTheme } from "../context/ThemeContext.jsx";
 
@@ -8,12 +8,17 @@ export default function Layout({ children }) {
   const { user, logout } = useAuth();
   const { theme, toggleTheme, toggleMode, isDark, activeTheme } = useTheme();
   const [open, setOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  const profileRef = useRef(null);
   const navigate = useNavigate();
   const location = useLocation();
 
-  const close = () => setOpen(false);
+  const close = () => {
+    setOpen(false);
+    setProfileOpen(false);
+  };
 
   function handleLogout() {
     logout();
@@ -52,54 +57,56 @@ export default function Layout({ children }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (profileRef.current && !profileRef.current.contains(event.target)) {
+        setProfileOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
     <div className="min-h-screen flex flex-col bg-neutral-50 dark:bg-black text-neutral-900 dark:text-white transition-colors duration-300">
       {/* =========================================================
-          STICKY NAVBAR (Matches Screenshot)
-          White translucent, pill search, theme button, Report Issue +
+          STICKY NAVBAR (Minimal, Spacious, Never Wrapping)
       ========================================================= */}
       <header
         className={`sticky top-0 z-50 transition-all duration-200 ${
           scrolled
-            ? "py-2.5 bg-white/90 dark:bg-black/90 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800 shadow-xs"
-            : "py-3.5 bg-white dark:bg-black border-b border-neutral-200 dark:border-neutral-800"
+            ? "py-2.5 bg-white/95 dark:bg-black/95 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800 shadow-2xs"
+            : "py-3 bg-white dark:bg-black border-b border-neutral-200/70 dark:border-neutral-800/70"
         }`}
       >
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8 gap-4">
           
           {/* Logo on Left */}
           <Link
             to="/"
-            className="flex items-center gap-2.5 font-bold text-neutral-900 dark:text-white group"
+            className="flex items-center gap-2.5 font-bold text-neutral-900 dark:text-white group shrink-0"
             onClick={close}
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white dark:bg-white dark:text-black font-extrabold text-base shadow-xs transition-transform group-hover:scale-105">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white dark:bg-white dark:text-black font-extrabold text-base shadow-xs transition-transform group-hover:scale-105 shrink-0">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
                 <path d="m9 12 2 2 4-4" />
               </svg>
             </div>
-            <span className="text-xl font-black tracking-tight text-neutral-900 dark:text-white">
+            <span className="text-xl font-black tracking-tight text-neutral-900 dark:text-white whitespace-nowrap">
               CivicConnect
             </span>
           </Link>
 
-          {/* Center Navigation Links (Home, How it works, Live Pulse, Issues, About) */}
-          <nav
-            className={`${
-              open
-                ? "absolute left-0 right-0 top-full flex flex-col border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black p-5 shadow-xl md:hidden"
-                : "hidden"
-            } md:flex md:items-center md:gap-1 text-sm font-medium text-neutral-600 dark:text-neutral-400`}
-          >
+          {/* Desktop Center Navigation Links */}
+          <nav className="hidden lg:flex items-center gap-1 xl:gap-2 text-xs xl:text-sm font-medium text-neutral-600 dark:text-neutral-400">
             <NavLink
               to="/"
-              onClick={close}
               className={({ isActive }) =>
-                `rounded-full px-3.5 py-1.5 transition ${
+                `whitespace-nowrap rounded-full px-3.5 py-1.5 transition ${
                   isActive && location.hash === ""
                     ? "font-bold text-black dark:text-white bg-neutral-100 dark:bg-neutral-800"
-                    : "hover:text-black dark:hover:text-white"
+                    : "hover:text-black dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-900/50"
                 }`
               }
             >
@@ -109,7 +116,7 @@ export default function Layout({ children }) {
             <a
               href="#how-it-works"
               onClick={(e) => handleAnchorClick(e, "#how-it-works")}
-              className="rounded-full px-3.5 py-1.5 transition hover:text-black dark:hover:text-white"
+              className="whitespace-nowrap rounded-full px-3.5 py-1.5 transition hover:text-black dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-900/50"
             >
               How it works
             </a>
@@ -117,19 +124,18 @@ export default function Layout({ children }) {
             <a
               href="#live-pulse"
               onClick={(e) => handleAnchorClick(e, "#live-pulse")}
-              className="rounded-full px-3.5 py-1.5 transition hover:text-black dark:hover:text-white"
+              className="whitespace-nowrap rounded-full px-3.5 py-1.5 transition hover:text-black dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-900/50"
             >
               Live Pulse
             </a>
 
             <NavLink
               to="/issues"
-              onClick={close}
               className={({ isActive }) =>
-                `rounded-full px-3.5 py-1.5 transition ${
+                `whitespace-nowrap rounded-full px-3.5 py-1.5 transition ${
                   isActive
                     ? "font-bold text-black dark:text-white bg-neutral-100 dark:bg-neutral-800"
-                    : "hover:text-black dark:hover:text-white"
+                    : "hover:text-black dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-900/50"
                 }`
               }
             >
@@ -139,58 +145,32 @@ export default function Layout({ children }) {
             <a
               href="#about"
               onClick={(e) => handleAnchorClick(e, "#about")}
-              className="rounded-full px-3.5 py-1.5 transition hover:text-black dark:hover:text-white"
+              className="whitespace-nowrap rounded-full px-3.5 py-1.5 transition hover:text-black dark:hover:text-white hover:bg-neutral-100/50 dark:hover:bg-neutral-900/50"
             >
               About
             </a>
-
-            {user && (
-              <NavLink
-                to="/my-issues"
-                onClick={close}
-                className={({ isActive }) =>
-                  `rounded-full px-3.5 py-1.5 transition ${
-                    isActive
-                      ? "font-bold text-black dark:text-white bg-neutral-100 dark:bg-neutral-800"
-                      : "hover:text-black dark:hover:text-white"
-                  }`
-                }
-              >
-                My Issues
-              </NavLink>
-            )}
-
-            {user && user.role !== "citizen" && (
-              <NavLink
-                to="/dashboard"
-                onClick={close}
-                className="inline-flex items-center gap-1.5 rounded-full px-3 py-1 text-xs font-bold text-black dark:text-white bg-neutral-100 dark:bg-neutral-800 border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition ml-1"
-              >
-                <ShieldCheck size={13} /> Officer Desk
-              </NavLink>
-            )}
           </nav>
 
-          {/* Right Side: Search Input + Theme Switcher + Report Issue Button */}
-          <div className="flex items-center gap-3">
+          {/* Right Action Controls */}
+          <div className="flex items-center gap-2.5 sm:gap-3 shrink-0">
             
-            {/* Search Input Bar */}
-            <form onSubmit={handleSearchSubmit} className="hidden lg:flex items-center relative">
-              <Search size={14} className="absolute left-3.5 text-neutral-400" />
+            {/* Search Input Bar (Visible on xl+ screens) */}
+            <form onSubmit={handleSearchSubmit} className="hidden xl:flex items-center relative">
+              <Search size={13} className="absolute left-3 text-neutral-400" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search issues..."
-                className="h-9 w-44 xl:w-52 rounded-full border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-900 pl-9 pr-3 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:border-black dark:focus:border-white focus:bg-white dark:focus:bg-black focus:outline-none transition"
+                className="h-8.5 w-36 2xl:w-44 rounded-full border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 pl-8 pr-3 text-xs text-neutral-900 dark:text-white placeholder-neutral-400 focus:border-black dark:focus:border-white focus:bg-white dark:focus:bg-black focus:outline-none transition"
               />
             </form>
 
-            {/* Theme Toggle Button (Circular icon button) */}
+            {/* Theme Toggle Button */}
             <button
               type="button"
               onClick={toggleMode}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 transition shadow-2xs cursor-pointer active:scale-90"
+              className="flex h-8.5 w-8.5 items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 text-black dark:text-white hover:bg-neutral-200 dark:hover:bg-neutral-800 transition shadow-2xs cursor-pointer active:scale-90 shrink-0"
               title={`Switch to ${isDark ? "White & Black (Light)" : "Black & White (Dark)"}`}
               aria-label="Toggle theme mode"
             >
@@ -201,50 +181,175 @@ export default function Layout({ children }) {
               )}
             </button>
 
-            {/* Report Issue Button (Pill button: Report Issue +) */}
+            {/* "Report Issue +" Pill Button (Single line, never wraps) */}
             <Link
               to="/report"
-              className="inline-flex items-center gap-1.5 rounded-full bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 px-4 py-2 text-xs sm:text-sm font-bold transition shadow-xs active:scale-95"
+              className="inline-flex items-center gap-1.5 whitespace-nowrap shrink-0 rounded-full bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 px-3.5 sm:px-4 py-2 text-xs font-bold transition shadow-xs active:scale-95"
             >
               <span>Report Issue</span>
-              <Plus size={15} strokeWidth={2.5} />
+              <Plus size={14} strokeWidth={2.5} />
             </Link>
 
-            {/* Auth / Profile controls */}
+            {/* User Profile Dropdown or Login */}
             {user ? (
-              <div className="hidden sm:flex items-center gap-2 pl-1">
-                <div
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-800 text-xs font-bold text-neutral-900 dark:text-white border border-neutral-300 dark:border-neutral-700"
-                  title={user.email}
-                >
-                  {user.name ? user.name.charAt(0).toUpperCase() : "U"}
-                </div>
+              <div className="relative shrink-0" ref={profileRef}>
                 <button
-                  onClick={handleLogout}
-                  className="text-xs text-neutral-600 dark:text-neutral-400 hover:text-rose-600 transition font-medium"
+                  type="button"
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="flex items-center gap-1 rounded-full p-0.5 border border-neutral-300 dark:border-neutral-700 hover:border-black dark:hover:border-white transition cursor-pointer"
+                  title={user.email}
+                  aria-label="User profile menu"
                 >
-                  Log out
+                  <div className="flex h-7.5 w-7.5 items-center justify-center rounded-full bg-neutral-900 dark:bg-white text-xs font-bold text-white dark:text-black">
+                    {user.name ? user.name.charAt(0).toUpperCase() : "U"}
+                  </div>
+                  <ChevronDown size={12} className="text-neutral-500 mr-1 hidden sm:block" />
                 </button>
+
+                {/* Floating Dropdown Card */}
+                {profileOpen && (
+                  <div className="absolute right-0 mt-2 w-52 rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 p-2 shadow-xl z-50 text-xs">
+                    <div className="px-3 py-2 border-b border-neutral-100 dark:border-neutral-800">
+                      <p className="font-bold text-neutral-900 dark:text-white truncate">{user.name || "Citizen"}</p>
+                      <p className="text-[11px] text-neutral-500 truncate mt-0.5">{user.email}</p>
+                    </div>
+
+                    <div className="py-1 space-y-0.5">
+                      <Link
+                        to="/my-issues"
+                        onClick={() => setProfileOpen(false)}
+                        className="flex items-center gap-2 rounded-xl px-3 py-2 font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900 hover:text-black dark:hover:text-white transition"
+                      >
+                        <FileText size={14} />
+                        <span>My Issues</span>
+                      </Link>
+
+                      {user.role !== "citizen" && (
+                        <Link
+                          to="/dashboard"
+                          onClick={() => setProfileOpen(false)}
+                          className="flex items-center gap-2 rounded-xl px-3 py-2 font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900 hover:text-black dark:hover:text-white transition"
+                        >
+                          <ShieldCheck size={14} />
+                          <span>Officer Desk</span>
+                        </Link>
+                      )}
+                    </div>
+
+                    <div className="border-t border-neutral-100 dark:border-neutral-800 pt-1">
+                      <button
+                        type="button"
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2 rounded-xl px-3 py-2 font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition text-left cursor-pointer"
+                      >
+                        <LogOut size={14} />
+                        <span>Log out</span>
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             ) : (
               <Link
                 to="/login"
-                className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white px-2 py-1"
+                className="inline-flex items-center whitespace-nowrap shrink-0 text-xs font-bold rounded-full px-3.5 py-2 text-neutral-700 dark:text-neutral-300 hover:text-black dark:hover:text-white hover:bg-neutral-100 dark:hover:bg-neutral-900 transition"
               >
                 Login
               </Link>
             )}
 
-            {/* Mobile Menu Hamburger */}
+            {/* Mobile Menu Hamburger (Only on < lg) */}
             <button
+              type="button"
               onClick={() => setOpen(!open)}
-              className="rounded-lg p-2 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 md:hidden cursor-pointer"
+              className="flex h-8.5 w-8.5 items-center justify-center rounded-lg border border-neutral-200 dark:border-neutral-800 p-1 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-900 lg:hidden cursor-pointer shrink-0"
               aria-label="Toggle navigation"
             >
-              {open ? <X size={22} /> : <Menu size={22} />}
+              {open ? <X size={18} /> : <Menu size={18} />}
             </button>
           </div>
         </div>
+
+        {/* Mobile Slide-down Drawer */}
+        {open && (
+          <div className="lg:hidden border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black px-4 py-4 space-y-2 shadow-lg">
+            <NavLink
+              to="/"
+              onClick={close}
+              className={({ isActive }) =>
+                `block rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                  isActive && location.hash === ""
+                    ? "bg-black text-white dark:bg-white dark:text-black"
+                    : "text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900"
+                }`
+              }
+            >
+              Home
+            </NavLink>
+            <a
+              href="#how-it-works"
+              onClick={(e) => handleAnchorClick(e, "#how-it-works")}
+              className="block rounded-xl px-4 py-2.5 text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900"
+            >
+              How it works
+            </a>
+            <a
+              href="#live-pulse"
+              onClick={(e) => handleAnchorClick(e, "#live-pulse")}
+              className="block rounded-xl px-4 py-2.5 text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900"
+            >
+              Live Pulse
+            </a>
+            <NavLink
+              to="/issues"
+              onClick={close}
+              className={({ isActive }) =>
+                `block rounded-xl px-4 py-2.5 text-sm font-semibold transition ${
+                  isActive
+                    ? "bg-black text-white dark:bg-white dark:text-black"
+                    : "text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900"
+                }`
+              }
+            >
+              Issues
+            </NavLink>
+            <a
+              href="#about"
+              onClick={(e) => handleAnchorClick(e, "#about")}
+              className="block rounded-xl px-4 py-2.5 text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900"
+            >
+              About
+            </a>
+
+            {user && (
+              <div className="border-t border-neutral-200 dark:border-neutral-800 pt-2 my-2">
+                <NavLink
+                  to="/my-issues"
+                  onClick={close}
+                  className="block rounded-xl px-4 py-2.5 text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900"
+                >
+                  My Issues
+                </NavLink>
+                {user.role !== "citizen" && (
+                  <NavLink
+                    to="/dashboard"
+                    onClick={close}
+                    className="block rounded-xl px-4 py-2.5 text-sm font-semibold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900"
+                  >
+                    Officer Desk
+                  </NavLink>
+                )}
+                <button
+                  type="button"
+                  onClick={handleLogout}
+                  className="w-full text-left rounded-xl px-4 py-2.5 text-sm font-semibold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 cursor-pointer"
+                >
+                  Log out
+                </button>
+              </div>
+            )}
+          </div>
+        )}
       </header>
 
       {/* Main Content Area */}
