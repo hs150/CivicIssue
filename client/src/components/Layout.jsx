@@ -6,7 +6,7 @@ import { useTheme } from "../context/ThemeContext.jsx";
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
+  const { theme, toggleTheme, toggleMode, isDark, activeTheme } = useTheme();
   const [open, setOpen] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
@@ -53,7 +53,7 @@ export default function Layout({ children }) {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F9F8] text-[#07111F]">
+    <div className="min-h-screen flex flex-col bg-[#F7F9F8] text-[#07111F] transition-colors duration-300">
       {/* =========================================================
           STICKY NAVBAR (Matches Screenshot)
           White translucent, pill search, theme button, Report Issue +
@@ -188,12 +188,21 @@ export default function Layout({ children }) {
 
             {/* Theme Toggle Button (Circular icon button) */}
             <button
-              onClick={toggleTheme}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E2E8F0] bg-[#F8FAFC] text-[#64748B] hover:text-[#07111F] hover:bg-slate-100 transition"
-              title="Toggle Theme"
-              aria-label="Toggle theme"
+              type="button"
+              onClick={toggleMode}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                toggleTheme();
+              }}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E2E8F0] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-[#64748B] dark:text-amber-400 hover:text-[#07111F] dark:hover:text-amber-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition shadow-2xs cursor-pointer active:scale-90"
+              title={`Switch to ${isDark ? "Light" : "Dark"} mode (Current: ${activeTheme.name}) • Right-click to cycle themes`}
+              aria-label="Toggle theme mode"
             >
-              {theme === "dark" ? <Sun size={15} /> : <Moon size={15} />}
+              {isDark ? (
+                <Sun size={15} className="text-amber-400 transition-transform duration-300 hover:rotate-45" />
+              ) : (
+                <Moon size={15} className="text-slate-600 transition-transform duration-300 hover:-rotate-12" />
+              )}
             </button>
 
             {/* Report Issue Button (Pill button: Report Issue +) */}

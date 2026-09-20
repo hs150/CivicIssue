@@ -81,8 +81,35 @@ export function ThemeProvider({ children }) {
     }
   }
 
+  function toggleTheme() {
+    setThemeState((prev) => {
+      const currentIndex = THEMES.findIndex((t) => t.id === prev);
+      const nextIndex = (currentIndex + 1) % THEMES.length;
+      return THEMES[nextIndex].id;
+    });
+  }
+
+  function toggleMode() {
+    setThemeState((prev) => {
+      const current = THEMES.find((t) => t.id === prev);
+      return current?.mode === "dark" ? "emerald" : "midnight";
+    });
+  }
+
+  const isDark = activeThemeConfig.mode === "dark";
+
   return (
-    <ThemeContext.Provider value={{ theme, setTheme, themes: THEMES, activeTheme: activeThemeConfig }}>
+    <ThemeContext.Provider
+      value={{
+        theme,
+        setTheme,
+        toggleTheme,
+        toggleMode,
+        isDark,
+        themes: THEMES,
+        activeTheme: activeThemeConfig
+      }}
+    >
       {children}
     </ThemeContext.Provider>
   );
