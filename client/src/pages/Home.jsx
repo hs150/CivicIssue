@@ -39,7 +39,7 @@ export default function Home() {
   };
 
   return (
-    <div className="relative min-h-screen bg-[#F7F9F8] dark:bg-black text-[#07111F] dark:text-white selection:bg-neutral-800 selection:text-white space-y-16 sm:space-y-20 pb-20 transition-colors">
+    <div className="relative min-h-screen bg-neutral-50 dark:bg-black text-neutral-900 dark:text-white selection:bg-black selection:text-white dark:selection:bg-white dark:selection:text-black space-y-16 sm:space-y-20 pb-20 transition-colors">
       
       {/* ========================================================================
           1. HERO SECTION (Exact Match to Screenshot)

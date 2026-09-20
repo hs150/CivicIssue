@@ -20,10 +20,10 @@ import { getImageUrl } from "../utils/image.js";
 ========================================================= */
 
 const SEVERITY_STYLES = {
-  URGENT: "bg-red-100 text-red-800 border-red-200",
-  HIGH: "bg-orange-100 text-orange-800 border-orange-200",
-  MEDIUM: "bg-amber-100 text-amber-800 border-amber-200",
-  LOW: "bg-emerald-100 text-emerald-800 border-emerald-200"
+  URGENT: "bg-red-100 text-red-800 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800",
+  HIGH: "bg-orange-100 text-orange-800 border-orange-200 dark:bg-orange-950/40 dark:text-orange-300 dark:border-orange-800",
+  MEDIUM: "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
+  LOW: "bg-neutral-100 text-neutral-800 border-neutral-300 dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-700"
 };
 
 function ConfidenceRing({ value, size = 48 }) {
@@ -31,7 +31,7 @@ function ConfidenceRing({ value, size = 48 }) {
   const radius = (size - 6) / 2;
   const circumference = 2 * Math.PI * radius;
   const offset = circumference - (pct / 100) * circumference;
-  const color = pct >= 80 ? "#10b981" : pct >= 50 ? "#f59e0b" : "#ef4444";
+  const color = pct >= 80 ? "#52525b" : pct >= 50 ? "#a1a1aa" : "#ef4444";
 
   return (
     <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
@@ -136,11 +136,11 @@ function AIInspectionReport({ ai }) {
             {safety.hazardDetected ? (
               <AlertTriangle size={16} className="text-red-600" />
             ) : (
-              <Shield size={16} className="text-emerald-600" />
+              <Shield size={16} className="text-neutral-900 dark:text-white" />
             )}
             <p className="text-xs font-bold uppercase text-slate-500">Safety Hazard</p>
           </div>
-          <p className={`mt-1 font-bold ${safety.hazardDetected ? "text-red-700" : "text-emerald-700"}`}>
+          <p className={`mt-1 font-bold ${safety.hazardDetected ? "text-red-700" : "text-neutral-900 dark:text-white"}`}>
             {safety.hazardDetected ? "⚠ Hazard Detected" : "No hazard detected"}
           </p>
           {safety.hazardType?.length > 0 && (
@@ -203,7 +203,7 @@ function AIInspectionReport({ ai }) {
       {/* Relevance + Suspicious + Human Review warnings */}
       <div className="mt-4 flex flex-wrap gap-2">
         {evidence.relevant !== undefined && (
-          <Badge className={evidence.relevant ? "bg-emerald-50 text-emerald-700 border-emerald-200" : "bg-amber-50 text-amber-700 border-amber-200"}>
+          <Badge className={evidence.relevant ? "bg-neutral-100 text-neutral-900 border-neutral-300 dark:bg-neutral-800 dark:text-white dark:border-neutral-700" : "bg-amber-50 text-amber-700 border-amber-200"}>
             {evidence.relevant ? <CheckCircle2 size={12} /> : <AlertTriangle size={12} />}
             {evidence.relevant ? "Relevant to civic reporting" : "May not show a clear issue"}
           </Badge>
@@ -266,13 +266,13 @@ function FixComparison({ beforeUrl, afterUrl, verification }) {
       {/* AI Verification Result */}
       {v.provider && (
         <div className={`mt-4 rounded-2xl border p-4 ${
-          v.verified ? "border-emerald-200 bg-emerald-50" : "border-red-200 bg-red-50"
+          v.verified ? "border-neutral-300 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800" : "border-red-200 bg-red-50"
         }`}>
           <div className="flex items-center gap-2">
             {v.verified ? (
               <>
-                <CheckCircle2 size={18} className="text-emerald-600" />
-                <span className="font-bold text-emerald-800">✅ Fix Verified by AI</span>
+                <CheckCircle2 size={18} className="text-neutral-900 dark:text-white" />
+                <span className="font-bold text-neutral-900 dark:text-white">✅ Fix Verified by AI</span>
               </>
             ) : (
               <>
@@ -355,11 +355,11 @@ function CitizenSignOff({ issue, onVerified }) {
   if (!isEligible) return null;
 
   return (
-    <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xs space-y-4">
+    <div className="rounded-3xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-xs space-y-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <Users size={20} className="text-emerald-700" />
-          <h2 className="text-lg font-black">Citizen Community Sign-Off</h2>
+          <Users size={20} className="text-neutral-900 dark:text-white" />
+          <h2 className="text-lg font-black text-neutral-900 dark:text-white">Citizen Community Sign-Off</h2>
         </div>
         {issue.citizenVerified ? (
           <span className="inline-flex items-center gap-1 rounded-full bg-amber-100 text-amber-900 border border-amber-300 px-3 py-1 text-xs font-black shadow-xs">
@@ -370,21 +370,21 @@ function CitizenSignOff({ issue, onVerified }) {
         )}
       </div>
 
-      <p className="text-xs text-slate-500 leading-relaxed">
+      <p className="text-xs text-slate-500 dark:text-neutral-400 leading-relaxed">
         To prevent fake closures, repairs must be validated by local citizens. If 2+ residents confirm the fix, it receives the official Gold Seal of Community Verification.
       </p>
 
       {/* Confirmation & Dispute Counters */}
       <div className="grid grid-cols-2 gap-3">
-        <div className="rounded-2xl border border-emerald-200 bg-emerald-50/60 p-3.5 text-center">
-          <p className="text-2xl font-black text-emerald-700">{issue.citizenConfirmations || 0}</p>
-          <p className="text-xs font-bold text-emerald-800 flex items-center justify-center gap-1 mt-0.5">
+        <div className="rounded-2xl border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800/60 p-3.5 text-center">
+          <p className="text-2xl font-black text-neutral-900 dark:text-white">{issue.citizenConfirmations || 0}</p>
+          <p className="text-xs font-bold text-neutral-800 dark:text-neutral-200 flex items-center justify-center gap-1 mt-0.5">
             <ThumbsUp size={12} /> Confirmations
           </p>
         </div>
-        <div className="rounded-2xl border border-rose-200 bg-rose-50/60 p-3.5 text-center">
-          <p className="text-2xl font-black text-rose-700">{issue.citizenDisputes || 0}</p>
-          <p className="text-xs font-bold text-rose-800 flex items-center justify-center gap-1 mt-0.5">
+        <div className="rounded-2xl border border-rose-200 bg-rose-50/60 dark:border-rose-800 dark:bg-rose-950/40 p-3.5 text-center">
+          <p className="text-2xl font-black text-rose-700 dark:text-rose-300">{issue.citizenDisputes || 0}</p>
+          <p className="text-xs font-bold text-rose-800 dark:text-rose-300 flex items-center justify-center gap-1 mt-0.5">
             <ThumbsDown size={12} /> Disputes
           </p>
         </div>
@@ -397,14 +397,14 @@ function CitizenSignOff({ issue, onVerified }) {
             <button
               onClick={() => handleVote("confirm")}
               disabled={submitting}
-              className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-700 px-4 py-3 text-xs font-bold text-white shadow-md shadow-emerald-700/20 hover:bg-emerald-800 transition active:scale-95 disabled:opacity-50"
+              className="flex-1 inline-flex items-center justify-center gap-2 rounded-xl bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 px-4 py-3 text-xs font-bold transition active:scale-95 disabled:opacity-50"
             >
               <ThumbsUp size={14} /> Confirm Fix Is Good
             </button>
             <button
               onClick={() => setShowDisputeInput(!showDisputeInput)}
               disabled={submitting}
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-300 bg-rose-50 px-4 py-3 text-xs font-bold text-rose-700 hover:bg-rose-100 transition active:scale-95 disabled:opacity-50"
+              className="inline-flex items-center justify-center gap-2 rounded-xl border border-rose-300 bg-rose-50 dark:border-rose-800 dark:bg-rose-950/40 px-4 py-3 text-xs font-bold text-rose-700 dark:text-rose-300 hover:bg-rose-100 transition active:scale-95 disabled:opacity-50"
             >
               <ThumbsDown size={14} /> Dispute
             </button>
@@ -443,13 +443,13 @@ function CitizenSignOff({ issue, onVerified }) {
           <p className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Recent Community Votes</p>
           <div className="space-y-1.5 max-h-36 overflow-y-auto">
             {verifications.map((v, i) => (
-              <div key={i} className="flex items-center justify-between text-xs py-1 px-2 rounded-lg bg-slate-50">
+              <div key={i} className="flex items-center justify-between text-xs py-1 px-2 rounded-lg bg-slate-50 dark:bg-neutral-800">
                 <div className="flex items-center gap-1.5">
-                  <span className={`h-2 w-2 rounded-full ${v.action === "confirm" ? "bg-emerald-500" : "bg-rose-500"}`} />
-                  <span className="font-semibold text-slate-700">{v.userName}</span>
+                  <span className={`h-2 w-2 rounded-full ${v.action === "confirm" ? "bg-black dark:bg-white" : "bg-rose-500"}`} />
+                  <span className="font-semibold text-slate-700 dark:text-neutral-200">{v.userName}</span>
                   {v.note && <span className="text-slate-400 truncate max-w-[140px]">"{v.note}"</span>}
                 </div>
-                <span className={`text-[10px] font-black uppercase ${v.action === "confirm" ? "text-emerald-700" : "text-rose-700"}`}>
+                <span className={`text-[10px] font-black uppercase ${v.action === "confirm" ? "text-neutral-900 dark:text-white" : "text-rose-700"}`}>
                   {v.action === "confirm" ? "Confirmed" : "Disputed"}
                 </span>
               </div>
@@ -528,14 +528,14 @@ export default function IssueDetails() {
 
   return (
     <div className="mx-auto max-w-6xl px-5 py-10">
-      <Link to="/issues" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-emerald-700"><ArrowLeft size={16}/> All issues</Link>
+      <Link to="/issues" className="inline-flex items-center gap-2 text-sm font-bold text-slate-500 hover:text-black dark:hover:text-white"><ArrowLeft size={16}/> All issues</Link>
 
       <div className="mt-6 grid gap-6 lg:grid-cols-[1.15fr_.85fr]">
         {/* ============== LEFT COLUMN ============== */}
         <div className="space-y-6">
           {/* Main issue card */}
-          <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            {issue.imageUrl ? <img src={getImageUrl(issue.imageUrl)} alt="" className="h-80 w-full object-cover" /> : <div className="grid h-80 place-items-center bg-gradient-to-br from-emerald-50 to-slate-100 text-7xl">🏙️</div>}
+          <div className="overflow-hidden rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-sm">
+            {issue.imageUrl ? <img src={getImageUrl(issue.imageUrl)} alt="" className="h-80 w-full object-cover" /> : <div className="grid h-80 place-items-center bg-neutral-100 dark:bg-neutral-800 text-7xl">🏙️</div>}
             <div className="p-7">
               <div className="flex flex-wrap items-center gap-2">
                 {Boolean(issue.status === "DISPUTED" || (issue.citizenDisputes > 0 && issue.citizenDisputes > (issue.citizenConfirmations || 0))) ? (
@@ -552,7 +552,7 @@ export default function IssueDetails() {
                     RESOLUTION REVIEW
                   </span>
                 ) : issue.phase === "RESOLVED" ? (
-                  <span className="rounded-full bg-emerald-50 border border-emerald-200 px-3 py-1 text-xs font-bold text-emerald-800">
+                  <span className="rounded-full bg-neutral-100 border border-neutral-300 dark:bg-neutral-800 dark:border-neutral-700 px-3 py-1 text-xs font-bold text-neutral-900 dark:text-white">
                     RESOLVED
                   </span>
                 ) : (
@@ -565,7 +565,7 @@ export default function IssueDetails() {
 
                 {/* AI Verified badge */}
                 {issue.fixVerification?.verified && (
-                  <Badge className="bg-emerald-100 text-emerald-700 border-emerald-200">
+                  <Badge className="bg-neutral-100 text-neutral-900 border-neutral-300 dark:bg-neutral-800 dark:text-white dark:border-neutral-700">
                     <ShieldCheck size={12} />
                     AI Fix Verified
                   </Badge>
@@ -598,16 +598,16 @@ export default function IssueDetails() {
                 </div>
               )}
 
-              <h1 className="mt-4 text-4xl font-black tracking-tight">{issue.title}</h1>
-              <p className="mt-4 leading-7 text-slate-600">{issue.description}</p>
-              <div className="mt-5 flex items-center gap-2 text-sm text-slate-500"><MapPin size={17}/>{issue.location?.address || `${issue.location?.latitude}, ${issue.location?.longitude}`}</div>
+              <h1 className="mt-4 text-4xl font-black tracking-tight text-neutral-900 dark:text-white">{issue.title}</h1>
+              <p className="mt-4 leading-7 text-neutral-600 dark:text-neutral-400">{issue.description}</p>
+              <div className="mt-5 flex items-center gap-2 text-sm text-neutral-500"><MapPin size={17}/>{issue.location?.address || `${issue.location?.latitude}, ${issue.location?.longitude}`}</div>
 
               <div className="mt-6 h-72"><MapPicker value={issue.location} readOnly/></div>
 
               <div className="mt-6 flex flex-wrap gap-3">
-                <button onClick={upvote} className="flex items-center gap-2 rounded-xl bg-emerald-50 text-emerald-800 border border-emerald-200 px-4 py-3 font-bold hover:bg-emerald-100 transition active:scale-95"><ThumbsUp size={18}/> Support ({issue.upvotes || 0})</button>
+                <button onClick={upvote} className="flex items-center gap-2 rounded-xl bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 px-4 py-3 font-bold transition active:scale-95 shadow-xs"><ThumbsUp size={18}/> Support ({issue.upvotes || 0})</button>
                 <button onClick={handleShare} className="flex items-center gap-2 rounded-xl border border-slate-200 px-4 py-3 font-bold text-slate-700 hover:bg-slate-50 transition"><Share2 size={17}/> Share</button>
-                <button onClick={() => setShowAuditModal(true)} className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 font-bold text-slate-800 hover:bg-slate-50 transition shadow-xs active:scale-95"><FileText size={17} className="text-emerald-700" /> Audit Certificate</button>
+                <button onClick={() => setShowAuditModal(true)} className="flex items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-3 font-bold text-slate-800 hover:bg-slate-50 transition shadow-xs active:scale-95"><FileText size={17} className="text-black dark:text-white" /> Audit Certificate</button>
                 <span className="flex items-center gap-2 rounded-xl bg-slate-50 px-4 py-3 text-sm text-slate-500"><MessageCircle size={17}/> {comments.length} comments</span>
               </div>
             </div>
@@ -638,27 +638,27 @@ export default function IssueDetails() {
           </div>
 
           {/* Officer Assignment & Audit Card */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
-            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 flex items-center gap-2">
-              <UserCheck size={16} className="text-emerald-600" /> Administrative Audit
+          <div className="rounded-3xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-6 shadow-sm">
+            <h2 className="text-sm font-bold uppercase tracking-wider text-slate-500 dark:text-neutral-400 flex items-center gap-2">
+              <UserCheck size={16} className="text-neutral-900 dark:text-white" /> Administrative Audit
             </h2>
-            <div className="mt-3 space-y-2.5 text-xs text-slate-600">
-              <div className="flex justify-between border-b border-slate-100 pb-2">
+            <div className="mt-3 space-y-2.5 text-xs text-slate-600 dark:text-neutral-400">
+              <div className="flex justify-between border-b border-slate-100 dark:border-neutral-800 pb-2">
                 <span className="text-slate-400">Assigned Officer:</span>
-                <span className="font-semibold text-slate-800">{issue.assignedTo ? "Designated Field Officer" : "Pending Assignment"}</span>
+                <span className="font-semibold text-neutral-800 dark:text-neutral-200">{issue.assignedTo ? "Designated Field Officer" : "Pending Assignment"}</span>
               </div>
-              <div className="flex justify-between border-b border-slate-100 pb-2">
+              <div className="flex justify-between border-b border-slate-100 dark:border-neutral-800 pb-2">
                 <span className="text-slate-400">Department:</span>
-                <span className="font-semibold text-slate-800">{issue.category || "Municipal Works"}</span>
+                <span className="font-semibold text-neutral-800 dark:text-neutral-200">{issue.category || "Municipal Works"}</span>
               </div>
-              <div className="flex justify-between border-b border-slate-100 pb-2">
+              <div className="flex justify-between border-b border-slate-100 dark:border-neutral-800 pb-2">
                 <span className="text-slate-400">Reported On:</span>
-                <span className="font-semibold text-slate-800">{new Date(issue.createdAt).toLocaleDateString()}</span>
+                <span className="font-semibold text-neutral-800 dark:text-neutral-200">{new Date(issue.createdAt).toLocaleDateString()}</span>
               </div>
               {issue.resolvedAt && (
                 <div className="flex justify-between">
                   <span className="text-slate-400">Resolved Date:</span>
-                  <span className="font-semibold text-emerald-700">{new Date(issue.resolvedAt).toLocaleDateString()}</span>
+                  <span className="font-semibold text-neutral-900 dark:text-white">{new Date(issue.resolvedAt).toLocaleDateString()}</span>
                 </div>
               )}
             </div>
@@ -666,20 +666,20 @@ export default function IssueDetails() {
 
           {/* Resolution note */}
           {issue.resolutionNote && (
-            <div className="rounded-3xl border border-emerald-200 bg-emerald-50 p-7 shadow-sm">
-              <h2 className="text-lg font-black text-emerald-900">Official Resolution Note</h2>
-              <p className="mt-3 text-sm leading-6 text-emerald-800">{issue.resolutionNote}</p>
+            <div className="rounded-3xl border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 p-7 shadow-sm">
+              <h2 className="text-lg font-black text-neutral-900 dark:text-white">Official Resolution Note</h2>
+              <p className="mt-3 text-sm leading-6 text-neutral-800 dark:text-neutral-200">{issue.resolutionNote}</p>
             </div>
           )}
 
           {/* Comments */}
-          <div className="rounded-3xl border border-slate-200 bg-white p-7 shadow-sm">
-            <h2 className="text-xl font-black">Community Comments</h2>
+          <div className="rounded-3xl border border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 p-7 shadow-sm">
+            <h2 className="text-xl font-black text-neutral-900 dark:text-white">Community Comments</h2>
             <div className="mt-5 space-y-4">
               {comments.map(c => (
-                <div key={c.id} className="rounded-2xl bg-slate-50 p-4">
-                  <div className="flex items-center justify-between gap-3"><b className="text-sm">{c.userId?.name || "Citizen"}</b><span className="text-xs text-slate-400">{new Date(c.createdAt).toLocaleString()}</span></div>
-                  <p className="mt-2 text-sm leading-6 text-slate-600">{c.text}</p>
+                <div key={c.id} className="rounded-2xl bg-slate-50 dark:bg-neutral-800 p-4">
+                  <div className="flex items-center justify-between gap-3"><b className="text-sm text-neutral-900 dark:text-white">{c.userId?.name || "Citizen"}</b><span className="text-xs text-slate-400">{new Date(c.createdAt).toLocaleString()}</span></div>
+                  <p className="mt-2 text-sm leading-6 text-neutral-600 dark:text-neutral-300">{c.text}</p>
                 </div>
               ))}
               {!comments.length && <p className="text-sm text-slate-500">No comments yet.</p>}
@@ -687,7 +687,7 @@ export default function IssueDetails() {
 
             {user && <form onSubmit={addComment} className="mt-5 flex gap-2">
               <input className="field" value={comment} onChange={e => setComment(e.target.value)} placeholder="Add a useful comment…" />
-              <button className="grid w-12 shrink-0 place-items-center rounded-xl bg-emerald-700 text-white"><Send size={17}/></button>
+              <button className="grid w-12 shrink-0 place-items-center rounded-xl bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 transition"><Send size={17}/></button>
             </form>}
             {action && <p className="mt-2 text-sm text-red-600">{action}</p>}
           </div>

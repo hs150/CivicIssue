@@ -53,7 +53,7 @@ export default function Layout({ children }) {
   }, []);
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F7F9F8] text-[#07111F] transition-colors duration-300">
+    <div className="min-h-screen flex flex-col bg-neutral-50 dark:bg-black text-neutral-900 dark:text-white transition-colors duration-300">
       {/* =========================================================
           STICKY NAVBAR (Matches Screenshot)
           White translucent, pill search, theme button, Report Issue +
@@ -61,8 +61,8 @@ export default function Layout({ children }) {
       <header
         className={`sticky top-0 z-50 transition-all duration-200 ${
           scrolled
-            ? "py-2.5 bg-white/90 backdrop-blur-md border-b border-[#E2E8F0] shadow-xs"
-            : "py-3.5 bg-white border-b border-[#EAEFEA]"
+            ? "py-2.5 bg-white/90 dark:bg-black/90 backdrop-blur-md border-b border-neutral-200 dark:border-neutral-800 shadow-xs"
+            : "py-3.5 bg-white dark:bg-black border-b border-neutral-200 dark:border-neutral-800"
         }`}
       >
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -214,14 +214,14 @@ export default function Layout({ children }) {
             {user ? (
               <div className="hidden sm:flex items-center gap-2 pl-1">
                 <div
-                  className="flex h-8 w-8 items-center justify-center rounded-full bg-slate-200 text-xs font-bold text-slate-800 border border-slate-300"
+                  className="flex h-8 w-8 items-center justify-center rounded-full bg-neutral-200 dark:bg-neutral-800 text-xs font-bold text-neutral-900 dark:text-white border border-neutral-300 dark:border-neutral-700"
                   title={user.email}
                 >
                   {user.name ? user.name.charAt(0).toUpperCase() : "U"}
                 </div>
                 <button
                   onClick={handleLogout}
-                  className="text-xs text-[#64748B] hover:text-rose-600 transition font-medium"
+                  className="text-xs text-neutral-600 dark:text-neutral-400 hover:text-rose-600 transition font-medium"
                 >
                   Log out
                 </button>
@@ -229,7 +229,7 @@ export default function Layout({ children }) {
             ) : (
               <Link
                 to="/login"
-                className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-[#64748B] hover:text-[#07111F] px-2 py-1"
+                className="hidden sm:inline-flex items-center gap-1 text-xs font-bold text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white px-2 py-1"
               >
                 Login
               </Link>
@@ -238,7 +238,7 @@ export default function Layout({ children }) {
             {/* Mobile Menu Hamburger */}
             <button
               onClick={() => setOpen(!open)}
-              className="rounded-lg p-2 text-slate-700 hover:bg-slate-100 md:hidden"
+              className="rounded-lg p-2 text-neutral-800 dark:text-neutral-200 hover:bg-neutral-100 dark:hover:bg-neutral-800 md:hidden cursor-pointer"
               aria-label="Toggle navigation"
             >
               {open ? <X size={22} /> : <Menu size={22} />}
@@ -254,7 +254,7 @@ export default function Layout({ children }) {
           FOOTER (Exact Match to Screenshot)
           Clean light background, 4 columns, subscription box, bottom note
       ========================================================= */}
-      <footer className="border-t border-[#EAEFEA] bg-white text-[#64748B]">
+      <footer className="border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black text-neutral-600 dark:text-neutral-400">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-12 md:py-16">
           <div className="grid grid-cols-1 md:grid-cols-12 gap-8 lg:gap-12">
             

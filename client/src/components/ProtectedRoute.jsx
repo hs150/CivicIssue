@@ -9,15 +9,15 @@ export default function ProtectedRoute({ children, roles }) {
     return (
       <div className="flex min-h-[60vh] flex-col items-center justify-center gap-4 text-center">
         <div className="relative flex h-16 w-16 items-center justify-center">
-          <div className="absolute h-16 w-16 rounded-full border-2 border-emerald-500/20 border-t-emerald-500 animate-spin" />
-          <div className="absolute h-10 w-10 rounded-full border border-teal-500/40 animate-ping" />
-          <div className="h-3 w-3 rounded-full bg-emerald-500 shadow-[0_0_12px_rgba(16,185,129,0.8)]" />
+          <div className="absolute h-16 w-16 rounded-full border-2 border-neutral-300 dark:border-neutral-700 border-t-black dark:border-t-white animate-spin" />
+          <div className="absolute h-10 w-10 rounded-full border border-neutral-400 dark:border-neutral-500 animate-ping" />
+          <div className="h-3 w-3 rounded-full bg-black dark:bg-white shadow-[0_0_12px_rgba(255,255,255,0.8)]" />
         </div>
         <div>
-          <p className="text-xs font-mono tracking-widest text-emerald-700 uppercase font-bold">
+          <p className="text-xs font-mono tracking-widest text-neutral-900 dark:text-white uppercase font-bold">
             VERIFYING CIVIC CREDENTIALS
           </p>
-          <p className="text-[11px] text-slate-400 mt-1 font-mono">
+          <p className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-1 font-mono">
             SECURE ENCLAVE HANDSHAKE...
           </p>
         </div>

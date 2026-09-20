@@ -755,7 +755,7 @@ export default function ReportIssue() {
     }
 
     if (value === "low") {
-      return "bg-emerald-50 text-emerald-700 border-emerald-200";
+      return "bg-neutral-100 dark:bg-neutral-900 text-neutral-800 dark:text-neutral-200 border-neutral-300 dark:border-neutral-700";
     }
 
     return "bg-slate-50 text-slate-600 border-slate-200";
@@ -774,15 +774,15 @@ export default function ReportIssue() {
 
       <div className="max-w-2xl">
 
-        <p className="font-bold text-emerald-700">
+        <p className="font-mono text-xs font-bold uppercase tracking-wider text-neutral-500 dark:text-neutral-400">
           AI-powered citizen reporting
         </p>
 
-        <h1 className="mt-2 text-4xl font-black">
+        <h1 className="mt-2 text-4xl font-black text-neutral-900 dark:text-white">
           Report an issue
         </h1>
 
-        <p className="mt-2 text-slate-500">
+        <p className="mt-2 text-neutral-600 dark:text-neutral-300">
           Take a live photo or upload an image and let AI
           automatically identify the civic issue.
         </p>
@@ -796,17 +796,17 @@ export default function ReportIssue() {
       <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-3">
         <div className={`rounded-2xl p-3.5 border transition-all flex items-center gap-3 ${
           preview && !analyzing
-            ? "border-emerald-500 bg-emerald-50/80 text-emerald-900 shadow-xs"
+            ? "border-neutral-400 dark:border-neutral-600 bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-white shadow-xs"
             : analyzing
-            ? "border-blue-500 bg-blue-50 text-blue-900 animate-pulse shadow-xs"
-            : "border-slate-200 bg-white text-slate-500"
+            ? "border-neutral-400 bg-neutral-50 dark:bg-neutral-800 text-neutral-900 dark:text-white animate-pulse shadow-xs"
+            : "border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black text-neutral-500 dark:text-neutral-400"
         }`}>
           <span className={`h-6 w-6 rounded-full grid place-items-center text-xs font-black ${
-            preview && !analyzing ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"
+            preview && !analyzing ? "bg-black text-white dark:bg-white dark:text-black" : "bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300"
           }`}>1</span>
           <div className="flex flex-col">
             <span className="text-xs font-black">Evidence & AI Scan</span>
-            <span className="text-[10px] text-slate-400">
+            <span className="text-[10px] text-neutral-400">
               {preview ? (analyzing ? "Scanning..." : "Analyzed") : "Photo required"}
             </span>
           </div>
@@ -814,17 +814,17 @@ export default function ReportIssue() {
 
         <div className={`rounded-2xl p-3.5 border transition-all flex items-center gap-3 ${
           location.latitude && location.longitude && !checkingNearby
-            ? "border-emerald-500 bg-emerald-50/80 text-emerald-900 shadow-xs"
+            ? "border-neutral-400 dark:border-neutral-600 bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-white shadow-xs"
             : checkingNearby
-            ? "border-amber-500 bg-amber-50 text-amber-900 animate-pulse shadow-xs"
-            : "border-slate-200 bg-white text-slate-500"
+            ? "border-amber-500 bg-amber-50 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 animate-pulse shadow-xs"
+            : "border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black text-neutral-500 dark:text-neutral-400"
         }`}>
           <span className={`h-6 w-6 rounded-full grid place-items-center text-xs font-black ${
-            location.latitude && location.longitude ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"
+            location.latitude && location.longitude ? "bg-black text-white dark:bg-white dark:text-black" : "bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300"
           }`}>2</span>
           <div className="flex flex-col">
             <span className="text-xs font-black">Location & Dedup</span>
-            <span className="text-[10px] text-slate-400">
+            <span className="text-[10px] text-neutral-400">
               {checkingNearby ? "Checking radius..." : `${nearbyIssues.length} nearby detected`}
             </span>
           </div>
@@ -832,15 +832,15 @@ export default function ReportIssue() {
 
         <div className={`rounded-2xl p-3.5 border transition-all flex items-center gap-3 ${
           form.title && form.description
-            ? "border-emerald-500 bg-emerald-50/80 text-emerald-900 shadow-xs"
-            : "border-slate-200 bg-white text-slate-500"
+            ? "border-neutral-400 dark:border-neutral-600 bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-white shadow-xs"
+            : "border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black text-neutral-500 dark:text-neutral-400"
         }`}>
           <span className={`h-6 w-6 rounded-full grid place-items-center text-xs font-black ${
-            form.title && form.description ? "bg-emerald-600 text-white" : "bg-slate-100 text-slate-600"
+            form.title && form.description ? "bg-black text-white dark:bg-white dark:text-black" : "bg-neutral-200 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300"
           }`}>3</span>
           <div className="flex flex-col">
             <span className="text-xs font-black">Review & Submit</span>
-            <span className="text-[10px] text-slate-400">Ready to transmit</span>
+            <span className="text-[10px] text-neutral-400">Ready to transmit</span>
           </div>
         </div>
       </div>
@@ -858,7 +858,7 @@ export default function ReportIssue() {
             LEFT PANEL
         =================================================== */}
 
-        <div className="space-y-5 rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="space-y-5 rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black p-6 shadow-sm">
 
           {/* TITLE */}
 
@@ -951,22 +951,22 @@ export default function ReportIssue() {
               VOICE-TO-REPORT ASSISTANT
           ================================================= */}
 
-          <div className="rounded-2xl border border-indigo-200 bg-gradient-to-r from-indigo-50/80 via-white to-purple-50/80 p-3.5 space-y-2.5">
+          <div className="rounded-2xl border border-neutral-300 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900/60 p-3.5 space-y-2.5">
             <div className="flex items-center justify-between">
-              <div className="flex items-center gap-1.5 text-xs font-bold text-indigo-950">
-                <Volume2 size={15} className="text-indigo-600" />
+              <div className="flex items-center gap-1.5 text-xs font-bold text-neutral-900 dark:text-white">
+                <Volume2 size={15} className="text-black dark:text-white" />
                 <span>Voice-to-Report Assistant</span>
               </div>
 
               {/* Language Toggle */}
-              <div className="inline-flex rounded-lg border border-slate-200 bg-white p-0.5 text-[11px] font-bold shadow-2xs">
+              <div className="inline-flex rounded-lg border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-800 p-0.5 text-[11px] font-bold shadow-2xs">
                 <button
                   type="button"
                   onClick={() => handleVoiceLangChange("en-IN")}
                   className={`px-2 py-0.5 rounded-md transition ${
                     voiceLang === "en-IN"
-                      ? "bg-indigo-600 text-white shadow-xs"
-                      : "text-slate-500 hover:text-slate-800"
+                      ? "bg-black text-white dark:bg-white dark:text-black shadow-xs"
+                      : "text-neutral-500 hover:text-black dark:hover:text-white"
                   }`}
                 >
                   EN (English)
@@ -976,8 +976,8 @@ export default function ReportIssue() {
                   onClick={() => handleVoiceLangChange("hi-IN")}
                   className={`px-2 py-0.5 rounded-md transition ${
                     voiceLang === "hi-IN"
-                      ? "bg-indigo-600 text-white shadow-xs"
-                      : "text-slate-500 hover:text-slate-800"
+                      ? "bg-black text-white dark:bg-white dark:text-black shadow-xs"
+                      : "text-neutral-500 hover:text-black dark:hover:text-white"
                   }`}
                 >
                   हिन्दी (Hindi)
@@ -993,7 +993,7 @@ export default function ReportIssue() {
                 className={`flex-1 inline-flex items-center justify-center gap-2 rounded-xl py-2.5 px-4 text-xs font-bold transition-all duration-300 shadow-sm active:scale-95 ${
                   isListening
                     ? "bg-rose-600 text-white shadow-rose-600/30 animate-pulse ring-4 ring-rose-600/20"
-                    : "bg-indigo-600 text-white hover:bg-indigo-700 shadow-indigo-600/20"
+                    : "bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200"
                 }`}
               >
                 {isListening ? (
@@ -1009,7 +1009,7 @@ export default function ReportIssue() {
                 )}
               </button>
             </div>
-            <p className="text-[10px] text-slate-500">
+            <p className="text-[10px] text-neutral-500 dark:text-neutral-400">
               💡 Speak your problem aloud. The transcript will automatically populate your complaint description.
             </p>
           </div>
@@ -1069,7 +1069,7 @@ export default function ReportIssue() {
                 <button
                   type="button"
                   onClick={openCamera}
-                  className="flex items-center justify-center gap-2 rounded-2xl bg-emerald-700 p-4 font-bold text-white hover:bg-emerald-800"
+                  className="flex items-center justify-center gap-2 rounded-2xl bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 p-4 font-bold transition cursor-pointer"
                 >
                   <Camera size={20} />
 
@@ -1078,7 +1078,7 @@ export default function ReportIssue() {
 
                 {/* UPLOAD */}
 
-                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-slate-300 p-4 font-bold text-slate-600 hover:bg-slate-50">
+                <label className="flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-neutral-300 dark:border-neutral-700 p-4 font-bold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-900 transition">
 
                   <UploadCloud size={20} />
 
@@ -1116,7 +1116,7 @@ export default function ReportIssue() {
                   <button
                     type="button"
                     onClick={capturePhoto}
-                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-emerald-600 px-4 py-3 font-bold text-white"
+                    className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-white text-black dark:bg-black dark:text-white px-4 py-3 font-bold cursor-pointer"
                   >
                     <Camera size={20} />
 
@@ -1126,7 +1126,7 @@ export default function ReportIssue() {
                   <button
                     type="button"
                     onClick={stopCamera}
-                    className="flex items-center justify-center gap-2 rounded-xl bg-white px-4 py-3 font-bold text-slate-700"
+                    className="flex items-center justify-center gap-2 rounded-xl bg-neutral-200 dark:bg-neutral-800 px-4 py-3 font-bold text-neutral-800 dark:text-neutral-200 cursor-pointer"
                   >
                     <X size={20} />
 
@@ -1150,7 +1150,7 @@ export default function ReportIssue() {
             ================================================= */}
 
             {preview && !cameraOpen && (
-              <div className="relative mt-3 overflow-hidden rounded-2xl border border-slate-200">
+              <div className="relative mt-3 overflow-hidden rounded-2xl border border-neutral-300 dark:border-neutral-700">
 
                 <img
                   src={preview}
@@ -1160,31 +1160,31 @@ export default function ReportIssue() {
                   }`}
                 />
 
-                {/* HUD Reticle & Laser Sweep Overlay */}
+                {/* HUD Reticle & Laser Sweep Overlay (Monochrome) */}
                 {analyzing && (
-                  <div className="absolute inset-0 z-20 flex flex-col justify-between p-4 pointer-events-none border-2 border-emerald-400/80 rounded-2xl bg-emerald-950/25">
+                  <div className="absolute inset-0 z-20 flex flex-col justify-between p-4 pointer-events-none border-2 border-white/80 rounded-2xl bg-black/40 backdrop-blur-xs">
                     {/* Top Reticles */}
                     <div className="flex justify-between items-center">
-                      <div className="h-4 w-4 border-t-2 border-l-2 border-emerald-400" />
-                      <div className="flex items-center gap-1.5 rounded-full bg-slate-950/85 px-3 py-1 text-[11px] font-black text-emerald-300 border border-emerald-400/40 shadow-xl backdrop-blur-md">
-                        <Sparkles size={12} className="animate-spin text-emerald-400" />
+                      <div className="h-4 w-4 border-t-2 border-l-2 border-white" />
+                      <div className="flex items-center gap-1.5 rounded-full bg-black/90 px-3 py-1 text-[11px] font-black text-white border border-white/40 shadow-xl backdrop-blur-md">
+                        <Sparkles size={12} className="animate-spin text-white" />
                         <span>AI RETINA SCANNING</span>
                       </div>
-                      <div className="h-4 w-4 border-t-2 border-r-2 border-emerald-400" />
+                      <div className="h-4 w-4 border-t-2 border-r-2 border-white" />
                     </div>
 
                     {/* Scanning Laser Beam */}
                     <div className="relative w-full">
                       <div
-                        className="h-1 w-full bg-gradient-to-r from-transparent via-emerald-400 to-transparent shadow-[0_0_20px_#10b981] animate-pulse"
+                        className="h-1 w-full bg-gradient-to-r from-transparent via-white to-transparent shadow-[0_0_20px_#ffffff] animate-pulse"
                       />
                     </div>
 
                     {/* Bottom Reticles */}
-                    <div className="flex justify-between items-center text-[10px] text-emerald-300/80 font-mono">
-                      <div className="h-4 w-4 border-b-2 border-l-2 border-emerald-400" />
+                    <div className="flex justify-between items-center text-[10px] text-neutral-300 font-mono">
+                      <div className="h-4 w-4 border-b-2 border-l-2 border-white" />
                       <span>ANALYZING TEXTURE & HAZARDS</span>
-                      <div className="h-4 w-4 border-b-2 border-r-2 border-emerald-400" />
+                      <div className="h-4 w-4 border-b-2 border-r-2 border-white" />
                     </div>
                   </div>
                 )}
@@ -1211,16 +1211,16 @@ export default function ReportIssue() {
           ================================================= */}
 
           {analyzing && (
-            <div className="rounded-2xl border border-blue-200 bg-blue-50 p-4 text-sm font-semibold text-blue-800">
+            <div className="rounded-2xl border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 p-4 text-sm font-semibold text-neutral-900 dark:text-white">
 
               <Sparkles
                 size={18}
-                className="mr-2 inline animate-pulse"
+                className="mr-2 inline animate-pulse text-black dark:text-white"
               />
 
               Gemini is analyzing the image...
 
-              <p className="mt-2 text-xs font-normal text-blue-700">
+              <p className="mt-2 text-xs font-normal text-neutral-600 dark:text-neutral-400">
                 Detecting issue type, severity, visual evidence,
                 hazards, location clues and responsible department.
               </p>
@@ -1233,16 +1233,16 @@ export default function ReportIssue() {
           ================================================= */}
 
           {aiAnalysis && !analyzing && (
-            <div className="space-y-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
+            <div className="space-y-3 rounded-2xl border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 p-4">
 
               <div className="flex items-center gap-2">
 
                 <Sparkles
                   size={18}
-                  className="text-emerald-700"
+                  className="text-neutral-900 dark:text-white"
                 />
 
-                <p className="font-black text-emerald-900">
+                <p className="font-black text-neutral-900 dark:text-white">
                   AI Analysis Complete
                 </p>
 
@@ -1252,7 +1252,7 @@ export default function ReportIssue() {
 
               {aiAnalysis.evidence?.confidence !==
                 undefined && (
-                <div className="text-xs text-emerald-800">
+                <div className="text-xs text-neutral-800 dark:text-neutral-200">
                   AI confidence:{" "}
                   <b>
                     {Math.round(
@@ -1268,13 +1268,13 @@ export default function ReportIssue() {
               {/* SUBCATEGORY */}
 
               {aiAnalysis.issue?.subcategory && (
-                <div className="rounded-xl bg-white p-3">
+                <div className="rounded-xl bg-white dark:bg-black p-3 border border-neutral-200 dark:border-neutral-800">
 
-                  <p className="text-xs font-bold uppercase text-slate-400">
+                  <p className="text-xs font-bold uppercase text-neutral-400">
                     Detected issue
                   </p>
 
-                  <p className="mt-1 font-bold text-slate-800">
+                  <p className="mt-1 font-bold text-neutral-900 dark:text-white">
                     {aiAnalysis.issue.subcategory}
                   </p>
 
@@ -1284,13 +1284,13 @@ export default function ReportIssue() {
               {/* PRIORITY */}
 
               {aiAnalysis.issue?.priority && (
-                <div className="flex items-center justify-between rounded-xl bg-white p-3">
+                <div className="flex items-center justify-between rounded-xl bg-white dark:bg-black p-3 border border-neutral-200 dark:border-neutral-800">
 
-                  <span className="text-sm font-bold text-slate-600">
+                  <span className="text-sm font-bold text-neutral-700 dark:text-neutral-300">
                     Priority
                   </span>
 
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black uppercase">
+                  <span className="rounded-full bg-neutral-100 dark:bg-neutral-800 px-3 py-1 text-xs font-black uppercase text-neutral-900 dark:text-white">
                     {aiAnalysis.issue.priority}
                   </span>
 
@@ -1299,7 +1299,7 @@ export default function ReportIssue() {
 
               {/* HAZARD */}
 
-              <div className="flex items-center justify-between rounded-xl bg-white p-3">
+              <div className="flex items-center justify-between rounded-xl bg-white dark:bg-black p-3 border border-neutral-200 dark:border-neutral-800">
 
                 <div className="flex items-center gap-2">
 
@@ -1311,17 +1311,17 @@ export default function ReportIssue() {
                   ) : (
                     <ShieldAlert
                       size={18}
-                      className="text-emerald-600"
+                      className="text-neutral-900 dark:text-white"
                     />
                   )}
 
-                  <span className="text-sm font-bold text-slate-700">
+                  <span className="text-sm font-bold text-neutral-700 dark:text-neutral-300">
                     Safety hazard
                   </span>
 
                 </div>
 
-                <span className="text-xs font-black uppercase">
+                <span className="text-xs font-black uppercase text-neutral-900 dark:text-white">
                   {aiAnalysis.safety?.hazardDetected
                     ? "Detected"
                     : "None detected"}
@@ -1333,13 +1333,13 @@ export default function ReportIssue() {
 
               {aiAnalysis.evidence?.relevant !==
                 undefined && (
-                <div className="flex items-center gap-2 text-xs font-semibold">
+                <div className="flex items-center gap-2 text-xs font-semibold text-neutral-900 dark:text-white">
 
                   {aiAnalysis.evidence.relevant ? (
                     <>
                       <CheckCircle2
                         size={15}
-                        className="text-emerald-600"
+                        className="text-black dark:text-white"
                       />
 
                       Image is relevant to civic reporting.
@@ -1361,7 +1361,7 @@ export default function ReportIssue() {
               {/* HUMAN REVIEW */}
 
               {aiAnalysis.ai?.requiresHumanReview && (
-                <div className="rounded-xl border border-amber-200 bg-amber-50 p-3 text-xs font-semibold text-amber-800">
+                <div className="rounded-xl border border-amber-200 bg-amber-50 dark:bg-amber-950/40 p-3 text-xs font-semibold text-amber-800 dark:text-amber-300">
 
                   ⚠️ AI recommends human review before this
                   issue is processed.
@@ -1377,37 +1377,37 @@ export default function ReportIssue() {
           ================================================= */}
 
           {nearbyIssues.length > 0 && !dedupDismissed && (
-            <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 p-5">
+            <div className="rounded-2xl border-2 border-amber-300 bg-amber-50 dark:bg-amber-950/40 p-5">
 
               <div className="flex items-center gap-2">
-                <MapPinOff size={20} className="text-amber-700" />
-                <p className="font-black text-amber-900">
+                <MapPinOff size={20} className="text-amber-700 dark:text-amber-400" />
+                <p className="font-black text-amber-900 dark:text-amber-200">
                   Similar issues found nearby!
                 </p>
               </div>
 
-              <p className="mt-2 text-sm text-amber-800">
+              <p className="mt-2 text-sm text-amber-800 dark:text-amber-300">
                 We found {nearbyIssues.length} existing issue{nearbyIssues.length > 1 ? "s" : ""} within 500m of your location.
                 Consider supporting an existing report instead of creating a duplicate.
               </p>
 
               <div className="mt-4 space-y-2">
                 {nearbyIssues.map(nearby => (
-                  <div key={nearby.id} className="flex items-center gap-3 rounded-xl bg-white p-3 shadow-sm">
+                  <div key={nearby.id} className="flex items-center gap-3 rounded-xl bg-white dark:bg-neutral-900 p-3 shadow-sm border border-neutral-200 dark:border-neutral-800">
                     <div className="flex-1 min-w-0">
                       <Link
                         to={`/issues/${nearby.id}`}
-                        className="font-bold text-sm text-slate-800 hover:text-emerald-700 truncate block"
+                        className="font-bold text-sm text-neutral-900 dark:text-white hover:underline truncate block"
                       >
                         {nearby.title}
                       </Link>
-                      <p className="text-xs text-slate-500 mt-0.5">
+                      <p className="text-xs text-neutral-500 dark:text-neutral-400 mt-0.5">
                         {nearby.distanceMeters}m away • {nearby.phase?.replace(/_/g, " ")} • {nearby.upvotes || 0} supporters
                       </p>
                     </div>
                     <Link
                       to={`/issues/${nearby.id}`}
-                      className="flex shrink-0 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-2 text-xs font-bold text-white hover:bg-emerald-700"
+                      className="flex shrink-0 items-center gap-1.5 rounded-lg bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 px-3 py-2 text-xs font-bold transition"
                     >
                       <ThumbsUp size={13} />
                       Support
@@ -1419,7 +1419,7 @@ export default function ReportIssue() {
               <button
                 type="button"
                 onClick={() => setDedupDismissed(true)}
-                className="mt-4 w-full rounded-xl border border-amber-400 px-4 py-2.5 text-sm font-bold text-amber-800 hover:bg-amber-100 transition-colors"
+                className="mt-4 w-full rounded-xl border border-amber-400 px-4 py-2.5 text-sm font-bold text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50 transition-colors cursor-pointer"
               >
                 This is a different issue — continue submitting
               </button>
@@ -1436,7 +1436,7 @@ export default function ReportIssue() {
               analyzing ||
               (nearbyIssues.length > 0 && !dedupDismissed)
             }
-            className="w-full rounded-xl bg-emerald-700 px-5 py-3.5 font-bold text-white disabled:opacity-60"
+            className="w-full rounded-xl bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200 px-5 py-3.5 font-bold transition shadow-md disabled:opacity-60 cursor-pointer"
           >
             {loading
               ? "Submitting..."
@@ -1452,7 +1452,7 @@ export default function ReportIssue() {
           ================================================= */}
 
           {message && (
-            <div className="rounded-xl bg-emerald-50 p-4 text-sm font-semibold text-emerald-800">
+            <div className="rounded-xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-300 dark:border-neutral-700 p-4 text-sm font-semibold text-neutral-900 dark:text-white">
               {message}
             </div>
           )}
@@ -1462,7 +1462,7 @@ export default function ReportIssue() {
           ================================================= */}
 
           {similar.length > 0 && (
-            <div className="rounded-xl bg-amber-50 p-4 text-sm text-amber-800">
+            <div className="rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/50 p-4 text-sm text-amber-900 dark:text-amber-200">
 
               <b>
                 Similar issues found:
@@ -1483,17 +1483,17 @@ export default function ReportIssue() {
             LOCATION PANEL
         =================================================== */}
 
-        <div className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+        <div className="rounded-3xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black p-6 shadow-sm">
 
           <div className="flex items-center justify-between gap-3">
 
             <div>
 
-              <p className="text-sm font-bold">
+              <p className="text-sm font-bold text-neutral-900 dark:text-white">
                 Location
               </p>
 
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-neutral-500 dark:text-neutral-400">
                 Click the map or use your current position.
               </p>
 
@@ -1502,7 +1502,7 @@ export default function ReportIssue() {
             <button
               type="button"
               onClick={useLocation}
-              className="flex items-center gap-2 rounded-xl border border-slate-300 px-3 py-2 text-sm font-bold"
+              className="flex items-center gap-2 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-black text-black dark:text-white px-3 py-2 text-sm font-bold hover:bg-neutral-100 dark:hover:bg-neutral-900 transition cursor-pointer"
             >
               <Crosshair size={16} />
 
@@ -1524,11 +1524,11 @@ export default function ReportIssue() {
 
           {/* COORDINATES */}
 
-          <div className="mt-3 rounded-xl bg-slate-50 p-3 text-xs text-slate-500">
+          <div className="mt-3 rounded-xl bg-neutral-100 dark:bg-neutral-900 p-3 text-xs text-neutral-600 dark:text-neutral-400 border border-neutral-200 dark:border-neutral-800">
 
             <MapPin
               size={14}
-              className="mr-1 inline"
+              className="mr-1 inline text-black dark:text-white"
             />
 
             {location.latitude.toFixed(6)},{" "}
@@ -1544,9 +1544,9 @@ export default function ReportIssue() {
             ) &&
             aiAnalysis.locationClues.visibleText.length >
               0 && (
-              <div className="mt-4 rounded-2xl border border-blue-200 bg-blue-50 p-4">
+              <div className="mt-4 rounded-2xl border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-900 p-4">
 
-                <p className="text-xs font-black uppercase text-blue-700">
+                <p className="text-xs font-black uppercase text-neutral-900 dark:text-white">
                   AI detected location clues
                 </p>
 
@@ -1556,7 +1556,7 @@ export default function ReportIssue() {
                     (text, index) => (
                       <p
                         key={index}
-                        className="text-xs text-blue-900"
+                        className="text-xs text-neutral-700 dark:text-neutral-300"
                       >
                         • {text}
                       </p>
@@ -1573,9 +1573,9 @@ export default function ReportIssue() {
           {aiAnalysis?.locationClues?.landmarks &&
             aiAnalysis.locationClues.landmarks.length >
               0 && (
-              <div className="mt-4 rounded-2xl bg-slate-50 p-4">
+              <div className="mt-4 rounded-2xl bg-neutral-100 dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 p-4">
 
-                <p className="text-xs font-black uppercase text-slate-500">
+                <p className="text-xs font-black uppercase text-neutral-500 dark:text-neutral-400">
                   Detected landmarks
                 </p>
 
@@ -1585,7 +1585,7 @@ export default function ReportIssue() {
                     (landmark, index) => (
                       <p
                         key={index}
-                        className="text-xs text-slate-700"
+                        className="text-xs text-neutral-700 dark:text-neutral-300"
                       >
                         • {landmark}
                       </p>

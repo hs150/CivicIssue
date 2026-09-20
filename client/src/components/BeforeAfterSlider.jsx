@@ -39,15 +39,15 @@ export default function BeforeAfterSlider({
     <div className="w-full select-none">
       {/* Controls Bar */}
       <div className="mb-3 flex items-center justify-between">
-        <span className="text-xs font-bold text-slate-500 flex items-center gap-1.5 uppercase tracking-wider">
-          <ArrowLeftRight size={14} className="text-emerald-600" /> Interactive Proof Comparison
+        <span className="text-xs font-bold text-neutral-600 dark:text-neutral-400 flex items-center gap-1.5 uppercase tracking-wider">
+          <ArrowLeftRight size={14} className="text-black dark:text-white" /> Interactive Proof Comparison
         </span>
-        <div className="inline-flex rounded-lg border border-slate-200 bg-slate-100 p-0.5 text-xs font-semibold">
+        <div className="inline-flex rounded-lg border border-neutral-200 dark:border-neutral-800 bg-neutral-100 dark:bg-neutral-900 p-0.5 text-xs font-semibold">
           <button
             type="button"
             onClick={() => setViewMode("slider")}
             className={`flex items-center gap-1 rounded-md px-2.5 py-1 transition ${
-              viewMode === "slider" ? "bg-white text-slate-900 shadow-xs" : "text-slate-500 hover:text-slate-800"
+              viewMode === "slider" ? "bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-xs" : "text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
             }`}
           >
             <SplitSquareVertical size={13} /> Slider
@@ -56,7 +56,7 @@ export default function BeforeAfterSlider({
             type="button"
             onClick={() => setViewMode("split")}
             className={`flex items-center gap-1 rounded-md px-2.5 py-1 transition ${
-              viewMode === "split" ? "bg-white text-slate-900 shadow-xs" : "text-slate-500 hover:text-slate-800"
+              viewMode === "split" ? "bg-white dark:bg-neutral-800 text-neutral-900 dark:text-white shadow-xs" : "text-neutral-500 hover:text-neutral-800 dark:hover:text-neutral-200"
             }`}
           >
             <Columns size={13} /> Side-by-Side
@@ -67,7 +67,7 @@ export default function BeforeAfterSlider({
       {viewMode === "slider" ? (
         <div
           ref={containerRef}
-          className="relative w-full overflow-hidden rounded-2xl border border-slate-200 bg-slate-900 shadow-inner cursor-ew-resize touch-none"
+          className="relative w-full overflow-hidden rounded-2xl border border-neutral-300 dark:border-neutral-700 bg-neutral-900 shadow-inner cursor-ew-resize touch-none"
           style={{ aspectRatio }}
           onMouseDown={() => setIsDragging(true)}
           onMouseUp={handleMouseUp}
@@ -108,17 +108,17 @@ export default function BeforeAfterSlider({
             style={{ left: `calc(${sliderPosition}% - 2px)` }}
           >
             {/* Center Handle Knob */}
-            <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 left-1/2 flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-emerald-600 text-white shadow-xl">
+            <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 left-1/2 flex h-9 w-9 items-center justify-center rounded-full border-2 border-white bg-black dark:bg-white text-white dark:text-black shadow-xl">
               <ArrowLeftRight size={15} />
             </div>
           </div>
 
           {/* Floating Badges */}
-          <div className="pointer-events-none absolute bottom-3 left-3 rounded-lg bg-slate-950/80 px-2.5 py-1 text-[11px] font-bold text-amber-300 backdrop-blur-md border border-white/10">
+          <div className="pointer-events-none absolute bottom-3 left-3 rounded-lg bg-black/80 px-2.5 py-1 text-[11px] font-bold text-amber-300 backdrop-blur-md border border-white/10">
             🔴 {beforeLabel}
           </div>
-          <div className="pointer-events-none absolute bottom-3 right-3 rounded-lg bg-slate-950/80 px-2.5 py-1 text-[11px] font-bold text-emerald-300 backdrop-blur-md border border-white/10">
-            🟢 {afterLabel}
+          <div className="pointer-events-none absolute bottom-3 right-3 rounded-lg bg-black/80 px-2.5 py-1 text-[11px] font-bold text-white backdrop-blur-md border border-white/10">
+            ⚪ {afterLabel}
           </div>
 
           {/* Instruction helper */}
@@ -129,16 +129,16 @@ export default function BeforeAfterSlider({
       ) : (
         /* Side-by-Side View */
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-900" style={{ aspectRatio }}>
+          <div className="relative overflow-hidden rounded-2xl border border-neutral-300 dark:border-neutral-700 bg-neutral-900" style={{ aspectRatio }}>
             <img src={beforeImage} alt={beforeLabel} className="h-full w-full object-cover" />
-            <div className="absolute bottom-3 left-3 rounded-lg bg-slate-950/80 px-2.5 py-1 text-xs font-bold text-amber-300 backdrop-blur-md border border-white/10">
+            <div className="absolute bottom-3 left-3 rounded-lg bg-black/80 px-2.5 py-1 text-xs font-bold text-amber-300 backdrop-blur-md border border-white/10">
               🔴 {beforeLabel}
             </div>
           </div>
-          <div className="relative overflow-hidden rounded-2xl border border-slate-200 bg-slate-900" style={{ aspectRatio }}>
+          <div className="relative overflow-hidden rounded-2xl border border-neutral-300 dark:border-neutral-700 bg-neutral-900" style={{ aspectRatio }}>
             <img src={afterImage} alt={afterLabel} className="h-full w-full object-cover" />
-            <div className="absolute bottom-3 left-3 rounded-lg bg-slate-950/80 px-2.5 py-1 text-xs font-bold text-emerald-300 backdrop-blur-md border border-white/10">
-              🟢 {afterLabel}
+            <div className="absolute bottom-3 left-3 rounded-lg bg-black/80 px-2.5 py-1 text-xs font-bold text-white backdrop-blur-md border border-white/10">
+              ⚪ {afterLabel}
             </div>
           </div>
         </div>

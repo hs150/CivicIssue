@@ -16,36 +16,36 @@ import { getImageUrl } from "../utils/image.js";
 ========================================================= */
 
 const PHASE_COLORS = {
-  NEW: "bg-blue-50 text-blue-700 border-blue-200",
-  IN_PROGRESS: "bg-amber-50 text-amber-700 border-amber-200",
-  RESOLUTION_REVIEW: "bg-purple-50 text-purple-700 border-purple-200",
-  RESOLVED: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  CLOSED: "bg-slate-50 text-slate-600 border-slate-200",
-  REJECTED: "bg-red-50 text-red-700 border-red-200"
+  NEW: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
+  IN_PROGRESS: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
+  RESOLUTION_REVIEW: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800",
+  RESOLVED: "bg-neutral-100 text-neutral-900 border-neutral-300 dark:bg-neutral-800 dark:text-white dark:border-neutral-700",
+  CLOSED: "bg-slate-50 text-slate-600 border-slate-200 dark:bg-neutral-900 dark:text-neutral-400 dark:border-neutral-800",
+  REJECTED: "bg-red-50 text-red-700 border-red-200 dark:bg-red-950/40 dark:text-red-300 dark:border-red-800"
 };
 
 const PRIORITY_COLORS = {
-  URGENT: "bg-red-50 text-red-700",
-  HIGH: "bg-orange-50 text-orange-700",
-  MEDIUM: "bg-amber-50 text-amber-700",
-  LOW: "bg-green-50 text-green-700"
+  URGENT: "bg-red-50 text-red-700 dark:bg-red-950/40 dark:text-red-300",
+  HIGH: "bg-orange-50 text-orange-700 dark:bg-orange-950/40 dark:text-orange-300",
+  MEDIUM: "bg-amber-50 text-amber-700 dark:bg-amber-950/40 dark:text-amber-300",
+  LOW: "bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200"
 };
 
 const MARKER_COLORS = {
   URGENT: "#ef4444",
   HIGH: "#f97316",
   MEDIUM: "#eab308",
-  LOW: "#22c55e"
+  LOW: "#71717a"
 };
 
 const statCards = [
-  ["new", "New", Inbox, "text-blue-600"],
-  ["inProgress", "In Progress", Clock3, "text-amber-600"],
-  ["resolutionReview", "In Review", Eye, "text-purple-600"],
-  ["resolved", "Resolved", CheckCircle2, "text-emerald-600"],
+  ["new", "New", Inbox, "text-blue-600 dark:text-blue-400"],
+  ["inProgress", "In Progress", Clock3, "text-amber-600 dark:text-amber-400"],
+  ["resolutionReview", "In Review", Eye, "text-purple-600 dark:text-purple-400"],
+  ["resolved", "Resolved", CheckCircle2, "text-neutral-900 dark:text-white"],
   ["closed", "Closed", ShieldCheck, "text-slate-500"],
   ["rejected", "Rejected", Ban, "text-red-500"],
-  ["total", "Total", Users, "text-slate-700"]
+  ["total", "Total", Users, "text-slate-700 dark:text-slate-300"]
 ];
 
 /* =========================================================
@@ -240,16 +240,16 @@ function ResolutionModal({ issue, onClose, onSubmit }) {
         {v && !verifying && (
           <div className={`mt-4 rounded-2xl border p-4 ${
             v.verified
-              ? "border-emerald-200 bg-emerald-50"
+              ? "border-neutral-300 bg-neutral-100 dark:border-neutral-700 dark:bg-neutral-800"
               : "border-red-200 bg-red-50"
           }`}>
             <div className="flex items-center gap-2">
               {v.verified ? (
-                <CheckCircle2 size={18} className="text-emerald-600" />
+                <CheckCircle2 size={18} className="text-neutral-900 dark:text-white" />
               ) : (
                 <AlertTriangle size={18} className="text-red-600" />
               )}
-              <span className={`font-bold ${v.verified ? "text-emerald-800" : "text-red-800"}`}>
+              <span className={`font-bold ${v.verified ? "text-neutral-900 dark:text-white" : "text-red-800"}`}>
                 {v.verified ? "✅ Fix Verified" : "⚠️ Verification Concerns"}
               </span>
               <span className="ml-auto text-xs font-bold">
@@ -347,7 +347,7 @@ function PhaseActions({ issue, onUpdate, onOpenModal }) {
         <div className="flex flex-wrap gap-2">
           <button
             onClick={() => onUpdate(issue.id, { phase: "RESOLVED" })}
-            className={btnClass("bg-emerald-600 text-white hover:bg-emerald-700")}
+            className={btnClass("bg-black text-white hover:bg-neutral-800 dark:bg-white dark:text-black dark:hover:bg-neutral-200")}
           >
             Approve
           </button>
@@ -685,9 +685,9 @@ export default function Dashboard() {
     <div className="mx-auto max-w-7xl px-5 py-12">
       {/* Header */}
       <div>
-        <p className="font-bold text-emerald-700">Authority workspace</p>
-        <h1 className="mt-2 text-4xl font-black tracking-tight">Officer Dashboard</h1>
-        <p className="mt-2 text-slate-500">Prioritize, assign and resolve citizen reports with AI-powered verification.</p>
+        <p className="font-mono text-xs font-bold uppercase tracking-wider text-neutral-900 dark:text-white">Authority Workspace</p>
+        <h1 className="mt-2 text-4xl font-black tracking-tight text-neutral-900 dark:text-white">Officer Dashboard</h1>
+        <p className="mt-2 text-neutral-600 dark:text-neutral-400">Prioritize, assign and resolve citizen reports with AI-powered verification.</p>
       </div>
 
       {/* Stat cards */}
@@ -701,15 +701,15 @@ export default function Dashboard() {
               onClick={() => setFilter(filter === targetPhase ? "" : targetPhase)}
               className={`rounded-2xl border p-4 shadow-xs text-left transition-all ${
                 isSelected
-                  ? "border-emerald-500 bg-emerald-50/60 ring-2 ring-emerald-500/20"
-                  : "border-slate-200 bg-white hover:border-slate-300"
+                  ? "border-black bg-neutral-100 ring-2 ring-black/20 dark:border-white dark:bg-neutral-800 dark:ring-white/20"
+                  : "border-slate-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 hover:border-slate-300 dark:hover:border-neutral-700"
               }`}
             >
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">{label}</span>
                 <Icon size={16} className={iconColor} />
               </div>
-              <p className="mt-2 text-3xl font-black">{stats[key] || 0}</p>
+              <p className="mt-2 text-3xl font-black text-neutral-900 dark:text-white">{stats[key] || 0}</p>
             </button>
           );
         })}
@@ -768,7 +768,7 @@ export default function Dashboard() {
         </div>
 
         {/* Quick Filter Chips */}
-        <div className="flex items-center gap-2 px-5 py-2.5 bg-slate-50/70 border-b border-slate-100 overflow-x-auto">
+        <div className="flex items-center gap-2 px-5 py-2.5 bg-slate-50/70 dark:bg-neutral-900 border-b border-slate-100 dark:border-neutral-800 overflow-x-auto">
           <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider shrink-0">Quick Filter:</span>
           {[
             { label: "All Active", val: "" },
@@ -782,8 +782,8 @@ export default function Dashboard() {
               onClick={() => setFilter(chip.val)}
               className={`shrink-0 rounded-lg px-2.5 py-1 text-xs font-bold transition-colors ${
                 filter === chip.val
-                  ? "bg-emerald-700 text-white shadow-xs"
-                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100"
+                  ? "bg-black text-white dark:bg-white dark:text-black shadow-xs"
+                  : "bg-white text-slate-600 border border-slate-200 hover:bg-slate-100 dark:bg-neutral-800 dark:border-neutral-700 dark:text-neutral-300 dark:hover:bg-neutral-700"
               }`}
             >
               {chip.label}
@@ -793,7 +793,7 @@ export default function Dashboard() {
 
         {/* LIST VIEW */}
         {view === "list" && (
-          <div className="divide-y">
+          <div className="divide-y divide-neutral-200 dark:divide-neutral-800">
             {filtered.length === 0 && (
               <div className="grid place-items-center py-16 text-slate-400">
                 <Inbox size={40} className="mb-3" />
@@ -802,7 +802,7 @@ export default function Dashboard() {
             )}
 
             {filtered.map(issue => (
-              <div key={issue.id} className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between hover:bg-slate-50/50 transition-colors">
+              <div key={issue.id} className="flex flex-col gap-4 p-5 md:flex-row md:items-center md:justify-between hover:bg-slate-50/50 dark:hover:bg-neutral-800/50 transition-colors">
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-2">
                     {/* Phase badge */}
@@ -811,7 +811,7 @@ export default function Dashboard() {
                     </span>
 
                     {/* Priority badge */}
-                    <span className={`rounded-full px-2 py-0.5 text-xs font-bold ${PRIORITY_COLORS[issue.priority] || ""}`}>
+                    <span className={`rounded-full px-2.5 py-0.5 text-xs font-bold ${PRIORITY_COLORS[issue.priority] || ""}`}>
                       {issue.priority}
                     </span>
 
@@ -819,13 +819,13 @@ export default function Dashboard() {
 
                     {/* Fix verification badge */}
                     {issue.fix_verification?.verified && (
-                      <span className="flex items-center gap-1 rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">
+                      <span className="flex items-center gap-1 rounded-full bg-neutral-100 dark:bg-neutral-800 px-2 py-0.5 text-xs font-bold text-neutral-900 dark:text-white border border-neutral-300 dark:border-neutral-700">
                         <ShieldCheck size={12} /> AI Verified
                       </span>
                     )}
                   </div>
 
-                  <Link to={`/issues/${issue.id}`} className="mt-2 block font-extrabold hover:text-emerald-700 truncate">
+                  <Link to={`/issues/${issue.id}`} className="mt-2 block font-extrabold text-neutral-900 dark:text-white hover:text-neutral-600 dark:hover:text-neutral-300 truncate">
                     {issue.title}
                   </Link>
 

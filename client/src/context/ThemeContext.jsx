@@ -31,8 +31,7 @@ export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => {
     try {
       const saved = localStorage.getItem("civic_theme");
-      if (saved === "dark" || saved === "midnight" || saved === "navy") return "dark";
-      if (saved === "light" || saved === "emerald" || saved === "amber") return "light";
+      if (saved === "dark") return "dark";
       return "light";
     } catch {
       return "light";

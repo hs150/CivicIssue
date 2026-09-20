@@ -732,7 +732,7 @@ Return ONLY JSON:
     } catch (error) {
 
         console.error(
-            "Gemini text analysis failed:",
+            "AI analysis text analysis failed:",
             error.message
         );
 
@@ -904,7 +904,7 @@ RETURN ONLY VALID JSON:
     } catch (error) {
 
         console.error(
-            "Gemini fix verification failed:",
+            "Civic connect fix verification failed:",
             error
         );
 

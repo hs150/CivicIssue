@@ -4,7 +4,7 @@ const PHASE_CONFIG = [
   { key: "NEW", label: "Reported", Icon: Circle, color: "bg-blue-500" },
   { key: "IN_PROGRESS", label: "In Progress", Icon: Clock, color: "bg-amber-500" },
   { key: "RESOLUTION_REVIEW", label: "Resolution Review", Icon: Search, color: "bg-purple-500" },
-  { key: "RESOLVED", label: "Resolved", Icon: ShieldCheck, color: "bg-emerald-500" },
+  { key: "RESOLVED", label: "Resolved", Icon: ShieldCheck, color: "bg-black text-white dark:bg-white dark:text-black" },
   { key: "CLOSED", label: "Closed", Icon: CheckCircle2, color: "bg-slate-500" }
 ];
 
@@ -84,8 +84,8 @@ export default function StatusTimeline({ current, history = [], issue = null }) 
                   isDisputedResolvedStep
                     ? "bg-rose-100 border-2 border-rose-400 text-rose-600"
                     : reached
-                    ? `${phase.color} text-white shadow-md ${isCurrent ? "ring-4 ring-offset-2 ring-emerald-200 scale-110" : ""}`
-                    : "bg-slate-100 text-slate-400"
+                    ? `${phase.color} shadow-md ${isCurrent ? "ring-4 ring-offset-2 ring-black/20 dark:ring-white/30 scale-110" : ""}`
+                    : "bg-slate-100 dark:bg-neutral-800 text-slate-400 dark:text-neutral-500"
                 }`}
               >
                 {isDisputedResolvedStep ? (
@@ -99,7 +99,7 @@ export default function StatusTimeline({ current, history = [], issue = null }) 
               {index < PHASE_CONFIG.length - 1 && (
                 <div
                   className={`mt-1 h-8 w-0.5 transition-colors duration-300 ${
-                    index < currentIndex ? "bg-emerald-400" : "bg-slate-200"
+                    index < currentIndex ? "bg-black dark:bg-white" : "bg-slate-200 dark:bg-neutral-800"
                   }`}
                 />
               )}
@@ -107,7 +107,7 @@ export default function StatusTimeline({ current, history = [], issue = null }) 
 
             {/* Label + info */}
             <div className="pb-4">
-              <p className={`font-bold ${isDisputedResolvedStep ? "text-rose-700" : reached ? "text-slate-900" : "text-slate-400"}`}>
+              <p className={`font-bold ${isDisputedResolvedStep ? "text-rose-700" : reached ? "text-slate-900 dark:text-white" : "text-slate-400 dark:text-neutral-500"}`}>
                 {phase.label}
                 {isDisputedResolvedStep && (
                   <span className="ml-2 text-[10px] font-mono text-rose-600 bg-rose-50 px-1.5 py-0.5 rounded border border-rose-200">

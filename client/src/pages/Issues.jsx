@@ -60,13 +60,13 @@ export default function Issues() {
       {/* Header & Controls */}
       <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
         <div>
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-800">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 px-3 py-1 text-xs font-bold text-neutral-900 dark:text-white">
             <Sparkles size={12} /> Live Citizen Grid
           </div>
-          <h1 className="mt-2 text-3xl sm:text-4xl font-black tracking-tight text-slate-900">
+          <h1 className="mt-2 text-3xl sm:text-4xl font-black tracking-tight text-neutral-900 dark:text-white">
             Explore Civic Issues
           </h1>
-          <p className="mt-1 text-sm text-slate-500">
+          <p className="mt-1 text-sm text-neutral-600 dark:text-neutral-400">
             Real-time public reports, geographic distribution, and AI-verified repairs across the city.
           </p>
         </div>
@@ -74,13 +74,13 @@ export default function Issues() {
         {/* View Switcher & Search */}
         <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5">
           {/* View Toggle */}
-          <div className="inline-flex rounded-xl border border-slate-200 bg-white p-1 shadow-xs">
+          <div className="inline-flex rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 p-1 shadow-xs">
             <button
               onClick={() => setViewMode("grid")}
               className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
                 viewMode === "grid"
-                  ? "bg-emerald-700 text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-black text-white dark:bg-white dark:text-black shadow-xs"
+                  : "text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white"
               }`}
             >
               <LayoutGrid size={14} /> Grid
@@ -89,8 +89,8 @@ export default function Issues() {
               onClick={() => setViewMode("map")}
               className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-bold transition ${
                 viewMode === "map"
-                  ? "bg-emerald-700 text-white shadow-xs"
-                  : "text-slate-600 hover:text-slate-900"
+                  ? "bg-black text-white dark:bg-white dark:text-black shadow-xs"
+                  : "text-neutral-600 dark:text-neutral-400 hover:text-black dark:hover:text-white"
               }`}
             >
               <MapIcon size={14} /> Map View
@@ -99,7 +99,7 @@ export default function Issues() {
 
           {/* Search bar */}
           <div className="relative flex-1 sm:w-64">
-            <Search className="absolute left-3.5 top-3 text-slate-400" size={16} />
+            <Search className="absolute left-3.5 top-3 text-neutral-400" size={16} />
             <input
               className="field pl-9 pr-3 py-2 text-sm"
               placeholder="Search code, title, street…"
@@ -128,7 +128,7 @@ export default function Issues() {
           {hasActiveFilters && (
             <button
               onClick={handleReset}
-              className="flex items-center justify-center gap-1 rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs font-bold text-slate-600 hover:bg-slate-50 transition"
+              className="flex items-center justify-center gap-1 rounded-xl border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 px-3 py-2 text-xs font-bold text-neutral-700 dark:text-neutral-300 hover:bg-neutral-100 dark:hover:bg-neutral-800 transition"
               title="Reset all filters"
             >
               <RotateCcw size={13} />
@@ -147,8 +147,8 @@ export default function Issues() {
               onClick={() => setCategory(cat.id)}
               className={`flex shrink-0 items-center gap-1.5 rounded-full px-3.5 py-1.5 text-xs font-bold transition-all duration-200 ${
                 isActive
-                  ? "bg-slate-900 text-white shadow-md shadow-slate-900/15"
-                  : "border border-slate-200 bg-white text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                  ? "bg-black text-white dark:bg-white dark:text-black shadow-md shadow-black/15"
+                  : "border border-neutral-300 dark:border-neutral-700 bg-white dark:bg-neutral-900 text-neutral-700 dark:text-neutral-300 hover:border-neutral-400 hover:bg-neutral-50 dark:hover:bg-neutral-800"
               }`}
             >
               <span>{cat.icon}</span>
@@ -159,15 +159,15 @@ export default function Issues() {
       </div>
 
       {/* Results Count */}
-      <div className="mt-4 flex items-center justify-between text-xs font-semibold text-slate-400">
+      <div className="mt-4 flex items-center justify-between text-xs font-semibold text-neutral-500 dark:text-neutral-400">
         <span>Showing {issues.length} {issues.length === 1 ? "issue" : "issues"}</span>
-        {viewMode === "map" && <span className="text-emerald-700">📍 Click any pin for report preview</span>}
+        {viewMode === "map" && <span className="text-neutral-900 dark:text-white font-bold">📍 Click any pin for report preview</span>}
       </div>
 
       {/* Main Content: Grid vs Map */}
       {loading ? (
-        <div className="py-24 text-center text-sm font-medium text-slate-400 flex flex-col items-center justify-center gap-3">
-          <div className="h-8 w-8 animate-spin rounded-full border-2 border-emerald-600 border-t-transparent"></div>
+        <div className="py-24 text-center text-sm font-medium text-neutral-400 flex flex-col items-center justify-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-black dark:border-white border-t-transparent"></div>
           <span>Loading civic reports…</span>
         </div>
       ) : issues.length === 0 ? (

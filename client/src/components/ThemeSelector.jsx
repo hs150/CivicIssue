@@ -62,34 +62,34 @@ export default function ThemeSelector({ showButton = true, showFloating = true }
                     onClick={() => setTheme(t.id)}
                     className={`group relative flex flex-col justify-between rounded-2xl border p-4 text-left transition-all cursor-pointer ${
                       isSelected
-                        ? "border-emerald-600 bg-emerald-50/50 shadow-md ring-2 ring-emerald-600/20"
-                        : "border-slate-200 bg-slate-50/60 hover:border-slate-300 hover:bg-white"
+                        ? "border-black bg-neutral-100 shadow-md ring-2 ring-black/20 dark:border-white dark:bg-neutral-800 dark:ring-white/20"
+                        : "border-slate-200 bg-slate-50/60 hover:border-slate-300 hover:bg-white dark:border-neutral-800 dark:bg-neutral-900/60 dark:hover:border-neutral-700"
                     }`}
                   >
                     <div>
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
                           <span
-                            className="h-3.5 w-3.5 rounded-full shadow-xs"
+                            className="h-3.5 w-3.5 rounded-full shadow-xs border border-neutral-300 dark:border-neutral-700"
                             style={{ backgroundColor: t.primaryColor }}
                           />
-                          <span className="text-sm font-bold text-slate-900">{t.name}</span>
+                          <span className="text-sm font-bold text-slate-900 dark:text-white">{t.name}</span>
                         </div>
 
                         {isSelected && (
-                          <span className="grid h-5 w-5 place-items-center rounded-full bg-emerald-600 text-white shadow-xs">
+                          <span className="grid h-5 w-5 place-items-center rounded-full bg-black dark:bg-white text-white dark:text-black shadow-xs">
                             <Check size={12} strokeWidth={3} />
                           </span>
                         )}
                       </div>
 
-                      <p className="mt-2 text-xs text-slate-500 line-clamp-2 leading-relaxed">
+                      <p className="mt-2 text-xs text-slate-500 dark:text-neutral-400 line-clamp-2 leading-relaxed">
                         {t.subtitle}
                       </p>
                     </div>
 
                     {/* Preview Swatches & Mode Tag */}
-                    <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-200/60">
+                    <div className="mt-4 flex items-center justify-between pt-3 border-t border-slate-200/60 dark:border-neutral-800">
                       <div className="flex items-center gap-1.5">
                         {t.swatches.map((color, idx) => (
                           <span
@@ -100,7 +100,7 @@ export default function ThemeSelector({ showButton = true, showFloating = true }
                         ))}
                       </div>
 
-                      <span className="inline-flex items-center gap-1 rounded-full bg-white px-2 py-0.5 text-[10px] font-bold text-slate-600 border border-slate-200 shadow-2xs">
+                      <span className="inline-flex items-center gap-1 rounded-full bg-white dark:bg-black px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:text-neutral-300 border border-slate-200 dark:border-neutral-800 shadow-2xs">
                         {t.mode === "dark" ? <Moon size={10} /> : <Sun size={10} />}
                         <span>{t.mode === "dark" ? "Dark" : "Light"}</span>
                       </span>
@@ -111,16 +111,16 @@ export default function ThemeSelector({ showButton = true, showFloating = true }
             </div>
 
             {/* Footer tip */}
-            <div className="mt-6 flex items-center justify-between pt-4 border-t border-slate-100 text-xs text-slate-500">
+            <div className="mt-6 flex items-center justify-between pt-4 border-t border-slate-100 dark:border-neutral-800 text-xs text-slate-500 dark:text-neutral-400">
               <span className="flex items-center gap-1 text-[11px]">
-                <Sparkles size={13} className="text-emerald-600" />
+                <Sparkles size={13} className="text-black dark:text-white" />
                 <span>Theme preference is saved to your browser automatically.</span>
               </span>
 
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
-                className="rounded-xl bg-slate-900 px-4 py-2 font-bold text-white text-xs hover:bg-slate-800 transition cursor-pointer"
+                className="rounded-xl bg-black dark:bg-white px-4 py-2 font-bold text-white dark:text-black text-xs hover:bg-neutral-800 dark:hover:bg-neutral-200 transition cursor-pointer"
               >
                 Apply & Close
               </button>
@@ -170,7 +170,13 @@ export default function ThemeSelector({ showButton = true, showFloating = true }
                       }`}
                       style={{ backgroundColor: t.primaryColor }}
                     >
-                      {isSelected && <Check size={11} className="text-white drop-shadow-xs" strokeWidth={3} />}
+                      {isSelected && (
+                        <Check
+                          size={11}
+                          className={t.primaryColor === "#FFFFFF" ? "text-black drop-shadow-xs" : "text-white drop-shadow-xs"}
+                          strokeWidth={3}
+                        />
+                      )}
                     </button>
                   );
                 })}

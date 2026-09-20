@@ -7,20 +7,20 @@ import { useToast } from "../context/ToastContext.jsx";
 import { getImageUrl } from "../utils/image.js";
 
 const phaseStyle = {
-  NEW: "bg-blue-50 text-blue-700 border-blue-200",
-  IN_PROGRESS: "bg-amber-50 text-amber-700 border-amber-200",
-  RESOLUTION_REVIEW: "bg-purple-50 text-purple-700 border-purple-200",
-  RESOLVED: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  CLOSED: "bg-slate-100 text-slate-700 border-slate-200",
-  REJECTED: "bg-rose-50 text-rose-700 border-rose-200",
-  DISPUTED: "bg-rose-100 text-rose-800 border-rose-300 font-black"
+  NEW: "bg-blue-50 text-blue-700 border-blue-200 dark:bg-blue-950/40 dark:text-blue-300 dark:border-blue-800",
+  IN_PROGRESS: "bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-950/40 dark:text-amber-300 dark:border-amber-800",
+  RESOLUTION_REVIEW: "bg-purple-50 text-purple-700 border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800",
+  RESOLVED: "bg-neutral-100 text-neutral-900 border-neutral-300 dark:bg-neutral-800 dark:text-white dark:border-neutral-700 font-bold",
+  CLOSED: "bg-slate-100 text-slate-700 border-slate-200 dark:bg-neutral-900 dark:text-neutral-400 dark:border-neutral-800",
+  REJECTED: "bg-rose-50 text-rose-700 border-rose-200 dark:bg-rose-950/40 dark:text-rose-300 dark:border-rose-800",
+  DISPUTED: "bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-950/60 dark:text-rose-200 font-black"
 };
 
 const priorityStyle = {
-  LOW: "text-slate-500 bg-slate-100",
-  MEDIUM: "text-blue-700 bg-blue-50",
-  HIGH: "text-orange-700 bg-orange-50",
-  URGENT: "text-rose-700 bg-rose-50"
+  LOW: "text-slate-600 bg-slate-100 dark:text-slate-300 dark:bg-neutral-800",
+  MEDIUM: "text-blue-700 bg-blue-50 dark:text-blue-300 dark:bg-blue-950/40",
+  HIGH: "text-orange-700 bg-orange-50 dark:text-orange-300 dark:bg-orange-950/40",
+  URGENT: "text-rose-700 bg-rose-50 dark:text-rose-300 dark:bg-rose-950/40 font-bold"
 };
 
 const CATEGORY_ICONS = {
@@ -87,10 +87,10 @@ export default function IssueCard({ issue }) {
   return (
     <Link
       to={`/issues/${issue._id || issue.id}`}
-      className="group flex flex-col overflow-hidden rounded-2xl border border-slate-200/80 bg-white shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-emerald-200/80"
+      className="group flex flex-col overflow-hidden rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 shadow-xs transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-black dark:hover:border-white"
     >
       {/* Image Thumbnail with Overlay Badges */}
-      <div className="relative h-48 w-full overflow-hidden bg-slate-100">
+      <div className="relative h-48 w-full overflow-hidden bg-slate-100 dark:bg-neutral-800">
         {issue.imageUrl ? (
           <img
             src={getImageUrl(issue.imageUrl)}
@@ -98,7 +98,7 @@ export default function IssueCard({ issue }) {
             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full items-center justify-center bg-gradient-to-br from-emerald-50 via-slate-100 to-teal-50 text-5xl">
+          <div className="flex h-full items-center justify-center bg-neutral-100 dark:bg-neutral-800 text-5xl">
             {CATEGORY_ICONS[issue.category?.toUpperCase()] || "🏙️"}
           </div>
         )}
@@ -128,13 +128,13 @@ export default function IssueCard({ issue }) {
         {/* AI Badges Floating Bottom-Left */}
         <div className="absolute bottom-2.5 left-2.5 flex flex-wrap gap-1.5">
           {hasAIVerification && (
-            <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-950/85 px-2 py-0.5 text-[10px] font-bold text-emerald-300 backdrop-blur-md border border-emerald-500/30 shadow-md">
-              <ShieldCheck size={11} className="text-emerald-400" /> AI Fix Verified
+            <span className="inline-flex items-center gap-1 rounded-lg bg-black/90 dark:bg-white/90 px-2 py-0.5 text-[10px] font-bold text-white dark:text-black backdrop-blur-md border border-white/20 dark:border-black/20 shadow-md">
+              <ShieldCheck size={11} className="text-white dark:text-black" /> AI Fix Verified
             </span>
           )}
           {!hasAIVerification && hasAIScan && (
-            <span className="inline-flex items-center gap-1 rounded-lg bg-slate-950/85 px-2 py-0.5 text-[10px] font-bold text-teal-300 backdrop-blur-md border border-teal-500/30 shadow-md">
-              <Sparkles size={11} className="text-teal-400" /> CIVICORA Scanned
+            <span className="inline-flex items-center gap-1 rounded-lg bg-black/80 dark:bg-neutral-900/80 px-2 py-0.5 text-[10px] font-bold text-neutral-200 backdrop-blur-md border border-white/20 shadow-md">
+              <Sparkles size={11} className="text-white" /> AI Scanned
             </span>
           )}
         </div>
@@ -142,24 +142,24 @@ export default function IssueCard({ issue }) {
 
       {/* Content */}
       <div className="flex flex-1 flex-col p-5">
-        <div className="mb-2 flex items-center justify-between text-xs text-slate-400">
-          <span className="font-mono">{issue.issueCode || "CC-ISSUE"}</span>
-          <span className="font-semibold text-slate-600">
+        <div className="mb-2 flex items-center justify-between text-xs text-slate-500 dark:text-neutral-400">
+          <span className="font-mono font-bold text-neutral-800 dark:text-neutral-200">{issue.issueCode || "CC-ISSUE"}</span>
+          <span className="font-semibold text-slate-700 dark:text-slate-300">
             {CATEGORY_ICONS[issue.category?.toUpperCase()]} {issue.category || "General"}
           </span>
         </div>
 
-        <h3 className="line-clamp-1 text-base font-extrabold text-slate-900 group-hover:text-emerald-700 transition-colors">
+        <h3 className="line-clamp-1 text-base font-extrabold text-neutral-900 dark:text-white group-hover:text-neutral-600 dark:group-hover:text-neutral-300 transition-colors">
           {issue.title}
         </h3>
 
-        <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-slate-500 flex-1">
+        <p className="mt-1.5 line-clamp-2 text-xs leading-5 text-neutral-600 dark:text-neutral-400 flex-1">
           {issue.description}
         </p>
 
-        <div className="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-slate-500">
-          <span className="flex items-center gap-1 text-slate-500 truncate max-w-[170px]" title={issue.location?.address || issue.address}>
-            <MapPin size={13} className="shrink-0 text-emerald-600" />
+        <div className="mt-4 pt-3 border-t border-neutral-100 dark:border-neutral-800 flex items-center justify-between text-xs text-neutral-600 dark:text-neutral-400">
+          <span className="flex items-center gap-1 text-neutral-600 dark:text-neutral-400 truncate max-w-[170px]" title={issue.location?.address || issue.address}>
+            <MapPin size={13} className="shrink-0 text-neutral-800 dark:text-neutral-200" />
             <span className="truncate">{issue.location?.address || issue.address || "Location pinned"}</span>
           </span>
 
@@ -168,18 +168,18 @@ export default function IssueCard({ issue }) {
               type="button"
               onClick={handleUpvote}
               disabled={upvoting}
-              className={`flex items-center gap-1 rounded-lg px-2 py-1 font-bold transition active:scale-95 ${
+              className={`flex items-center gap-1 rounded-lg px-2.5 py-1 font-bold transition active:scale-95 ${
                 hasUpvoted
-                  ? "bg-emerald-100 text-emerald-800"
-                  : "bg-slate-100 text-slate-600 hover:bg-emerald-50 hover:text-emerald-700"
+                  ? "bg-black text-white dark:bg-white dark:text-black shadow-xs"
+                  : "bg-neutral-100 text-neutral-800 dark:bg-neutral-800 dark:text-neutral-200 hover:bg-neutral-200 dark:hover:bg-neutral-700"
               }`}
               title="Support this report"
             >
-              <ThumbsUp size={13} className={hasUpvoted ? "fill-emerald-700 text-emerald-700" : ""} />
+              <ThumbsUp size={13} className={hasUpvoted ? "fill-current" : ""} />
               <span>{upvotes}</span>
             </button>
 
-            <span className="flex items-center gap-1 text-slate-400">
+            <span className="flex items-center gap-1 text-neutral-400">
               <MessageCircle size={13} />
             </span>
           </div>

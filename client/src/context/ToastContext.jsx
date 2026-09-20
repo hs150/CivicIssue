@@ -36,8 +36,8 @@ export function ToastProvider({ children }) {
           let icon = <Info className="text-blue-400 shrink-0" size={18} />;
 
           if (toast.type === "success") {
-            bg = "bg-emerald-950/95 text-emerald-100 border-emerald-700/60 shadow-emerald-950/20";
-            icon = <CheckCircle2 className="text-emerald-400 shrink-0" size={18} />;
+            bg = "bg-black text-white border-neutral-700 shadow-2xl dark:bg-white dark:text-black dark:border-neutral-300";
+            icon = <CheckCircle2 className="text-white dark:text-black shrink-0" size={18} />;
           } else if (toast.type === "error") {
             bg = "bg-rose-950/95 text-rose-100 border-rose-700/60 shadow-rose-950/20";
             icon = <XCircle className="text-rose-400 shrink-0" size={18} />;

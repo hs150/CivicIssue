@@ -54,5 +54,5 @@ export default function MapPicker({ value, onChange, readOnly = false }) {
     }
   }, [value]);
 
-  return <div ref={ref} className="h-[320px] w-full overflow-hidden rounded-2xl border border-slate-200" />;
+  return <div ref={ref} className="h-[320px] w-full overflow-hidden rounded-2xl border border-neutral-300 dark:border-neutral-700" />;
 }
