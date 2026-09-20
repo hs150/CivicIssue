@@ -3,6 +3,7 @@ import { LogIn, LogOut, Menu, ShieldCheck, X, Plus, Search, Moon, Sun, Send, Git
 import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useTheme } from "../context/ThemeContext.jsx";
+import CivicLogo from "./CivicLogo.jsx";
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth();
@@ -87,12 +88,7 @@ export default function Layout({ children }) {
             className="flex items-center gap-2.5 font-bold text-neutral-900 dark:text-white group shrink-0"
             onClick={close}
           >
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-black text-white dark:bg-white dark:text-black font-extrabold text-base shadow-xs transition-transform group-hover:scale-105 shrink-0">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                <path d="m9 12 2 2 4-4" />
-              </svg>
-            </div>
+            <CivicLogo size={32} className="group-hover:scale-105" />
             <span className="text-xl font-black tracking-tight text-neutral-900 dark:text-white whitespace-nowrap">
               CivicConnect
             </span>
@@ -365,13 +361,8 @@ export default function Layout({ children }) {
             
             {/* Column 1: Brand, Tagline, Description & Socials (4 Cols) */}
             <div className="md:col-span-4 space-y-3">
-              <Link to="/" className="flex items-center gap-2 font-bold text-neutral-900 dark:text-white">
-                <div className="flex h-7 w-7 items-center justify-center rounded-md bg-black text-white dark:bg-white dark:text-black font-extrabold text-sm">
-                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                    <path d="m9 12 2 2 4-4" />
-                  </svg>
-                </div>
+              <Link to="/" className="flex items-center gap-2.5 font-bold text-neutral-900 dark:text-white group">
+                <CivicLogo size={26} className="group-hover:scale-105" />
                 <span className="text-base font-extrabold tracking-tight">CivicConnect</span>
               </Link>
               <p className="text-xs font-semibold text-neutral-500 dark:text-neutral-400">

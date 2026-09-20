@@ -13,6 +13,7 @@ import AiAnalysisDemo from "../components/AiAnalysisDemo.jsx";
 import IssueLifecycleTimeline from "../components/IssueLifecycleTimeline.jsx";
 import CitizensCityBanner from "../components/CitizensCityBanner.jsx";
 import CivicCommandCTA from "../components/CivicCommandCTA.jsx";
+import CivicLogo from "../components/CivicLogo.jsx";
 
 export default function Home() {
   const { user } = useAuth();
@@ -53,9 +54,12 @@ export default function Home() {
             {/* LEFT COLUMN */}
             <div className="lg:col-span-5 space-y-6">
               
-              {/* Category Kicker */}
-              <div className="text-[11px] sm:text-xs font-mono font-bold tracking-wider text-neutral-500 dark:text-neutral-400 uppercase">
-                CLEANER CITIES . STRONGER COMMUNITIES.
+              {/* Category Kicker with CivicConnect Brand Emblem */}
+              <div className="inline-flex items-center gap-2 rounded-full border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900 px-3 py-1 shadow-2xs">
+                <CivicLogo size={16} />
+                <span className="text-[10px] sm:text-[11px] font-mono font-bold tracking-wider text-neutral-600 dark:text-neutral-400 uppercase">
+                  CLEANER CITIES . STRONGER COMMUNITIES.
+                </span>
               </div>
 
               {/* Main Headline */}
