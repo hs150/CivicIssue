@@ -1,7 +1,8 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import L from "leaflet";
 import { getImageUrl } from "../utils/image.js";
+import { fetchLocalCoordinates } from "../utils/geolocation.js";
 
 const MARKER_COLORS = {
   URGENT: "#ef4444",
@@ -30,18 +31,54 @@ function createPinIcon(priority = "MEDIUM") {
   });
 }
 
+function createUserMarker() {
+  const svgHtml = `
+    <div style="position: relative; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+      <div style="position: absolute; width: 32px; height: 32px; border-radius: 50%; background: #3B82F6; opacity: 0.35; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+      <div style="width: 16px; height: 16px; border-radius: 50%; background: #2563EB; border: 3px solid white; box-shadow: 0 2px 10px rgba(37,99,235,0.6); display: flex; align-items: center; justify-content: center;"></div>
+    </div>
+  `;
+  return L.divIcon({
+    html: svgHtml,
+    className: "custom-leaflet-user-marker",
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
+  });
+}
+
 export default function CommunityMap({ issues = [], height = "520px" }) {
+  const [userLocation, setUserLocation] = useState(null);
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
+  const userMarkerRef = useRef(null);
 
+  // 1. Fetch Local Coordinates
+  useEffect(() => {
+    fetchLocalCoordinates()
+      .then((coords) => {
+        if (coords && coords.lat && coords.lng) {
+          setUserLocation({ lat: coords.lat, lng: coords.lng, city: coords.city });
+          if (mapRef.current) {
+            mapRef.current.flyTo([coords.lat, coords.lng], 13, { duration: 1.2 });
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  // 2. Initialize Leaflet map
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
+
+    const initialCenter = userLocation
+      ? [userLocation.lat, userLocation.lng]
+      : [28.6139, 77.2090];
 
     const map = L.map(containerRef.current, {
       zoomControl: true,
       scrollWheelZoom: true
-    }).setView([28.6139, 77.2090], 12);
+    }).setView(initialCenter, 13);
 
     L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
       attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -54,6 +91,26 @@ export default function CommunityMap({ issues = [], height = "520px" }) {
       mapRef.current = null;
     };
   }, []);
+
+  // 3. Update User Marker
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !userLocation) return;
+
+    if (userMarkerRef.current) {
+      userMarkerRef.current.remove();
+    }
+
+    userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], {
+      icon: createUserMarker(),
+      zIndexOffset: 1000
+    }).addTo(map).bindPopup(
+      `<div style="font-family: system-ui; font-size: 11px; font-weight: bold; padding: 2px;">
+        📍 <strong>Your Local Coordinates</strong><br/>
+        <span style="color: #64748b;">${userLocation.lat.toFixed(4)}° N, ${userLocation.lng.toFixed(4)}° E (${userLocation.city || "Local"})</span>
+      </div>`
+    );
+  }, [userLocation]);
 
   // Update markers when issues change
   useEffect(() => {

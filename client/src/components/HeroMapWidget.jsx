@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Navigation, Plus, Minus, ArrowRight, Clock } from "lucide-react";
+import { MapPin, Navigation, Plus, Minus, ArrowRight, Clock, Crosshair, Sparkles } from "lucide-react";
 import L from "leaflet";
 import { api } from "../api.js";
 import { getImageUrl } from "../utils/image.js";
+import { fetchLocalCoordinates, calculateDistanceKm } from "../utils/geolocation.js";
 
 const MARKER_COLORS = {
   URGENT: "#EF4444",
@@ -38,58 +39,58 @@ function createPinIcon(priority = "MEDIUM", isSelected = false) {
 
 function createUserLocationIcon() {
   const svgHtml = `
-    <div style="position: relative; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
-      <div style="position: absolute; width: 28px; height: 28px; border-radius: 50%; background: #3B82F6; opacity: 0.35; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
-      <div style="width: 14px; height: 14px; border-radius: 50%; background: #2563EB; border: 2.5px solid white; box-shadow: 0 2px 8px rgba(37,99,235,0.5);"></div>
+    <div style="position: relative; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;">
+      <div style="position: absolute; width: 32px; height: 32px; border-radius: 50%; background: #3B82F6; opacity: 0.35; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+      <div style="width: 16px; height: 16px; border-radius: 50%; background: #2563EB; border: 3px solid white; box-shadow: 0 2px 10px rgba(37,99,235,0.6); display: flex; align-items: center; justify-content: center;">
+        <div style="width: 4px; height: 4px; border-radius: 50%; background: white;"></div>
+      </div>
     </div>
   `;
   return L.divIcon({
     html: svgHtml,
     className: "custom-leaflet-user-marker",
-    iconSize: [28, 28],
-    iconAnchor: [14, 14]
+    iconSize: [32, 32],
+    iconAnchor: [16, 16]
   });
 }
 
 export default function HeroMapWidget() {
   const [issues, setIssues] = useState([]);
   const [selectedIssue, setSelectedIssue] = useState(null);
-  const [cityLabel, setCityLabel] = useState("Detecting Location...");
+  const [cityLabel, setCityLabel] = useState("Fetching Local Coordinates...");
   const [userLocation, setUserLocation] = useState(null);
+  const [isLocating, setIsLocating] = useState(true);
+  const [coordDetails, setCoordDetails] = useState(null);
   const [imgError, setImgError] = useState(false);
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
   const userMarkerRef = useRef(null);
 
-  // 1. Detect Real Browser Geolocation
-  useEffect(() => {
-    if (!navigator.geolocation) {
+  // 1. Fetch Real Local Coordinates (GPS with Network fallback)
+  const refreshLocalCoordinates = async () => {
+    setIsLocating(true);
+    try {
+      const coords = await fetchLocalCoordinates();
+      if (coords && coords.lat && coords.lng) {
+        setUserLocation({ lat: coords.lat, lng: coords.lng });
+        setCoordDetails(coords);
+        setCityLabel(`${coords.city || "Local Area"} (${coords.lat.toFixed(3)}°, ${coords.lng.toFixed(3)}°)`);
+
+        if (mapRef.current) {
+          mapRef.current.flyTo([coords.lat, coords.lng], 14, { duration: 1.2 });
+        }
+      }
+    } catch (err) {
+      console.error("Failed to fetch local coordinates:", err);
       setCityLabel("Live Map");
-      return;
+    } finally {
+      setIsLocating(false);
     }
+  };
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        const { latitude, longitude } = pos.coords;
-        setUserLocation({ lat: latitude, lng: longitude });
-
-        // Dynamic reverse geocode user position
-        fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`)
-          .then((res) => res.json())
-          .then((data) => {
-            const locName = data.locality || data.city || data.principalSubdivision;
-            if (locName) setCityLabel(locName);
-          })
-          .catch(() => {
-            setCityLabel(`${latitude.toFixed(2)}°N, ${longitude.toFixed(2)}°E`);
-          });
-      },
-      () => {
-        // Geolocation denied or unavailable
-      },
-      { enableHighAccuracy: true, timeout: 6000 }
-    );
+  useEffect(() => {
+    refreshLocalCoordinates();
   }, []);
 
   // 2. Fetch real issues from backend
@@ -102,30 +103,9 @@ export default function HeroMapWidget() {
           const list = data.issues;
           setIssues(list);
           setSelectedIssue(list[0]);
-
-          // If city label wasn't set by browser geolocation, determine from real issues
-          const first = list[0];
-          if (first.address) {
-            setCityLabel(first.address.split(",")[0].trim());
-          } else if (first.latitude && first.longitude) {
-            fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${first.latitude}&longitude=${first.longitude}&localityLanguage=en`)
-              .then((res) => res.json())
-              .then((geo) => {
-                if (isMounted) {
-                  const name = geo.locality || geo.city || geo.principalSubdivision;
-                  if (name) setCityLabel(name);
-                }
-              })
-              .catch(() => {
-                if (isMounted) setCityLabel("New Delhi");
-              });
-          }
-        } else if (isMounted) {
-          setCityLabel("Live Map");
         }
       } catch (err) {
         console.error("Failed to load real issues for hero map:", err);
-        if (isMounted) setCityLabel("Live Map");
       }
     }
 
@@ -137,15 +117,18 @@ export default function HeroMapWidget() {
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
-    // Default center (Delhi coordinates matching database seeds)
-    const defaultCenter = [28.6139, 77.2090];
+    // Center initially on cached or default coordinates
+    const initialCenter = userLocation
+      ? [userLocation.lat, userLocation.lng]
+      : [28.6139, 77.2090];
+
     const map = L.map(containerRef.current, {
       zoomControl: false,
       attributionControl: false,
       scrollWheelZoom: false
-    }).setView(defaultCenter, 13);
+    }).setView(initialCenter, 13);
 
-    // Modern clean CartoDB Positron/Voyager tiles
+    // Modern clean CartoDB Voyager tiles
     L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
       maxZoom: 19,
       subdomains: "abcd"
@@ -184,27 +167,40 @@ export default function HeroMapWidget() {
     }).addTo(map).bindPopup("<div style='font-size: 11px; font-weight: bold;'>📍 You are here</div>");
   }, [userLocation]);
 
+  // 4. Update User Marker and center on local coordinates
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !userLocation) return;
+
+    if (userMarkerRef.current) {
+      userMarkerRef.current.remove();
+    }
+
+    userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], {
+      icon: createUserLocationIcon(),
+      zIndexOffset: 1000
+    }).addTo(map).bindPopup(
+      `<div style='font-family: system-ui; font-size: 11px; font-weight: bold; padding: 2px;'>
+        📍 <strong>Your Local Coordinates</strong><br/>
+        <span style='color: #64748B; font-weight: 500;'>
+          ${userLocation.lat.toFixed(4)}° N, ${userLocation.lng.toFixed(4)}° E
+        </span>
+      </div>`
+    );
+  }, [userLocation]);
+
   // 5. Update Markers and view with real issue locations
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
 
     // Clear old markers
-    markersRef.current.forEach(m => m.remove());
+    markersRef.current.forEach((m) => m.remove());
     markersRef.current = [];
 
     const validIssues = issues.filter(
-      i => i && Number.isFinite(Number(i.latitude)) && Number.isFinite(Number(i.longitude))
+      (i) => i && Number.isFinite(Number(i.latitude)) && Number.isFinite(Number(i.longitude))
     );
-
-    const points = validIssues.map(i => [Number(i.latitude), Number(i.longitude)]);
-    if (userLocation) {
-      points.push([userLocation.lat, userLocation.lng]);
-    }
-
-    if (points.length === 0) return;
-
-    const bounds = L.latLngBounds(points);
 
     validIssues.forEach((issue) => {
       const lat = Number(issue.latitude);
@@ -213,7 +209,7 @@ export default function HeroMapWidget() {
       const isSelected = selectedIssue?.id === issue.id;
       const marker = L.marker([lat, lng], {
         icon: createPinIcon(issue.priority, isSelected),
-        zIndexOffset: isSelected ? 1000 : 100
+        zIndexOffset: isSelected ? 500 : 100
       }).addTo(map);
 
       marker.on("click", () => {
@@ -224,22 +220,52 @@ export default function HeroMapWidget() {
       markersRef.current.push(marker);
     });
 
-    if (points.length === 1) {
-      map.setView(points[0], 14);
-    } else if (bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+    // Smart centering: center on user's local coordinates if available
+    if (userLocation) {
+      // Check if any issues are within local range (< 40 km)
+      const nearbyIssues = validIssues.filter((i) => {
+        const dist = calculateDistanceKm(userLocation.lat, userLocation.lng, i.latitude, i.longitude);
+        return dist && Number(dist) < 40;
+      });
+
+      if (nearbyIssues.length > 0) {
+        const bounds = L.latLngBounds([
+          [userLocation.lat, userLocation.lng],
+          ...nearbyIssues.map((i) => [Number(i.latitude), Number(i.longitude)])
+        ]);
+        map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
+      } else {
+        map.setView([userLocation.lat, userLocation.lng], 14);
+      }
+    } else if (validIssues.length > 0) {
+      const bounds = L.latLngBounds(validIssues.map((i) => [Number(i.latitude), Number(i.longitude)]));
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
     }
   }, [issues, selectedIssue?.id, userLocation]);
 
   // Real category breakdown counts
   const categoryCounts = {
-    roads: issues.filter(i => (i.category || "").toLowerCase().includes("road")).length,
-    water: issues.filter(i => (i.category || "").toLowerCase().includes("water")).length,
-    waste: issues.filter(i => (i.category || "").toLowerCase().includes("waste") || (i.category || "").toLowerCase().includes("garbage")).length,
-    lighting: issues.filter(i => (i.category || "").toLowerCase().includes("light") || (i.category || "").toLowerCase().includes("electr")).length,
-    others: issues.filter(i => {
+    roads: issues.filter((i) => (i.category || "").toLowerCase().includes("road")).length,
+    water: issues.filter((i) => (i.category || "").toLowerCase().includes("water")).length,
+    waste: issues.filter(
+      (i) =>
+        (i.category || "").toLowerCase().includes("waste") ||
+        (i.category || "").toLowerCase().includes("garbage")
+    ).length,
+    lighting: issues.filter(
+      (i) =>
+        (i.category || "").toLowerCase().includes("light") ||
+        (i.category || "").toLowerCase().includes("electr")
+    ).length,
+    others: issues.filter((i) => {
       const c = (i.category || "").toLowerCase();
-      return !c.includes("road") && !c.includes("water") && !c.includes("waste") && !c.includes("garbage") && !c.includes("light");
+      return (
+        !c.includes("road") &&
+        !c.includes("water") &&
+        !c.includes("waste") &&
+        !c.includes("garbage") &&
+        !c.includes("light")
+      );
     }).length
   };
 
@@ -249,9 +275,9 @@ export default function HeroMapWidget() {
   const handleRecenter = () => {
     if (!mapRef.current) return;
     if (userLocation) {
-      mapRef.current.setView([userLocation.lat, userLocation.lng], 15, { animate: true });
-    } else if (selectedIssue && selectedIssue.latitude && selectedIssue.longitude) {
-      mapRef.current.setView([selectedIssue.latitude, selectedIssue.longitude], 14, { animate: true });
+      mapRef.current.flyTo([userLocation.lat, userLocation.lng], 15, { duration: 1.2 });
+    } else {
+      refreshLocalCoordinates();
     }
   };
 
@@ -271,17 +297,32 @@ export default function HeroMapWidget() {
     }
   };
 
+  const distanceToSelected =
+    userLocation && selectedIssue?.latitude && selectedIssue?.longitude
+      ? calculateDistanceKm(userLocation.lat, userLocation.lng, selectedIssue.latitude, selectedIssue.longitude)
+      : null;
+
   return (
     <div className="relative rounded-2xl sm:rounded-3xl border border-[#E2E8F0] bg-white p-3.5 sm:p-5 shadow-xl shadow-slate-900/5 select-none overflow-hidden">
-      
       {/* Top Bar of Map Widget with REAL data */}
       <div className="flex flex-wrap items-center justify-between gap-2 pb-3.5 border-b border-[#F1F5F9]">
-        {/* Real Location Tag */}
-        <div className="inline-flex items-center gap-1.5 rounded-full border border-[#E2E8F0] bg-[#F8FAFC] px-3 py-1 text-xs font-bold text-[#07111F] shadow-2xs">
+        {/* Real Location Tag & Fetch Trigger */}
+        <button
+          type="button"
+          onClick={refreshLocalCoordinates}
+          title="Click to re-fetch live local coordinates"
+          className="inline-flex items-center gap-1.5 rounded-full border border-[#E2E8F0] bg-[#F8FAFC] hover:bg-emerald-50/50 hover:border-[#00A881]/40 px-3 py-1 text-xs font-bold text-[#07111F] shadow-2xs transition-all cursor-pointer group"
+        >
+          <span className="flex h-2 w-2 relative">
+            {isLocating && (
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00A881] opacity-75" />
+            )}
+            <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00A881]" />
+          </span>
           <MapPin size={13} className="text-[#00A881]" />
           <span>{cityLabel}</span>
-          <span className="text-[10px] text-[#94A3B8]">▾</span>
-        </div>
+          <Crosshair size={11} className="text-[#94A3B8] group-hover:text-[#00A881] ml-0.5 transition-colors" />
+        </button>
 
         {/* Real Category Counts from database */}
         <div className="flex items-center gap-3 text-[11px] font-medium text-[#64748B]">
@@ -310,7 +351,6 @@ export default function HeroMapWidget() {
 
       {/* Real Interactive Leaflet Map Canvas */}
       <div className="relative mt-3 h-[300px] sm:h-[360px] w-full rounded-xl sm:rounded-2xl overflow-hidden border border-[#E2E8F0]">
-        
         {/* Leaflet DOM container */}
         <div ref={containerRef} className="h-full w-full z-0" />
 
@@ -344,8 +384,17 @@ export default function HeroMapWidget() {
 
               <p className="mt-1 text-[11px] text-[#64748B] flex items-center gap-1 truncate">
                 <MapPin size={10} className="text-[#94A3B8] shrink-0" />
-                <span>{selectedIssue.address || `${Number(selectedIssue.latitude).toFixed(4)}, ${Number(selectedIssue.longitude).toFixed(4)}`}</span>
+                <span>
+                  {selectedIssue.address ||
+                    `${Number(selectedIssue.latitude).toFixed(4)}, ${Number(selectedIssue.longitude).toFixed(4)}`}
+                </span>
               </p>
+
+              {distanceToSelected && (
+                <p className="text-[10px] text-[#00A881] font-semibold flex items-center gap-1 mt-0.5">
+                  <span>📍 {distanceToSelected} km from you</span>
+                </p>
+              )}
 
               <div className="mt-1 flex items-center justify-between">
                 <span className="text-[10px] text-[#94A3B8] flex items-center gap-1">
@@ -385,12 +434,11 @@ export default function HeroMapWidget() {
             type="button"
             onClick={handleRecenter}
             className="flex h-7 w-7 items-center justify-center hover:bg-slate-50 transition text-[#00A881] cursor-pointer"
-            title="Recenter location"
+            title="Recenter to my local coordinates"
           >
             <Navigation size={12} />
           </button>
         </div>
-
       </div>
 
     </div>
