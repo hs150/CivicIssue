@@ -1,101 +1,52 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { MapPin, Clock, ArrowRight } from "lucide-react";
+import { MapPin, Clock, ArrowRight, AlertTriangle, Plus } from "lucide-react";
 import { api } from "../api.js";
+import { getImageUrl } from "../utils/image.js";
 
-// Generated assets matching the screenshot
-import potholeImg from "../assets/pothole_main_road.jpg";
-import streetLightImg from "../assets/street_light_night.jpg";
-import garbageImg from "../assets/garbage_overflow_bins.jpg";
-import waterLeakImg from "../assets/water_leakage_street.jpg";
+const PRIORITY_BADGES = {
+  URGENT: { bg: "bg-rose-50 text-[#EF4444] border-rose-200", dot: "bg-[#EF4444]" },
+  HIGH: { bg: "bg-rose-50 text-[#EF4444] border-rose-200", dot: "bg-[#EF4444]" },
+  MEDIUM: { bg: "bg-amber-50 text-amber-600 border-amber-200", dot: "bg-amber-500" },
+  LOW: { bg: "bg-emerald-50 text-[#00A881] border-emerald-200", dot: "bg-[#00A881]" }
+};
 
 export default function RecentIssuesSection() {
   const [issues, setIssues] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
     async function loadIssues() {
       try {
         const { data } = await api.get("/issues");
-        if (isMounted && Array.isArray(data?.issues) && data.issues.length > 0) {
-          setIssues(data.issues.slice(0, 4));
+        if (isMounted && Array.isArray(data?.issues)) {
+          setIssues(data.issues);
         }
       } catch (err) {
-        console.error("Failed to load recent issues:", err);
+        console.error("Failed to load real issues:", err);
+      } finally {
+        if (isMounted) setLoading(false);
       }
     }
     loadIssues();
     return () => { isMounted = false; };
   }, []);
 
-  // Default fallback matching exact screenshot cards
-  const defaultCards = [
-    {
-      id: "cc-45821",
-      code: "#CC-45821",
-      title: "Pothole on Main Road",
-      location: "Lanka, Varanasi",
-      time: "2 hours ago",
-      category: "Roads",
-      priority: "High",
-      badgeBg: "bg-rose-50 text-[#EF4444] border-rose-200",
-      dotColor: "bg-[#EF4444]",
-      image: potholeImg
-    },
-    {
-      id: "cc-45820",
-      code: "#CC-45820",
-      title: "Street Light Not Working",
-      location: "BHU, Varanasi",
-      time: "5 hours ago",
-      category: "Lighting",
-      priority: "Medium",
-      badgeBg: "bg-amber-50 text-amber-600 border-amber-200",
-      dotColor: "bg-amber-500",
-      image: streetLightImg
-    },
-    {
-      id: "cc-45819",
-      code: "#CC-45819",
-      title: "Garbage Overflowing",
-      location: "Assi, Varanasi",
-      time: "1 day ago",
-      category: "Waste",
-      priority: "Medium",
-      badgeBg: "bg-amber-50 text-amber-600 border-amber-200",
-      dotColor: "bg-amber-500",
-      image: garbageImg
-    },
-    {
-      id: "cc-45818",
-      code: "#CC-45818",
-      title: "Water Leakage",
-      location: "Ravindrapuri, Varanasi",
-      time: "1 day ago",
-      category: "Water",
-      priority: "Low",
-      badgeBg: "bg-emerald-50 text-[#00A881] border-emerald-200",
-      dotColor: "bg-[#00A881]",
-      image: waterLeakImg
+  const getTimeAgo = (dateStr) => {
+    if (!dateStr) return "Recently";
+    try {
+      const d = new Date(dateStr);
+      const diffMs = Date.now() - d.getTime();
+      const diffHrs = Math.floor(diffMs / (1000 * 60 * 60));
+      if (diffHrs < 1) return "Just now";
+      if (diffHrs < 24) return `${diffHrs} hours ago`;
+      const diffDays = Math.floor(diffHrs / 24);
+      return `${diffDays} day${diffDays > 1 ? "s" : ""} ago`;
+    } catch {
+      return "Recently";
     }
-  ];
-
-  const displayCards = defaultCards.map((def, idx) => {
-    const real = issues[idx];
-    if (real) {
-      return {
-        ...def,
-        id: real.id,
-        code: real.issueCode ? `#${real.issueCode}` : def.code,
-        title: real.title || def.title,
-        location: real.address || def.location,
-        category: real.category || def.category,
-        priority: real.priority ? real.priority.charAt(0).toUpperCase() + real.priority.slice(1).toLowerCase() : def.priority,
-        image: real.imageUrl ? (real.imageUrl.startsWith("http") ? real.imageUrl : `http://localhost:5000${real.imageUrl}`) : def.image
-      };
-    }
-    return def;
-  });
+  };
 
   return (
     <section className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
@@ -120,61 +71,90 @@ export default function RecentIssuesSection() {
         </Link>
       </div>
 
-      {/* 4 Cards Grid */}
+      {/* Real Issues Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {displayCards.map((card) => (
-          <Link
-            key={card.id}
-            to={`/issues/${card.id}`}
-            className="group flex flex-col justify-between rounded-2xl border border-[#E2E8F0] bg-white overflow-hidden shadow-xs hover:border-[#00A881]/50 hover:shadow-md transition-all"
-          >
-            <div>
-              {/* Image with Priority Badge */}
-              <div className="relative aspect-16/10 w-full overflow-hidden bg-slate-100">
-                <img
-                  src={card.image}
-                  alt={card.title}
-                  className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                />
-                
-                {/* Priority Tag Pill on top right */}
-                <div className="absolute top-3 right-3">
-                  <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border backdrop-blur-md bg-white/90 ${card.badgeBg}`}>
-                    <span className={`h-1.5 w-1.5 rounded-full ${card.dotColor}`} />
-                    <span>{card.priority}</span>
-                  </span>
+        {issues.map((issue) => {
+          const priorityKey = (issue.priority || "MEDIUM").toUpperCase();
+          const badge = PRIORITY_BADGES[priorityKey] || PRIORITY_BADGES.MEDIUM;
+          const imgSrc = getImageUrl(issue.imageUrl);
+
+          return (
+            <Link
+              key={issue.id}
+              to={`/issues/${issue.id}`}
+              className="group flex flex-col justify-between rounded-2xl border border-[#E2E8F0] bg-white overflow-hidden shadow-xs hover:border-[#00A881]/50 hover:shadow-md transition-all"
+            >
+              <div>
+                {/* Real Issue Image */}
+                <div className="relative aspect-16/10 w-full overflow-hidden bg-slate-100 flex items-center justify-center">
+                  {imgSrc ? (
+                    <img
+                      src={imgSrc}
+                      alt={issue.title}
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="flex flex-col items-center justify-center text-slate-400 gap-1 p-4 text-center">
+                      <AlertTriangle size={24} className="text-[#00A881]" />
+                      <span className="text-[10px] font-mono">No Photo Uploaded</span>
+                    </div>
+                  )}
+                  
+                  {/* Priority Tag Pill on top right */}
+                  <div className="absolute top-3 right-3">
+                    <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold border backdrop-blur-md bg-white/90 ${badge.bg}`}>
+                      <span className={`h-1.5 w-1.5 rounded-full ${badge.dot}`} />
+                      <span>{issue.priority || "MEDIUM"}</span>
+                    </span>
+                  </div>
+                </div>
+
+                {/* Title & Location */}
+                <div className="p-4 pb-2">
+                  <h3 className="text-sm font-bold text-[#07111F] group-hover:text-[#00A881] transition line-clamp-1" title={issue.title}>
+                    {issue.title}
+                  </h3>
+                  
+                  <p className="mt-1 text-xs text-[#64748B] flex items-center gap-1 truncate">
+                    <MapPin size={12} className="text-[#94A3B8] shrink-0" />
+                    <span>{issue.address || (issue.latitude ? `${Number(issue.latitude).toFixed(4)}, ${Number(issue.longitude).toFixed(4)}` : "GPS Logged")}</span>
+                  </p>
+
+                  <p className="mt-1 text-[11px] text-[#94A3B8] flex items-center gap-1">
+                    <Clock size={11} />
+                    <span>{getTimeAgo(issue.createdAt)}</span>
+                  </p>
                 </div>
               </div>
 
-              {/* Title & Location */}
-              <div className="p-4 pb-2">
-                <h3 className="text-sm font-bold text-[#07111F] group-hover:text-[#00A881] transition line-clamp-1">
-                  {card.title}
-                </h3>
-                
-                <p className="mt-1 text-xs text-[#64748B] flex items-center gap-1 truncate">
-                  <MapPin size={12} className="text-[#94A3B8] shrink-0" />
-                  <span>{card.location}</span>
-                </p>
-
-                <p className="mt-1 text-[11px] text-[#94A3B8] flex items-center gap-1">
-                  <Clock size={11} />
-                  <span>{card.time}</span>
-                </p>
+              {/* Bottom Footer: Category & Code */}
+              <div className="px-4 py-3 border-t border-[#F1F5F9] flex items-center justify-between text-xs font-mono">
+                <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-[#64748B] capitalize">
+                  {issue.category || "General"}
+                </span>
+                <span className="text-[11px] font-semibold text-[#94A3B8]">
+                  #{issue.issueCode || issue.id.slice(0, 8)}
+                </span>
               </div>
-            </div>
+            </Link>
+          );
+        })}
 
-            {/* Bottom Footer: Category & Code */}
-            <div className="px-4 py-3 border-t border-[#F1F5F9] flex items-center justify-between text-xs font-mono">
-              <span className="rounded bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-[#64748B]">
-                {card.category}
-              </span>
-              <span className="text-[11px] font-semibold text-[#94A3B8]">
-                {card.code}
-              </span>
-            </div>
-          </Link>
-        ))}
+        {/* Report New Issue Card */}
+        <Link
+          to="/report"
+          className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-[#E2E8F0] bg-white/60 p-6 text-center hover:border-[#00A881] hover:bg-emerald-50/30 transition-all group min-h-[260px]"
+        >
+          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-50 text-[#00A881] group-hover:scale-110 transition-transform">
+            <Plus size={22} strokeWidth={2.5} />
+          </div>
+          <h4 className="mt-3 text-sm font-bold text-[#07111F] group-hover:text-[#00A881] transition">
+            Report an Issue
+          </h4>
+          <p className="mt-1 text-xs text-[#64748B] max-w-[200px]">
+            Spot a pothole, broken light, or waste problem in your area?
+          </p>
+        </Link>
       </div>
 
     </section>

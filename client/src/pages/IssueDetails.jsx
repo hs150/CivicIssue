@@ -13,6 +13,7 @@ import StatusTimeline from "../components/StatusTimeline.jsx";
 import BeforeAfterSlider from "../components/BeforeAfterSlider.jsx";
 import OfficialAuditReport from "../components/OfficialAuditReport.jsx";
 import { Share2, UserCheck, Clock, Award, ThumbsDown, Users, FileText, Printer } from "lucide-react";
+import { getImageUrl } from "../utils/image.js";
 
 /* =========================================================
    HELPERS
@@ -534,7 +535,7 @@ export default function IssueDetails() {
         <div className="space-y-6">
           {/* Main issue card */}
           <div className="overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-sm">
-            {issue.imageUrl ? <img src={issue.imageUrl} alt="" className="h-80 w-full object-cover" /> : <div className="grid h-80 place-items-center bg-gradient-to-br from-emerald-50 to-slate-100 text-7xl">🏙️</div>}
+            {issue.imageUrl ? <img src={getImageUrl(issue.imageUrl)} alt="" className="h-80 w-full object-cover" /> : <div className="grid h-80 place-items-center bg-gradient-to-br from-emerald-50 to-slate-100 text-7xl">🏙️</div>}
             <div className="p-7">
               <div className="flex flex-wrap items-center gap-2">
                 {Boolean(issue.status === "DISPUTED" || (issue.citizenDisputes > 0 && issue.citizenDisputes > (issue.citizenConfirmations || 0))) ? (
@@ -618,8 +619,8 @@ export default function IssueDetails() {
           {/* Before vs After comparison */}
           {issue.resolutionImageUrl && (
             <FixComparison
-              beforeUrl={issue.imageUrl}
-              afterUrl={issue.resolutionImageUrl}
+              beforeUrl={getImageUrl(issue.imageUrl)}
+              afterUrl={getImageUrl(issue.resolutionImageUrl)}
               verification={issue.fixVerification}
             />
           )}

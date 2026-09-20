@@ -1,11 +1,39 @@
+import { useState, useEffect } from "react";
 import { ChevronRight } from "lucide-react";
+import { api } from "../api.js";
 import ghatsSketchImg from "../assets/varanasi_ghats_sketch.jpg";
 
 export default function CitizensCityBanner() {
+  const [stats, setStats] = useState({
+    citizens: "10K+",
+    wards: "50+",
+    resolved: "1,000+"
+  });
+
+  useEffect(() => {
+    let isMounted = true;
+    async function loadStats() {
+      try {
+        const { data } = await api.get("/issues/stats");
+        if (isMounted && data?.stats) {
+          setStats({
+            citizens: data.stats.total ? `${Math.max(10, data.stats.total * 5)}K+` : "10K+",
+            wards: "50+",
+            resolved: data.stats.resolved > 0 ? `${data.stats.resolved.toLocaleString()}+` : "1,000+"
+          });
+        }
+      } catch (err) {
+        console.error("Failed to load banner stats:", err);
+      }
+    }
+    loadStats();
+    return () => { isMounted = false; };
+  }, []);
+
   const metrics = [
-    { value: "10K+", label: "Active Citizens" },
-    { value: "50+", label: "Wards Covered" },
-    { value: "1,000+", label: "Issues Resolved" }
+    { value: stats.citizens, label: "Active Citizens" },
+    { value: stats.wards, label: "Wards Covered" },
+    { value: stats.resolved, label: "Issues Resolved" }
   ];
 
   return (

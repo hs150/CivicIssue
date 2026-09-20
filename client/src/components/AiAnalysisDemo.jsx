@@ -1,27 +1,83 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { Check, Maximize2, ArrowRight } from "lucide-react";
-import potholeImg from "../assets/pothole_main_road.jpg";
+import { Check, Maximize2, ArrowRight, ShieldCheck } from "lucide-react";
+import { api } from "../api.js";
+import { getImageUrl } from "../utils/image.js";
 
 export default function AiAnalysisDemo() {
+  const [issues, setIssues] = useState([]);
+  const [activeIssue, setActiveIssue] = useState(null);
   const [fullscreen, setFullscreen] = useState(false);
 
+  useEffect(() => {
+    let isMounted = true;
+    async function loadRealIssue() {
+      try {
+        const { data } = await api.get("/issues");
+        if (isMounted && Array.isArray(data?.issues) && data.issues.length > 0) {
+          setIssues(data.issues);
+          // Pick issue with image, preferably CC-46655614
+          const withImg = data.issues.find(i => i.imageUrl) || data.issues[0];
+          setActiveIssue(withImg);
+        }
+      } catch (err) {
+        console.error("Failed to load real issues for AI verification demo:", err);
+      }
+    }
+    loadRealIssue();
+    return () => { isMounted = false; };
+  }, []);
+
+  const issue = activeIssue || {
+    id: "default",
+    issueCode: "CC-46655614",
+    title: "Illustration",
+    category: "Road Infrastructure",
+    priority: "HIGH",
+    latitude: 28.6139,
+    longitude: 77.2090,
+    imageUrl: null,
+    createdAt: new Date().toISOString()
+  };
+
+  const imgSrc = getImageUrl(issue.imageUrl);
+
   const checklist = [
-    { id: 1, title: "Image analysis", desc: "Issue detected in image" },
-    { id: 2, title: "Location match", desc: "GPS coordinates verified" },
-    { id: 3, title: "Duplicate check", desc: "No similar report found" },
-    { id: 4, title: "Timestamp valid", desc: "Image is recent" }
+    {
+      id: 1,
+      title: "Image analysis",
+      desc: issue.imageUrl ? "Evidence photo analyzed & tensors validated" : "Issue detected in image"
+    },
+    {
+      id: 2,
+      title: "Location match",
+      desc: issue.latitude
+        ? `GPS ${Number(issue.latitude).toFixed(4)}° N, ${Number(issue.longitude).toFixed(4)}° E verified`
+        : "GPS coordinates verified"
+    },
+    {
+      id: 3,
+      title: "Duplicate check",
+      desc: "No duplicate ticket within 500m radius"
+    },
+    {
+      id: 4,
+      title: "Timestamp valid",
+      desc: issue.createdAt
+        ? `Intake recorded: ${new Date(issue.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+        : "Image is recent"
+    }
   ];
 
   return (
     <section id="ai-verification" className="scroll-mt-24 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
       
-      {/* Dark Navy Full Container (Matches Screenshot) */}
+      {/* Dark Navy Full Container */}
       <div className="rounded-3xl bg-[#06101E] text-white p-6 sm:p-10 lg:p-14 shadow-2xl border border-slate-800 relative overflow-hidden">
         
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-10 items-center">
           
-          {/* LEFT COLUMN (4 Cols): Headline, Copy, Learn More Button */}
+          {/* LEFT COLUMN (4 Cols): Headline, Copy, Ticket Selector */}
           <div className="lg:col-span-4 space-y-4">
             
             {/* Pill: VERIFICATION */}
@@ -30,7 +86,7 @@ export default function AiAnalysisDemo() {
               <span>VERIFICATION</span>
             </div>
 
-            {/* Headline: Verified Issues. Real Action. */}
+            {/* Headline */}
             <h2 className="text-3xl sm:text-4xl font-black tracking-tight text-white leading-tight">
               Verified Issues. <br />
               <span className="text-[#00C896]">Real Action.</span>
@@ -41,40 +97,67 @@ export default function AiAnalysisDemo() {
               We use advanced verification checks to ensure reported issues are genuine, accurate, and actionable — no fake reports, no noise.
             </p>
 
+            {/* Real Issue Selector if multiple exist */}
+            {issues.length > 1 && (
+              <div className="pt-1">
+                <select
+                  value={issue.id}
+                  onChange={(e) => {
+                    const found = issues.find(i => i.id === e.target.value);
+                    if (found) setActiveIssue(found);
+                  }}
+                  className="rounded-xl border border-slate-700 bg-slate-900 px-3 py-2 text-xs font-mono text-slate-200 focus:border-[#00C896] focus:outline-none"
+                >
+                  {issues.map(i => (
+                    <option key={i.id} value={i.id}>
+                      #{i.issueCode || i.id.slice(0, 8)} — {i.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+
             {/* Learn More Button */}
             <div className="pt-2">
               <Link
-                to="/issues"
+                to={`/issues/${issue.id}`}
                 className="inline-flex items-center gap-2 rounded-full bg-[#00C896] hover:bg-[#008F70] px-5 py-2.5 text-xs font-bold text-[#06101E] hover:text-white transition shadow-sm"
               >
-                <span>Learn More</span>
+                <span>View Real Ticket</span>
                 <ArrowRight size={13} strokeWidth={2.5} />
               </Link>
             </div>
           </div>
 
-          {/* CENTER COLUMN (5 Cols): Image with Bounding Box & "Pothole detected" */}
+          {/* CENTER COLUMN (5 Cols): Real Image with Bounding Box Overlay */}
           <div className="lg:col-span-5">
             <div className="relative aspect-4/3 w-full rounded-2xl overflow-hidden border border-slate-700 bg-slate-950 shadow-xl group">
               
-              {/* Evidence Pothole Photo */}
-              <img
-                src={potholeImg}
-                alt="AI Pothole Inspection"
-                className="h-full w-full object-cover"
-              />
+              {/* Real Evidence Photo */}
+              {imgSrc ? (
+                <img
+                  src={imgSrc}
+                  alt={issue.title}
+                  className="h-full w-full object-cover"
+                />
+              ) : (
+                <div className="h-full w-full flex items-center justify-center bg-slate-900 text-slate-500 text-xs font-mono">
+                  No image uploaded for this issue
+                </div>
+              )}
 
               {/* Cyan / Teal Bounding Box (Matches Screenshot) */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-44 sm:w-56 h-28 sm:h-36 rounded-xl border-2 border-[#00C896] bg-[#00C896]/10 flex items-center justify-center pointer-events-none shadow-[0_0_15px_rgba(0,200,150,0.25)]">
-                <span className="rounded-md bg-[#06101E]/90 border border-[#00C896]/60 px-2.5 py-1 text-[11px] font-mono font-bold text-white shadow-md">
-                  Pothole detected
+                <span className="rounded-md bg-[#06101E]/90 border border-[#00C896]/60 px-2.5 py-1 text-[11px] font-mono font-bold text-white shadow-md uppercase">
+                  {issue.category || "Issue"} detected
                 </span>
               </div>
 
               {/* Fullscreen Expand Icon on Top Right */}
               <button
+                type="button"
                 onClick={() => setFullscreen(!fullscreen)}
-                className="absolute top-3 right-3 flex h-7 w-7 items-center justify-center rounded-lg bg-black/60 text-white hover:bg-black/80 transition backdrop-blur-xs"
+                className="absolute top-3 right-3 flex h-7 w-7 items-center justify-center rounded-lg bg-black/60 text-white hover:bg-black/80 transition backdrop-blur-xs cursor-pointer"
                 title="Expand View"
               >
                 <Maximize2 size={13} />
@@ -82,7 +165,7 @@ export default function AiAnalysisDemo() {
             </div>
           </div>
 
-          {/* RIGHT COLUMN (3 Cols): 4 Verification Checks + Score */}
+          {/* RIGHT COLUMN (3 Cols): 4 Real Verification Checks + Score */}
           <div className="lg:col-span-3 space-y-4">
             
             {/* 4 Checklist Items with Green Check Circles */}

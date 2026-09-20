@@ -1,5 +1,6 @@
 import { useRef } from "react";
 import { Printer, X, ShieldCheck, CheckCircle2, QrCode, FileText, Award, MapPin, Building, Calendar, UserCheck } from "lucide-react";
+import { getImageUrl } from "../utils/image.js";
 
 export default function OfficialAuditReport({ issue, onClose }) {
   const printRef = useRef(null);
@@ -142,7 +143,7 @@ export default function OfficialAuditReport({ issue, onClose }) {
                   <span className="text-[10px] font-mono text-slate-400">{new Date(issue.createdAt).toLocaleDateString()}</span>
                 </p>
                 {issue.imageUrl ? (
-                  <img src={issue.imageUrl} alt="Before" className="h-48 w-full object-cover rounded-lg border border-slate-200" />
+                  <img src={getImageUrl(issue.imageUrl)} alt="Before" className="h-48 w-full object-cover rounded-lg border border-slate-200" />
                 ) : (
                   <div className="h-48 rounded-lg bg-slate-100 grid place-items-center text-slate-400 text-xs">No image provided</div>
                 )}
@@ -157,7 +158,7 @@ export default function OfficialAuditReport({ issue, onClose }) {
                   <span className="text-[10px] font-mono text-slate-400">{issue.resolvedAt ? new Date(issue.resolvedAt).toLocaleDateString() : "Pending"}</span>
                 </p>
                 {issue.resolutionImageUrl ? (
-                  <img src={issue.resolutionImageUrl} alt="After" className="h-48 w-full object-cover rounded-lg border border-slate-200" />
+                  <img src={getImageUrl(issue.resolutionImageUrl)} alt="After" className="h-48 w-full object-cover rounded-lg border border-slate-200" />
                 ) : (
                   <div className="h-48 rounded-lg bg-slate-100 grid place-items-center text-slate-400 text-xs">Resolution image pending</div>
                 )}

@@ -4,6 +4,7 @@ import { MapPin, MessageCircle, ThumbsUp, ShieldCheck, Sparkles } from "lucide-r
 import { api } from "../api.js";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useToast } from "../context/ToastContext.jsx";
+import { getImageUrl } from "../utils/image.js";
 
 const phaseStyle = {
   NEW: "bg-blue-50 text-blue-700 border-blue-200",
@@ -92,7 +93,7 @@ export default function IssueCard({ issue }) {
       <div className="relative h-48 w-full overflow-hidden bg-slate-100">
         {issue.imageUrl ? (
           <img
-            src={issue.imageUrl}
+            src={getImageUrl(issue.imageUrl)}
             alt={issue.title}
             className="h-full w-full object-cover transition duration-500 group-hover:scale-105"
           />
