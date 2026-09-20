@@ -2,48 +2,26 @@ import { createContext, useContext, useEffect, useState } from "react";
 
 export const THEMES = [
   {
-    id: "emerald",
-    name: "Emerald Civic",
-    subtitle: "Default clean municipal theme",
-    mode: "light",
-    primaryColor: "#059669",
-    accentColor: "#10b981",
-    bgColor: "#f5f7f4",
-    cardColor: "#ffffff",
-    swatches: ["#059669", "#10b981", "#f5f7f4", "#ffffff"]
-  },
-  {
-    id: "midnight",
-    name: "Cyber Midnight",
-    subtitle: "Futuristic dark mode with neon cyan",
+    id: "dark",
+    name: "Black & White",
+    subtitle: "Pitch black command center with pure white contrast",
     mode: "dark",
-    primaryColor: "#06b6d4",
-    accentColor: "#38bdf8",
-    bgColor: "#030712",
-    cardColor: "#0b1329",
-    swatches: ["#06b6d4", "#38bdf8", "#030712", "#0b1329"]
+    primaryColor: "#FFFFFF",
+    accentColor: "#E4E4E7",
+    bgColor: "#000000",
+    cardColor: "#0A0A0A",
+    swatches: ["#000000", "#0A0A0A", "#222222", "#FFFFFF"]
   },
   {
-    id: "navy",
-    name: "Royal Governance",
-    subtitle: "Deep sapphire & executive authority",
-    mode: "dark",
-    primaryColor: "#3b82f6",
-    accentColor: "#60a5fa",
-    bgColor: "#070d1d",
-    cardColor: "#0e1a38",
-    swatches: ["#3b82f6", "#60a5fa", "#070d1d", "#0e1a38"]
-  },
-  {
-    id: "amber",
-    name: "Sunset Stone",
-    subtitle: "Warm earthy tones & terracotta",
+    id: "light",
+    name: "White & Black",
+    subtitle: "Pure white canvas with sharp black typography and borders",
     mode: "light",
-    primaryColor: "#d97706",
-    accentColor: "#f59e0b",
-    bgColor: "#fdfaf6",
-    cardColor: "#ffffff",
-    swatches: ["#d97706", "#f59e0b", "#fdfaf6", "#ffffff"]
+    primaryColor: "#000000",
+    accentColor: "#18181B",
+    bgColor: "#FFFFFF",
+    cardColor: "#FAFAFA",
+    swatches: ["#FFFFFF", "#FAFAFA", "#E5E7EB", "#000000"]
   }
 ];
 
@@ -52,9 +30,12 @@ const ThemeContext = createContext(null);
 export function ThemeProvider({ children }) {
   const [theme, setThemeState] = useState(() => {
     try {
-      return localStorage.getItem("civic_theme") || "emerald";
+      const saved = localStorage.getItem("civic_theme");
+      if (saved === "dark" || saved === "midnight" || saved === "navy") return "dark";
+      if (saved === "light" || saved === "emerald" || saved === "amber") return "light";
+      return "light";
     } catch {
-      return "emerald";
+      return "light";
     }
   });
 
@@ -68,7 +49,7 @@ export function ThemeProvider({ children }) {
     const root = document.documentElement;
     root.setAttribute("data-theme", theme);
 
-    if (activeThemeConfig.mode === "dark") {
+    if (activeThemeConfig.mode === "dark" || theme === "dark") {
       root.classList.add("dark");
     } else {
       root.classList.remove("dark");
@@ -76,27 +57,19 @@ export function ThemeProvider({ children }) {
   }, [theme, activeThemeConfig]);
 
   function setTheme(themeId) {
-    if (THEMES.some((t) => t.id === themeId)) {
-      setThemeState(themeId);
-    }
+    const normalized = themeId === "dark" || themeId === "midnight" || themeId === "navy" ? "dark" : "light";
+    setThemeState(normalized);
   }
 
   function toggleTheme() {
-    setThemeState((prev) => {
-      const currentIndex = THEMES.findIndex((t) => t.id === prev);
-      const nextIndex = (currentIndex + 1) % THEMES.length;
-      return THEMES[nextIndex].id;
-    });
+    setThemeState((prev) => (prev === "dark" ? "light" : "dark"));
   }
 
   function toggleMode() {
-    setThemeState((prev) => {
-      const current = THEMES.find((t) => t.id === prev);
-      return current?.mode === "dark" ? "emerald" : "midnight";
-    });
+    setThemeState((prev) => (prev === "dark" ? "light" : "dark"));
   }
 
-  const isDark = activeThemeConfig.mode === "dark";
+  const isDark = theme === "dark" || activeThemeConfig.mode === "dark";
 
   return (
     <ThemeContext.Provider

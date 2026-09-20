@@ -190,18 +190,14 @@ export default function Layout({ children }) {
             <button
               type="button"
               onClick={toggleMode}
-              onContextMenu={(e) => {
-                e.preventDefault();
-                toggleTheme();
-              }}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E2E8F0] dark:border-slate-800 bg-[#F8FAFC] dark:bg-slate-900 text-[#64748B] dark:text-amber-400 hover:text-[#07111F] dark:hover:text-amber-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition shadow-2xs cursor-pointer active:scale-90"
-              title={`Switch to ${isDark ? "Light" : "Dark"} mode (Current: ${activeTheme.name}) • Right-click to cycle themes`}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-[#E2E8F0] dark:border-[#222222] bg-[#F8FAFC] dark:bg-[#121212] text-black dark:text-white hover:bg-slate-100 dark:hover:bg-[#1C1C1E] transition shadow-2xs cursor-pointer active:scale-90"
+              title={`Switch to ${isDark ? "White & Black (Light)" : "Black & White (Dark)"}`}
               aria-label="Toggle theme mode"
             >
               {isDark ? (
-                <Sun size={15} className="text-amber-400 transition-transform duration-300 hover:rotate-45" />
+                <Sun size={15} className="text-white transition-transform duration-300 hover:rotate-45" />
               ) : (
-                <Moon size={15} className="text-slate-600 transition-transform duration-300 hover:-rotate-12" />
+                <Moon size={15} className="text-black transition-transform duration-300 hover:-rotate-12" />
               )}
             </button>
 
