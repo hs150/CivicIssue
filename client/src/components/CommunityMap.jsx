@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import L from "leaflet";
+import { getImageUrl } from "../utils/image.js";
 
 const MARKER_COLORS = {
   URGENT: "#ef4444",
@@ -88,8 +89,8 @@ export default function CommunityMap({ issues = [], height = "520px" }) {
       const popupHtml = `
         <div style="font-family: system-ui, sans-serif; padding: 2px; max-width: 240px;">
           ${
-            issue.imageUrl
-              ? `<img src="${issue.imageUrl}" alt="" style="width: 100%; height: 110px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;" />`
+            getImageUrl(issue.imageUrl)
+              ? `<img src="${getImageUrl(issue.imageUrl)}" alt="" style="width: 100%; height: 110px; object-fit: cover; border-radius: 8px; margin-bottom: 8px;" />`
               : ""
           }
           <div style="display: flex; gap: 4px; margin-bottom: 4px;">

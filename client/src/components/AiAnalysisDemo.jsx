@@ -139,12 +139,17 @@ export default function AiAnalysisDemo() {
                   src={imgSrc}
                   alt={issue.title}
                   className="h-full w-full object-cover"
+                  onError={(e) => {
+                    e.currentTarget.style.display = "none";
+                  }}
                 />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center bg-slate-900 text-slate-500 text-xs font-mono">
-                  No image uploaded for this issue
-                </div>
-              )}
+              ) : null}
+              <div
+                style={{ display: imgSrc ? "none" : "flex" }}
+                className="h-full w-full items-center justify-center bg-slate-900 text-slate-500 text-xs font-mono"
+              >
+                No image uploaded for this issue
+              </div>
 
               {/* Cyan / Teal Bounding Box (Matches Screenshot) */}
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-44 sm:w-56 h-28 sm:h-36 rounded-xl border-2 border-[#00C896] bg-[#00C896]/10 flex items-center justify-center pointer-events-none shadow-[0_0_15px_rgba(0,200,150,0.25)]">
@@ -193,12 +198,15 @@ export default function AiAnalysisDemo() {
                 Verification score
               </span>
               <div className="mt-1 text-2xl sm:text-3xl font-black font-mono text-white tracking-tight">
-                98.7%
+                {issue.conditions?.report?.passed ? (issue.fixVerification?.confidence ? `${Math.round(issue.fixVerification.confidence * 100)}%` : "98.5%") : "92.0%"}
               </div>
               
               {/* Green Progress Bar */}
               <div className="mt-2 h-1.5 w-full rounded-full bg-slate-800 overflow-hidden">
-                <div className="h-full rounded-full bg-[#00C896] w-[98.7%]" />
+                <div
+                  className="h-full rounded-full bg-[#00C896] transition-all duration-500"
+                  style={{ width: issue.conditions?.report?.passed ? "98.5%" : "92%" }}
+                />
               </div>
             </div>
 

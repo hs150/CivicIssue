@@ -1,6 +1,8 @@
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ArrowRight } from "lucide-react";
 import { useAuth } from "../context/AuthContext.jsx";
+import { api } from "../api.js";
 
 // Precision Components Matching the Reference Design
 import HeroMapWidget from "../components/HeroMapWidget.jsx";
@@ -14,6 +16,19 @@ import CivicCommandCTA from "../components/CivicCommandCTA.jsx";
 
 export default function Home() {
   const { user } = useAuth();
+  const [totalCount, setTotalCount] = useState(0);
+
+  useEffect(() => {
+    let isMounted = true;
+    api.get("/issues/stats")
+      .then(({ data }) => {
+        if (isMounted && data?.stats) {
+          setTotalCount(Number(data.stats.total ?? 0));
+        }
+      })
+      .catch(() => {});
+    return () => { isMounted = false; };
+  }, []);
 
   const handleScrollToMap = (e) => {
     e.preventDefault();
@@ -79,30 +94,24 @@ export default function Home() {
               <div className="pt-4 flex items-center gap-3">
                 {/* 4 Overlapping Avatar Circles */}
                 <div className="flex -space-x-2 overflow-hidden">
-                  <img
-                    className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover"
-                    src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=96&h=96&fit=crop&crop=face"
-                    alt="Citizen Avatar"
-                  />
-                  <img
-                    className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover"
-                    src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=96&h=96&fit=crop&crop=face"
-                    alt="Citizen Avatar"
-                  />
-                  <img
-                    className="inline-block h-8 w-8 rounded-full ring-2 ring-white object-cover"
-                    src="https://images.unsplash.com/photo-1517841905240-472988babdf9?w=96&h=96&fit=crop&crop=face"
-                    alt="Citizen Avatar"
-                  />
-                  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#00A881] text-[10px] font-bold text-white ring-2 ring-white">
-                    +10K
+                  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-emerald-600 text-[10px] font-bold text-white ring-2 ring-white shadow-xs" title="Citizen Contributor">
+                    AM
+                  </div>
+                  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-[10px] font-bold text-white ring-2 ring-white shadow-xs" title="Municipal Officer">
+                    TO
+                  </div>
+                  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-teal-700 text-[10px] font-bold text-white ring-2 ring-white shadow-xs" title="Civic Contributor">
+                    CC
+                  </div>
+                  <div className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#00A881] text-[10px] font-bold text-white ring-2 ring-white shadow-xs">
+                    {totalCount > 0 ? `+${totalCount}` : "LIVE"}
                   </div>
                 </div>
 
                 {/* Social Proof Text */}
                 <p className="text-[11px] text-[#64748B] leading-tight">
-                  Trusted by 10,000+ citizens <br />
-                  across smart cities
+                  Real citizens reporting <br />
+                  across smart city wards
                 </p>
               </div>
 

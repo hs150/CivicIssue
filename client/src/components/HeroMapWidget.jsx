@@ -36,15 +36,63 @@ function createPinIcon(priority = "MEDIUM", isSelected = false) {
   });
 }
 
+function createUserLocationIcon() {
+  const svgHtml = `
+    <div style="position: relative; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">
+      <div style="position: absolute; width: 28px; height: 28px; border-radius: 50%; background: #3B82F6; opacity: 0.35; animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;"></div>
+      <div style="width: 14px; height: 14px; border-radius: 50%; background: #2563EB; border: 2.5px solid white; box-shadow: 0 2px 8px rgba(37,99,235,0.5);"></div>
+    </div>
+  `;
+  return L.divIcon({
+    html: svgHtml,
+    className: "custom-leaflet-user-marker",
+    iconSize: [28, 28],
+    iconAnchor: [14, 14]
+  });
+}
+
 export default function HeroMapWidget() {
   const [issues, setIssues] = useState([]);
   const [selectedIssue, setSelectedIssue] = useState(null);
-  const [cityLabel, setCityLabel] = useState("Live Radar");
+  const [cityLabel, setCityLabel] = useState("Detecting Location...");
+  const [userLocation, setUserLocation] = useState(null);
+  const [imgError, setImgError] = useState(false);
   const containerRef = useRef(null);
   const mapRef = useRef(null);
   const markersRef = useRef([]);
+  const userMarkerRef = useRef(null);
 
-  // 1. Fetch real issues from backend
+  // 1. Detect Real Browser Geolocation
+  useEffect(() => {
+    if (!navigator.geolocation) {
+      setCityLabel("Live Map");
+      return;
+    }
+
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        const { latitude, longitude } = pos.coords;
+        setUserLocation({ lat: latitude, lng: longitude });
+
+        // Dynamic reverse geocode user position
+        fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`)
+          .then((res) => res.json())
+          .then((data) => {
+            const locName = data.locality || data.city || data.principalSubdivision;
+            if (locName) setCityLabel(locName);
+          })
+          .catch(() => {
+            setCityLabel(`${latitude.toFixed(2)}°N, ${longitude.toFixed(2)}°E`);
+          });
+      },
+      () => {
+        // Geolocation denied or unavailable
+      },
+      { enableHighAccuracy: true, timeout: 6000 }
+    );
+  }, []);
+
+  // 2. Fetch real issues from backend
   useEffect(() => {
     let isMounted = true;
     async function loadIssues() {
@@ -55,23 +103,29 @@ export default function HeroMapWidget() {
           setIssues(list);
           setSelectedIssue(list[0]);
 
-          // Determine city label from real data
+          // If city label wasn't set by browser geolocation, determine from real issues
           const first = list[0];
           if (first.address) {
             setCityLabel(first.address.split(",")[0].trim());
           } else if (first.latitude && first.longitude) {
-            // Check known coordinates (Delhi/Varanasi)
-            if (Math.abs(first.latitude - 28.6139) < 1.0) {
-              setCityLabel("New Delhi");
-            } else if (Math.abs(first.latitude - 25.3176) < 1.0) {
-              setCityLabel("Varanasi");
-            } else {
-              setCityLabel(`${first.latitude.toFixed(2)}°N, ${first.longitude.toFixed(2)}°E`);
-            }
+            fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${first.latitude}&longitude=${first.longitude}&localityLanguage=en`)
+              .then((res) => res.json())
+              .then((geo) => {
+                if (isMounted) {
+                  const name = geo.locality || geo.city || geo.principalSubdivision;
+                  if (name) setCityLabel(name);
+                }
+              })
+              .catch(() => {
+                if (isMounted) setCityLabel("New Delhi");
+              });
           }
+        } else if (isMounted) {
+          setCityLabel("Live Map");
         }
       } catch (err) {
         console.error("Failed to load real issues for hero map:", err);
+        if (isMounted) setCityLabel("Live Map");
       }
     }
 
@@ -79,11 +133,11 @@ export default function HeroMapWidget() {
     return () => { isMounted = false; };
   }, []);
 
-  // 2. Initialize Real Leaflet Map
+  // 3. Initialize Real Leaflet Map
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
-    // Default center
+    // Default center (Delhi coordinates matching database seeds)
     const defaultCenter = [28.6139, 77.2090];
     const map = L.map(containerRef.current, {
       zoomControl: false,
@@ -91,7 +145,7 @@ export default function HeroMapWidget() {
       scrollWheelZoom: false
     }).setView(defaultCenter, 13);
 
-    // Modern clean CartoDB Positron tiles (looks like screenshot's high-tech civic map)
+    // Modern clean CartoDB Positron/Voyager tiles
     L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
       maxZoom: 19,
       subdomains: "abcd"
@@ -99,13 +153,38 @@ export default function HeroMapWidget() {
 
     mapRef.current = map;
 
+    // Invalidate map size after DOM settles
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 200);
+
+    const handleResize = () => map.invalidateSize();
+    window.addEventListener("resize", handleResize);
+
     return () => {
+      clearTimeout(timer);
+      window.removeEventListener("resize", handleResize);
       map.remove();
       mapRef.current = null;
     };
   }, []);
 
-  // 3. Update Markers and view with real issue locations
+  // 4. Update User Marker
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || !userLocation) return;
+
+    if (userMarkerRef.current) {
+      userMarkerRef.current.remove();
+    }
+
+    userMarkerRef.current = L.marker([userLocation.lat, userLocation.lng], {
+      icon: createUserLocationIcon(),
+      zIndexOffset: 500
+    }).addTo(map).bindPopup("<div style='font-size: 11px; font-weight: bold;'>📍 You are here</div>");
+  }, [userLocation]);
+
+  // 5. Update Markers and view with real issue locations
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
@@ -118,14 +197,18 @@ export default function HeroMapWidget() {
       i => i && Number.isFinite(Number(i.latitude)) && Number.isFinite(Number(i.longitude))
     );
 
-    if (validIssues.length === 0) return;
+    const points = validIssues.map(i => [Number(i.latitude), Number(i.longitude)]);
+    if (userLocation) {
+      points.push([userLocation.lat, userLocation.lng]);
+    }
 
-    const bounds = L.latLngBounds();
+    if (points.length === 0) return;
+
+    const bounds = L.latLngBounds(points);
 
     validIssues.forEach((issue) => {
       const lat = Number(issue.latitude);
       const lng = Number(issue.longitude);
-      bounds.extend([lat, lng]);
 
       const isSelected = selectedIssue?.id === issue.id;
       const marker = L.marker([lat, lng], {
@@ -135,17 +218,18 @@ export default function HeroMapWidget() {
 
       marker.on("click", () => {
         setSelectedIssue(issue);
+        setImgError(false);
       });
 
       markersRef.current.push(marker);
     });
 
-    if (validIssues.length === 1) {
-      map.setView([validIssues[0].latitude, validIssues[0].longitude], 14);
+    if (points.length === 1) {
+      map.setView(points[0], 14);
     } else if (bounds.isValid()) {
-      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 14 });
+      map.fitBounds(bounds, { padding: [50, 50], maxZoom: 15 });
     }
-  }, [issues, selectedIssue?.id]);
+  }, [issues, selectedIssue?.id, userLocation]);
 
   // Real category breakdown counts
   const categoryCounts = {
@@ -164,7 +248,9 @@ export default function HeroMapWidget() {
   const handleZoomOut = () => mapRef.current?.zoomOut();
   const handleRecenter = () => {
     if (!mapRef.current) return;
-    if (selectedIssue && selectedIssue.latitude && selectedIssue.longitude) {
+    if (userLocation) {
+      mapRef.current.setView([userLocation.lat, userLocation.lng], 15, { animate: true });
+    } else if (selectedIssue && selectedIssue.latitude && selectedIssue.longitude) {
       mapRef.current.setView([selectedIssue.latitude, selectedIssue.longitude], 14, { animate: true });
     }
   };
@@ -233,11 +319,12 @@ export default function HeroMapWidget() {
           <div className="absolute left-4 sm:left-6 bottom-4 sm:bottom-6 z-20 flex items-center gap-3 rounded-xl sm:rounded-2xl border border-[#E2E8F0] bg-white/95 p-2.5 sm:p-3 shadow-lg backdrop-blur-md max-w-[290px] sm:max-w-[320px]">
             {/* Real Thumbnail Image */}
             <div className="h-14 w-14 sm:h-16 sm:w-16 rounded-lg overflow-hidden shrink-0 border border-slate-200 bg-slate-100 flex items-center justify-center">
-              {getImageUrl(selectedIssue.imageUrl) ? (
+              {!imgError && getImageUrl(selectedIssue.imageUrl) ? (
                 <img
                   src={getImageUrl(selectedIssue.imageUrl)}
                   alt={selectedIssue.title}
                   className="h-full w-full object-cover"
+                  onError={() => setImgError(true)}
                 />
               ) : (
                 <MapPin size={22} className="text-[#00A881]" />

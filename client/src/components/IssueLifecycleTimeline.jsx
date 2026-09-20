@@ -191,10 +191,20 @@ export default function IssueLifecycleTimeline() {
                 src={photoSrc}
                 alt={issue.title}
                 className="h-full w-full object-cover"
+                onError={(e) => {
+                  e.currentTarget.style.display = "none";
+                  if (e.currentTarget.nextSibling) {
+                    e.currentTarget.nextSibling.style.display = "flex";
+                  }
+                }}
               />
-            ) : (
-              <div className="text-slate-400 text-xs font-mono">No Photo Available</div>
-            )}
+            ) : null}
+            <div
+              style={{ display: photoSrc ? "none" : "flex" }}
+              className="h-full w-full items-center justify-center text-slate-400 text-xs font-mono bg-slate-100"
+            >
+              No Photo Available
+            </div>
             
             <div className="absolute top-3 right-3">
               <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-0.5 text-[10px] font-bold text-[#00A881] border border-emerald-200 backdrop-blur-md">

@@ -92,13 +92,21 @@ export default function RecentIssuesSection() {
                       src={imgSrc}
                       alt={issue.title}
                       className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                      onError={(e) => {
+                        e.currentTarget.style.display = "none";
+                        if (e.currentTarget.nextSibling) {
+                          e.currentTarget.nextSibling.style.display = "flex";
+                        }
+                      }}
                     />
-                  ) : (
-                    <div className="flex flex-col items-center justify-center text-slate-400 gap-1 p-4 text-center">
-                      <AlertTriangle size={24} className="text-[#00A881]" />
-                      <span className="text-[10px] font-mono">No Photo Uploaded</span>
-                    </div>
-                  )}
+                  ) : null}
+                  <div
+                    style={{ display: imgSrc ? "none" : "flex" }}
+                    className="h-full w-full flex-col items-center justify-center text-slate-400 gap-1 p-4 text-center bg-slate-100"
+                  >
+                    <AlertTriangle size={24} className="text-[#00A881]" />
+                    <span className="text-[10px] font-mono">No Photo Uploaded</span>
+                  </div>
                   
                   {/* Priority Tag Pill on top right */}
                   <div className="absolute top-3 right-3">

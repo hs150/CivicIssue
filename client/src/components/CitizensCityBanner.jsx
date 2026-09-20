@@ -5,9 +5,9 @@ import ghatsSketchImg from "../assets/varanasi_ghats_sketch.jpg";
 
 export default function CitizensCityBanner() {
   const [stats, setStats] = useState({
-    citizens: "10K+",
-    wards: "50+",
-    resolved: "1,000+"
+    citizens: "0",
+    wards: "Citywide",
+    resolved: "0"
   });
 
   useEffect(() => {
@@ -16,10 +16,12 @@ export default function CitizensCityBanner() {
       try {
         const { data } = await api.get("/issues/stats");
         if (isMounted && data?.stats) {
+          const totalReports = Number(data.stats.total ?? 0);
+          const resolvedCount = Number(data.stats.resolved ?? 0);
           setStats({
-            citizens: data.stats.total ? `${Math.max(10, data.stats.total * 5)}K+` : "10K+",
-            wards: "50+",
-            resolved: data.stats.resolved > 0 ? `${data.stats.resolved.toLocaleString()}+` : "1,000+"
+            citizens: totalReports > 0 ? `${totalReports}` : "0",
+            wards: "Citywide",
+            resolved: `${resolvedCount}`
           });
         }
       } catch (err) {
@@ -31,8 +33,8 @@ export default function CitizensCityBanner() {
   }, []);
 
   const metrics = [
-    { value: stats.citizens, label: "Active Citizens" },
-    { value: stats.wards, label: "Wards Covered" },
+    { value: stats.citizens, label: "Citizen Reports" },
+    { value: stats.wards, label: "Coverage" },
     { value: stats.resolved, label: "Issues Resolved" }
   ];
 

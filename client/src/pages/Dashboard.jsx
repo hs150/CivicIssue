@@ -9,6 +9,7 @@ import { api } from "../api.js";
 import { useToast } from "../context/ToastContext.jsx";
 import { Link } from "react-router-dom";
 import L from "leaflet";
+import { getImageUrl } from "../utils/image.js";
 
 /* =========================================================
    PHASE CONFIG
@@ -208,10 +209,15 @@ function ResolutionModal({ issue, onClose, onSubmit }) {
           ) : (
             <div className="mt-3">
               <div className="grid grid-cols-2 gap-3">
-                {issue.image_url && (
+                {(issue.imageUrl || issue.image_url) && (
                   <div>
                     <p className="mb-1 text-xs font-bold text-slate-500 uppercase">Before</p>
-                    <img src={issue.image_url} alt="Before" className="h-36 w-full rounded-xl object-cover border border-slate-200" />
+                    <img
+                      src={getImageUrl(issue.imageUrl || issue.image_url)}
+                      alt="Before"
+                      className="h-36 w-full rounded-xl object-cover border border-slate-200"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
                   </div>
                 )}
                 <div>

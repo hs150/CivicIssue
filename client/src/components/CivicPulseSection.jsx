@@ -4,9 +4,9 @@ import { api } from "../api.js";
 
 export default function CivicPulseSection() {
   const [stats, setStats] = useState({
-    total: 2481,
-    active: 127,
-    verified: 94,
+    total: 0,
+    active: 0,
+    verified: 0,
     response: "< 24h"
   });
 
@@ -17,10 +17,12 @@ export default function CivicPulseSection() {
         const { data } = await api.get("/issues/stats");
         if (isMounted && data?.stats) {
           setStats({
-            total: data.stats.total || 2481,
-            active: data.stats.active || 127,
-            verified: data.stats.aiVerifiedPct || 94,
-            response: data.stats.avgResolutionHours ? `< ${Math.ceil(data.stats.avgResolutionHours)}h` : "< 24h"
+            total: Number(data.stats.total ?? 0),
+            active: Number(data.stats.active ?? 0),
+            verified: Number(data.stats.aiVerifiedPct ?? 0),
+            response: data.stats.avgResolutionHours && data.stats.avgResolutionHours > 0
+              ? `< ${Math.ceil(data.stats.avgResolutionHours)}h`
+              : "< 24h"
           });
         }
       } catch (err) {
@@ -38,7 +40,7 @@ export default function CivicPulseSection() {
       iconBg: "bg-emerald-50 text-[#00A881] border border-emerald-100",
       value: stats.total.toLocaleString(),
       label: "Total Reports",
-      change: "12% from last week",
+      change: stats.total === 1 ? "1 logged ticket" : `${stats.total} logged tickets`,
       isPositive: true
     },
     {
@@ -47,16 +49,16 @@ export default function CivicPulseSection() {
       iconBg: "bg-amber-50 text-amber-500 border border-amber-100",
       value: stats.active.toString(),
       label: "Active Issues",
-      change: "5% from last week",
-      isPositive: false
+      change: stats.active === 1 ? "1 active in queue" : `${stats.active} active in queue`,
+      isPositive: stats.active === 0
     },
     {
       id: "verified",
       icon: ShieldCheck,
       iconBg: "bg-teal-50 text-teal-600 border border-teal-100",
-      value: `${stats.verified}%`,
+      value: stats.verified > 0 ? `${stats.verified}%` : "100%",
       label: "Verified Reports",
-      change: "3% from last week",
+      change: "Automated GPS & AI verification",
       isPositive: true
     },
     {
@@ -65,7 +67,7 @@ export default function CivicPulseSection() {
       iconBg: "bg-indigo-50 text-indigo-500 border border-indigo-100",
       value: stats.response,
       label: "Avg. Response Time",
-      change: "22% from last week",
+      change: "Municipal SLA target",
       isPositive: true
     }
   ];
