@@ -6,7 +6,7 @@ A hackathon-ready full-stack prototype based on the supplied system architecture
 
 - Frontend: React + Vite + Tailwind CSS
 - Backend: Node.js + Express
-- Database: MongoDB/Mongoose (optional demo mode included)
+- Database: MongoDB/Mongoose (optional demo moe included)
 - Authentication: JWT + bcrypt
 - Images: Cloudinary in production, in-memory data URLs in demo mode
 - Maps: Leaflet + OpenStreetMap
