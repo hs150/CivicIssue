@@ -1,4 +1,6 @@
-﻿import { pool } from "../db/index.js";
+import { pool, query, withTransaction } from "../db/index.js";
+
+export { pool, query, withTransaction };
 
 export async function connectDatabase() {
     try {
