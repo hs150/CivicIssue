@@ -8,7 +8,7 @@ import {
     PHASES
 } from "../services/phaseEngine.js";
 import { sendNotification } from "../services/notify.js";
-import { verifyFix } from "../services/aiService.js";
+import { verifyFix } from "../services/aiservice.js";
 import { uploadImage } from "../services/storage.js";
 
 const router = Router();

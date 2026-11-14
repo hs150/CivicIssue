@@ -4,7 +4,7 @@ import { randomUUID } from "crypto";
 
 import { query, withTransaction } from "../db/index.js";
 import { requireAuth } from "../middleware/auth.js";
-import { analyzeIssueImage } from "../services/aiService.js";
+import { analyzeIssueImage } from "../services/aiservice.js";
 import { uploadImage } from "../services/storage.js";
 import { calculatePriority, categoryInfo } from "../constants.js";
 import { distanceMeters } from "../services/issueService.js";
