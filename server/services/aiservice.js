@@ -1,12 +1,48 @@
+import "dotenv/config";
 import { GoogleGenAI } from "@google/genai";
 
-const MODEL = "gemini-2.5-flash";
+export const MODEL = process.env.GEMINI_MODEL || "gemini-flash-lite-latest";
 
-const ai = process.env.GEMINI_API_KEY
-    ? new GoogleGenAI({
-        apiKey: process.env.GEMINI_API_KEY
-    })
-    : null;
+export const FALLBACK_MODELS = [
+    process.env.GEMINI_MODEL,
+    "gemini-flash-lite-latest",
+    "gemini-flash-latest",
+    "gemini-2.5-flash",
+    "gemini-3.8-flash"
+].filter(Boolean);
+
+function getAIClient() {
+    const key = process.env.GEMINI_API_KEY;
+    if (!key) return null;
+    return new GoogleGenAI({ apiKey: key });
+}
+
+async function generateWithFallback(ai, params) {
+    let lastError = null;
+    for (const model of FALLBACK_MODELS) {
+        try {
+            const response = await ai.models.generateContent({
+                ...params,
+                model
+            });
+            return { response, modelUsed: model };
+        } catch (err) {
+            lastError = err;
+            const msg = err?.message || "";
+            if (
+                err?.status === 404 ||
+                msg.includes("404") ||
+                msg.includes("not found") ||
+                msg.includes("no longer available")
+            ) {
+                console.warn(`[AI] Model '${model}' unavailable, trying next fallback model...`);
+                continue;
+            }
+            throw err;
+        }
+    }
+    throw lastError;
+}
 
 /*
 =========================================================
@@ -15,7 +51,6 @@ SAFE JSON PARSER
 */
 
 function parseAIJson(text) {
-
     if (!text) {
         throw new Error(
             "Gemini returned an empty response."
@@ -31,6 +66,12 @@ function parseAIJson(text) {
         .replace(/\s*```$/i, "")
         .trim();
 
+    const firstBrace = cleaned.indexOf("{");
+    const lastBrace = cleaned.lastIndexOf("}");
+    if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        cleaned = cleaned.substring(firstBrace, lastBrace + 1);
+    }
+
     return JSON.parse(cleaned);
 }
 
@@ -40,160 +81,72 @@ NORMALIZE AI RESULT
 =========================================================
 */
 
-function normalizeAssessment(data) {
+function normalizeAssessment(data, modelUsed = MODEL) {
+    const safeData = data && typeof data === "object" ? data : {};
+
+    const rawCategory = safeData.issue?.category ? String(safeData.issue.category).toUpperCase() : "OTHER";
+    const rawSeverity = safeData.issue?.severity ? String(safeData.issue.severity).toUpperCase() : "MEDIUM";
+    const rawPriority = safeData.issue?.priority ? String(safeData.issue.priority).toUpperCase() : "MEDIUM";
+
+    const validSeverities = ["LOW", "MEDIUM", "HIGH", "URGENT"];
+    const severity = validSeverities.includes(rawSeverity) ? rawSeverity : "MEDIUM";
+    const priority = validSeverities.includes(rawPriority) ? rawPriority : "MEDIUM";
 
     return {
-
         issue: {
-
-            category:
-                data.issue?.category ||
-                "OTHER",
-
-            subcategory:
-                data.issue?.subcategory ||
-                "UNSPECIFIED",
-
-            description:
-                data.issue?.description ||
-                "Civic issue detected from uploaded image.",
-
-            severity:
-                data.issue?.severity ||
-                "MEDIUM",
-
-            priority:
-                data.issue?.priority ||
-                "MEDIUM"
-
+            category: rawCategory,
+            subcategory: safeData.issue?.subcategory || "UNSPECIFIED",
+            description: safeData.issue?.description || "Civic issue detected from uploaded image.",
+            severity,
+            priority
         },
-
         visualEvidence: {
-
-            objects:
-                Array.isArray(
-                    data.visualEvidence?.objects
-                )
-                    ? data.visualEvidence.objects
-                    : [],
-
-            damage:
-                data.visualEvidence?.damage || {
-
-                    detected: false,
-
-                    type: "UNKNOWN",
-
-                    estimatedExtent:
-                        "UNKNOWN"
-
-                }
-
+            objects: Array.isArray(safeData.visualEvidence?.objects)
+                ? safeData.visualEvidence.objects
+                : [],
+            damage: safeData.visualEvidence?.damage || {
+                detected: false,
+                type: "UNKNOWN",
+                estimatedExtent: "UNKNOWN"
+            }
         },
-
         safety: {
-
-            hazardDetected:
-                Boolean(
-                    data.safety?.hazardDetected
-                ),
-
-            hazardType:
-                Array.isArray(
-                    data.safety?.hazardType
-                )
-                    ? data.safety.hazardType
-                    : [],
-
-            riskLevel:
-                data.safety?.riskLevel ||
-                "UNKNOWN"
-
+            hazardDetected: Boolean(safeData.safety?.hazardDetected),
+            hazardType: Array.isArray(safeData.safety?.hazardType)
+                ? safeData.safety.hazardType
+                : [],
+            riskLevel: safeData.safety?.riskLevel || "UNKNOWN"
         },
-
         locationClues: {
-
-            visibleText:
-                Array.isArray(
-                    data.locationClues?.visibleText
-                )
-                    ? data.locationClues.visibleText
-                    : [],
-
-            landmarks:
-                Array.isArray(
-                    data.locationClues?.landmarks
-                )
-                    ? data.locationClues.landmarks
-                    : [],
-
-            roadSigns:
-                Array.isArray(
-                    data.locationClues?.roadSigns
-                )
-                    ? data.locationClues.roadSigns
-                    : []
-
+            visibleText: Array.isArray(safeData.locationClues?.visibleText)
+                ? safeData.locationClues.visibleText
+                : [],
+            landmarks: Array.isArray(safeData.locationClues?.landmarks)
+                ? safeData.locationClues.landmarks
+                : [],
+            roadSigns: Array.isArray(safeData.locationClues?.roadSigns)
+                ? safeData.locationClues.roadSigns
+                : []
         },
-
         environment: {
-
-            weather:
-                data.environment?.weather ||
-                "UNKNOWN",
-
-            lighting:
-                data.environment?.lighting ||
-                "UNKNOWN"
-
+            weather: safeData.environment?.weather || "UNKNOWN",
+            lighting: safeData.environment?.lighting || "UNKNOWN"
         },
-
         evidence: {
-
-            imageQuality:
-                data.evidence?.imageQuality ||
-                "UNKNOWN",
-
-            relevant:
-                data.evidence?.relevant !== false,
-
-            suspicious:
-                Boolean(
-                    data.evidence?.suspicious
-                ),
-
-            confidence:
-                Number(
-                    data.evidence?.confidence || 0
-                )
-
+            imageQuality: safeData.evidence?.imageQuality || "UNKNOWN",
+            relevant: safeData.evidence?.relevant !== false,
+            suspicious: Boolean(safeData.evidence?.suspicious),
+            confidence: Number(safeData.evidence?.confidence || 0)
         },
-
         routing: {
-
-            department:
-                data.routing?.department ||
-                "General Civic Services",
-
-            recommendedAction:
-                data.routing?.recommendedAction ||
-                "Manual inspection required."
-
+            department: safeData.routing?.department || "General Civic Services",
+            recommendedAction: safeData.routing?.recommendedAction || "Manual inspection required."
         },
-
         ai: {
-
-            model: MODEL,
-
-            requiresHumanReview:
-                Boolean(
-                    data.ai?.requiresHumanReview
-                )
-
+            model: modelUsed || MODEL,
+            requiresHumanReview: Boolean(safeData.ai?.requiresHumanReview)
         }
-
     };
-
 }
 
 /*
@@ -211,6 +164,8 @@ export async function analyzeIssueImage({
     citizenDescription = ""
 
 }) {
+
+    const ai = getAIClient();
 
     if (!imageBuffer) {
 
@@ -488,43 +443,22 @@ Schema:
 `;
 
     try {
-
-        const response =
-            await ai.models.generateContent({
-
-                model: MODEL,
-
-                contents: [
-
-                    {
-
-                        inlineData: {
-
-                            mimeType,
-
-                            data:
-                                base64Image
-
-                        }
-
-                    },
-
-                    {
-
-                        text: prompt
-
+        const { response, modelUsed } = await generateWithFallback(ai, {
+            contents: [
+                {
+                    inlineData: {
+                        mimeType,
+                        data: base64Image
                     }
-
-                ],
-
-                config: {
-
-                    responseMimeType:
-                        "application/json"
-
+                },
+                {
+                    text: prompt
                 }
-
-            });
+            ],
+            config: {
+                responseMimeType: "application/json"
+            }
+        });
 
         const raw =
             response.text?.trim();
@@ -533,7 +467,8 @@ Schema:
             parseAIJson(raw);
 
         return normalizeAssessment(
-            parsed
+            parsed,
+            modelUsed
         );
 
     } catch (error) {
@@ -657,6 +592,7 @@ export async function analyzeIssue({
 
 }) {
 
+    const ai = getAIClient();
     if (!ai) {
 
         return {
@@ -671,7 +607,7 @@ export async function analyzeIssue({
                 "General Civic Services",
 
             reason:
-                "Gemini unavailable.",
+                "Gemini unavailable or API key not configured.",
 
             provider: "fallback"
 
@@ -681,10 +617,8 @@ export async function analyzeIssue({
 
     try {
 
-        const response =
-            await ai.models.generateContent({
-
-                model: MODEL,
+        const { response, modelUsed } =
+            await generateWithFallback(ai, {
 
                 contents: `
 
@@ -725,7 +659,9 @@ Return ONLY JSON:
 
             ...result,
 
-            provider: "gemini"
+            provider: "gemini",
+
+            model: modelUsed
 
         };
 
@@ -775,6 +711,8 @@ export async function verifyFix({
     issueDescription = ""
 
 }) {
+
+    const ai = getAIClient();
 
     const fallback = {
         verified: false,
@@ -877,9 +815,8 @@ RETURN ONLY VALID JSON:
 
     try {
 
-        const response =
-            await ai.models.generateContent({
-                model: MODEL,
+        const { response, modelUsed } =
+            await generateWithFallback(ai, {
                 contents: parts,
                 config: {
                     responseMimeType:
@@ -898,7 +835,8 @@ RETURN ONLY VALID JSON:
             issueAddressed: parsed.issueAddressed || "UNKNOWN",
             summary: parsed.summary || "Verification complete.",
             concerns: Array.isArray(parsed.concerns) ? parsed.concerns : [],
-            provider: "gemini"
+            provider: "gemini",
+            model: modelUsed
         };
 
     } catch (error) {

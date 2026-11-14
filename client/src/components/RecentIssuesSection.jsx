@@ -11,6 +11,39 @@ const PRIORITY_BADGES = {
   LOW: { bg: "bg-neutral-100 dark:bg-neutral-900 text-neutral-900 dark:text-white border-neutral-300 dark:border-neutral-700", dot: "bg-neutral-900 dark:bg-white" }
 };
 
+const FALLBACK_ISSUES = [
+  {
+    id: "sample-pothole",
+    issueCode: "CC-84192",
+    title: "Deep Pothole & Road Caving Near Crossing",
+    category: "Road Damage",
+    priority: "HIGH",
+    address: "Sigra Crossing, Varanasi",
+    createdAt: new Date(Date.now() - 3600000 * 3).toISOString(),
+    imageUrl: ""
+  },
+  {
+    id: "sample-light",
+    issueCode: "CC-84193",
+    title: "Damaged Street Light Pole Creating Dark Stretch",
+    category: "Broken Streetlight",
+    priority: "MEDIUM",
+    address: "Godowlia Market Lane, Varanasi",
+    createdAt: new Date(Date.now() - 3600000 * 6).toISOString(),
+    imageUrl: ""
+  },
+  {
+    id: "sample-waste",
+    issueCode: "CC-84194",
+    title: "Commercial Waste Bin Overflow On Walkway",
+    category: "Garbage / Waste",
+    priority: "URGENT",
+    address: "Assi Ghat Road, Varanasi",
+    createdAt: new Date(Date.now() - 3600000 * 10).toISOString(),
+    imageUrl: ""
+  }
+];
+
 export default function RecentIssuesSection() {
   const [issues, setIssues] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -32,6 +65,8 @@ export default function RecentIssuesSection() {
     loadIssues();
     return () => { isMounted = false; };
   }, []);
+
+  const displayIssues = issues.length > 0 ? issues.slice(0, 3) : (loading ? [] : FALLBACK_ISSUES);
 
   const getTimeAgo = (dateStr) => {
     if (!dateStr) return "Recently";
@@ -73,7 +108,17 @@ export default function RecentIssuesSection() {
 
       {/* Real Issues Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {issues.map((issue) => {
+        {loading && issues.length === 0 && (
+          [1, 2, 3].map((n) => (
+            <div key={n} className="rounded-2xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black p-4 space-y-3 animate-pulse">
+              <div className="aspect-16/10 bg-neutral-200 dark:bg-neutral-800 rounded-xl" />
+              <div className="h-4 bg-neutral-200 dark:bg-neutral-800 rounded w-3/4" />
+              <div className="h-3 bg-neutral-200 dark:bg-neutral-800 rounded w-1/2" />
+            </div>
+          ))
+        )}
+
+        {displayIssues.map((issue) => {
           const priorityKey = (issue.priority || "MEDIUM").toUpperCase();
           const badge = PRIORITY_BADGES[priorityKey] || PRIORITY_BADGES.MEDIUM;
           const imgSrc = getImageUrl(issue.imageUrl);
