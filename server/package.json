@@ -7,7 +7,7 @@
     "dev": "nodemon server.js",
     "start": "node server.js",
     "migrate": "node migrate.js",
-    "seed": "node seedUsers.js && node seedIssues.js",
+    "seed": "node seedUsers.js",
     "db:check": "node check-tables.mjs"
   },
   "dependencies": {

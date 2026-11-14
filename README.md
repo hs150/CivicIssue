@@ -201,7 +201,6 @@ civic-connect/
 │   ├── check-tables.mjs        # Database diagnostic utility
 │   ├── migrate.js              # Production migration runner
 │   ├── seedUsers.js            # Initial user seed
-│   ├── seedIssues.js           # Initial issue seed
 │   ├── server.js               # Application startup entrypoint
 │   └── vercel.json             # Serverless configuration
 │
