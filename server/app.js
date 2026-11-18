@@ -37,7 +37,7 @@ app.use(
 );
 
 
-app.get("/api/health", async (req, res) => {
+app.get(["/health", "/api/health"], async (req, res) => {
 
     try {
 
@@ -68,18 +68,19 @@ app.get("/api/health", async (req, res) => {
 });
 
 
+// Support both /api prefixed routes and direct root routes for flexible frontend deployment
 app.use(
-    "/api/auth",
+    ["/api/auth", "/auth"],
     authRoutes
 );
 
 app.use(
-    "/api/issues",
+    ["/api/issues", "/issues"],
     issueRoutes
 );
 
 app.use(
-    "/api/officer",
+    ["/api/officer", "/officer"],
     officerRoutes
 );
 
